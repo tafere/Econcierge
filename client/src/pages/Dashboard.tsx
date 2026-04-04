@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
   Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
-  XCircle, Ban, TriangleAlert, X, Check, CheckCheck,
+  XCircle, Ban, TriangleAlert, X, Check, CheckCheck, Menu,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -363,6 +363,7 @@ export default function DashboardPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
   const [declining, setDeclining] = useState<ServiceRequest | null>(null);
+  const [sideNavOpen, setSideNavOpen] = useState(false);
 
   const fetchRequests = async () => {
     const token = getToken();
@@ -459,25 +460,103 @@ export default function DashboardPage() {
                 <Bell className="h-3.5 w-3.5" /> {newCount} new
               </button>
             )}
-            {(user?.role === "ADMIN" || user?.role === "STAFF") && (
-              <button onClick={() => navigate("/rooms")}
+            {/* Desktop nav links */}
+            <div className="hidden sm:flex items-center gap-4">
+              {(user?.role === "ADMIN" || user?.role === "STAFF") && (
+                <button onClick={() => navigate("/rooms")}
+                  className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                  <BedDouble className="h-4 w-4" /> Rooms
+                </button>
+              )}
+              {user?.role === "ADMIN" && (
+                <button onClick={() => navigate("/settings")}
+                  className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                  <Settings className="h-4 w-4" /> Settings
+                </button>
+              )}
+              <button onClick={logout}
                 className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                <BedDouble className="h-4 w-4" /> Rooms
+                <LogOut className="h-4 w-4" /> Sign out
               </button>
-            )}
-            {user?.role === "ADMIN" && (
-              <button onClick={() => navigate("/settings")}
-                className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                <Settings className="h-4 w-4" /> Settings
-              </button>
-            )}
-            <button onClick={logout}
-              className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-              <LogOut className="h-4 w-4" /> Sign out
+            </div>
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setSideNavOpen(true)}
+              className="sm:hidden p-1 text-amber-200 hover:text-white transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
       </nav>
+
+      {/* Mobile side drawer */}
+      {sideNavOpen && (
+        <div className="fixed inset-0 z-50 sm:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSideNavOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="absolute right-0 top-0 h-full w-72 bg-brand-900 flex flex-col shadow-2xl">
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-brand-800">
+              <div className="flex items-center gap-3">
+                <ConciergeBell className="h-6 w-6 text-white" />
+                <div>
+                  <p className="font-bold text-white text-sm">Econcierge</p>
+                  <p className="text-amber-300 text-xs">{user?.hotelName}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSideNavOpen(false)}
+                className="text-amber-300 hover:text-white transition-colors p-1"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {/* User info */}
+            <div className="px-5 py-4 border-b border-brand-800">
+              <p className="text-xs text-amber-300 uppercase tracking-wider font-semibold">Signed in as</p>
+              <p className="text-white font-semibold mt-0.5">{user?.fullName}</p>
+              <p className="text-amber-400 text-xs mt-0.5">{user?.role}</p>
+            </div>
+            {/* Nav links */}
+            <nav className="flex-1 px-3 py-4 space-y-1">
+              {(user?.role === "ADMIN" || user?.role === "STAFF") && (
+                <button
+                  onClick={() => { navigate("/rooms"); setSideNavOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                    text-amber-200 hover:bg-brand-800 hover:text-white transition-colors text-left"
+                >
+                  <BedDouble className="h-5 w-5" /> Rooms
+                </button>
+              )}
+              {user?.role === "ADMIN" && (
+                <button
+                  onClick={() => { navigate("/settings"); setSideNavOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                    text-amber-200 hover:bg-brand-800 hover:text-white transition-colors text-left"
+                >
+                  <Settings className="h-5 w-5" /> Settings
+                </button>
+              )}
+            </nav>
+            {/* Sign out at bottom */}
+            <div className="px-3 py-4 border-t border-brand-800">
+              <button
+                onClick={() => { logout(); setSideNavOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                  text-amber-200 hover:bg-brand-800 hover:text-white transition-colors text-left"
+              >
+                <LogOut className="h-5 w-5" /> Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
 
