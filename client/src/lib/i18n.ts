@@ -22,7 +22,12 @@ const translations: Record<Lang, Record<string, string>> = {
     inProgress:          "In Progress",
     done:                "Done",
     upTo:                "up to",
-    upto2:               "up to",
+    addToCart:           "Add to Cart",
+    yourCart:            "Your Cart",
+    cartItems:           "items",
+    viewCart:            "Tap to review",
+    sendAll:             "Send All",
+    cartEmpty:           "Your cart is empty — add items above",
   },
   am: {
     howCanWeHelp:        "እንዴት ልናግዝዎ እንችላለን?",
@@ -45,7 +50,12 @@ const translations: Record<Lang, Record<string, string>> = {
     inProgress:          "በሂደት ላይ",
     done:                "ተጠናቋል",
     upTo:                "እስከ",
-    upto2:               "እስከ",
+    addToCart:           "ወደ ቅርጫት ጨምር",
+    yourCart:            "የእርስዎ ቅርጫት",
+    cartItems:           "ዕቃዎች",
+    viewCart:            "ለማየት ይጫኑ",
+    sendAll:             "ሁሉንም ላክ",
+    cartEmpty:           "ቅርጫትዎ ባዶ ነው — ከላይ ዕቃዎችን ይጨምሩ",
   },
 };
 

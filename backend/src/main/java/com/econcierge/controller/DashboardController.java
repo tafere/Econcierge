@@ -41,20 +41,23 @@ public class DashboardController {
     }
 
     @GetMapping("/requests")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'HOUSEKEEPING', 'MAINTENANCE')")
     public ResponseEntity<?> getRequests(@RequestHeader("Authorization") String header,
                                          @RequestParam(required = false) String status) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        String role   = jwtUtil.extractRole(header.substring(7));
 
         List<ServiceRequest> requests = status != null
                 ? requestRepository.findByHotelIdAndStatusOrderByCreatedAtDesc(hotelId, ServiceRequest.Status.valueOf(status))
                 : requestRepository.findByHotelIdOrderByCreatedAtDesc(hotelId);
 
-        return ResponseEntity.ok(requests.stream().map(r -> toMap(r, hotelId)).toList());
+        return ResponseEntity.ok(requests.stream()
+                .filter(r -> matchesRole(r, role))
+                .map(r -> toMap(r, hotelId)).toList());
     }
 
     @PatchMapping("/requests/{id}/status")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'HOUSEKEEPING', 'MAINTENANCE')")
     public ResponseEntity<?> updateStatus(@PathVariable Long id,
                                           @RequestBody Map<String, String> body,
                                           @RequestHeader("Authorization") String header) {
@@ -154,6 +157,21 @@ public class DashboardController {
         if (body.containsKey("email"))   hotel.setEmail(body.get("email"));
         hotelRepository.save(hotel);
         return ResponseEntity.ok(Map.of("message", "Hotel settings updated"));
+    }
+
+    /** Returns true if the request's category is visible to this role. */
+    private boolean matchesRole(ServiceRequest r, String role) {
+        if ("ADMIN".equals(role) || "STAFF".equals(role)) return true;
+        RequestItem item = itemRepository.findById(r.getItemId()).orElse(null);
+        if (item == null) return false;
+        RequestCategory cat = categoryRepository.findById(item.getCategoryId()).orElse(null);
+        if (cat == null) return false;
+        String name = cat.getName();
+        return switch (role) {
+            case "HOUSEKEEPING" -> name.equals("Housekeeping") || name.equals("Amenities") || name.equals("Toiletries");
+            case "MAINTENANCE"  -> name.equals("Maintenance");
+            default -> true;
+        };
     }
 
     private Map<String, Object> toMap(ServiceRequest r, Long hotelId) {

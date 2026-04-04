@@ -136,6 +136,12 @@ export default function DashboardPage() {
             <div>
               <span className="font-bold text-sm">Econcierge</span>
               <span className="text-amber-200 text-xs ml-2">{user?.hotelName}</span>
+              {user?.role === "HOUSEKEEPING" && (
+                <span className="text-[10px] bg-amber-400 text-amber-900 rounded-full px-2 py-0.5 font-bold ml-1">Housekeeping</span>
+              )}
+              {user?.role === "MAINTENANCE" && (
+                <span className="text-[10px] bg-blue-400 text-blue-900 rounded-full px-2 py-0.5 font-bold ml-1">Maintenance</span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -148,10 +154,12 @@ export default function DashboardPage() {
                 <Bell className="h-3.5 w-3.5" /> {newCount} new
               </button>
             )}
-            <button onClick={() => navigate("/rooms")}
-              className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-              <BedDouble className="h-4 w-4" /> Rooms
-            </button>
+            {(user?.role === "ADMIN" || user?.role === "STAFF") && (
+              <button onClick={() => navigate("/rooms")}
+                className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                <BedDouble className="h-4 w-4" /> Rooms
+              </button>
+            )}
             {user?.role === "ADMIN" && (
               <button onClick={() => navigate("/settings")}
                 className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">

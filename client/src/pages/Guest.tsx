@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "wouter";
 import {
-  Loader2, ConciergeBell, CheckCircle2, ChevronRight, ChevronLeft,
-  Minus, Plus, ChevronDown, Clock, RefreshCw,
+  Loader2, ConciergeBell, ChevronRight, ChevronLeft,
+  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send,
 } from "lucide-react";
 import { tr, getLang, setLang, type Lang } from "@/lib/i18n";
 
@@ -33,18 +33,27 @@ interface RoomInfo {
   menu: MenuCategory[];
 }
 
+interface CartItem {
+  itemId: number;
+  itemName: string;
+  categoryName: string;
+  categoryIcon: string;
+  quantity: number;
+  notes: string;
+}
+
 interface TrackedRequest {
   id: number;
   itemName: string;
   categoryName: string;
   quantity: number;
-  submittedAt: string;   // ISO string
+  submittedAt: string;
   status: "PENDING" | "IN_PROGRESS" | "DONE";
 }
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
 
-const today = () => new Date().toISOString().slice(0, 10);  // YYYY-MM-DD
+const today = () => new Date().toISOString().slice(0, 10);
 
 function storageKey(qrToken: string) {
   return `eco_req_${qrToken}_${today()}`;
@@ -90,12 +99,16 @@ export default function GuestPage() {
   // navigation
   const [selectedCat, setSelectedCat]   = useState<MenuCategory | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [showCart, setShowCart]         = useState(false);
 
   // form
   const [quantity, setQuantity]   = useState(1);
   const [notes, setNotes]         = useState("");
   const [showNotes, setShowNotes] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+
+  // cart
+  const [cart, setCart]     = useState<CartItem[]>([]);
+  const [sending, setSending] = useState(false);
 
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
@@ -141,7 +154,68 @@ export default function GuestPage() {
     return () => clearInterval(interval);
   }, [pollStatuses]);
 
-  // ── Submit ───────────────────────────────────────────────────────────────
+  // ── Cart actions ─────────────────────────────────────────────────────────
+  const addToCart = () => {
+    if (!selectedItem || !selectedCat) return;
+    setCart(prev => [...prev, {
+      itemId:       selectedItem.id,
+      itemName:     selectedItem.name,
+      categoryName: selectedCat.name,
+      categoryIcon: selectedCat.icon,
+      quantity,
+      notes:        notes.trim(),
+    }]);
+    setSelectedItem(null);
+    setSelectedCat(null);
+    setQuantity(1);
+    setNotes("");
+    setShowNotes(false);
+  };
+
+  const removeFromCart = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const sendAll = async () => {
+    if (!room || cart.length === 0) return;
+    setSending(true);
+    const newTracked: TrackedRequest[] = [];
+    for (const cartItem of cart) {
+      try {
+        const res = await fetch("/api/guest/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomId:   room.roomId,
+            itemId:   cartItem.itemId,
+            quantity: cartItem.quantity,
+            notes:    cartItem.notes || null,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          newTracked.push({
+            id:           data.id,
+            itemName:     cartItem.itemName,
+            categoryName: cartItem.categoryName,
+            quantity:     cartItem.quantity,
+            submittedAt:  new Date().toISOString(),
+            status:       "PENDING",
+          });
+        }
+      } catch { /* continue */ }
+    }
+    setTracked(prev => {
+      const next = [...newTracked, ...prev];
+      saveTracked(token, next);
+      return next;
+    });
+    setCart([]);
+    setShowCart(false);
+    setSending(false);
+  };
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
   const selectItem = (item: MenuItem) => {
     setSelectedItem(item);
     setQuantity(1);
@@ -149,45 +223,6 @@ export default function GuestPage() {
     setShowNotes(false);
   };
 
-  const submit = async () => {
-    if (!room || !selectedItem) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/guest/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          roomId: room.roomId,
-          itemId: selectedItem.id,
-          quantity,
-          notes: notes.trim() || null,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const newReq: TrackedRequest = {
-          id:           data.id,
-          itemName:     selectedItem.name,
-          categoryName: selectedCat!.name,
-          quantity,
-          submittedAt:  new Date().toISOString(),
-          status:       "PENDING",
-        };
-        setTracked(prev => {
-          const next = [newReq, ...prev];
-          saveTracked(token, next);
-          return next;
-        });
-        // back to category screen
-        setSelectedItem(null);
-        setSelectedCat(null);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
   const timeAgo = (iso: string) => {
     const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
     if (diff < 1) return lang === "am" ? "አሁን ልክ" : "just now";
@@ -214,7 +249,7 @@ export default function GuestPage() {
   );
 
   return (
-    <div className="min-h-screen bg-amber-50">
+    <div className="min-h-screen bg-amber-50 pb-28">
 
       {/* Header */}
       <div className="bg-brand-700 text-white px-4 py-5">
@@ -234,11 +269,10 @@ export default function GuestPage() {
               </h1>
             </div>
           </div>
-          {/* Language toggle */}
           <button
             onClick={toggleLang}
             className="text-xs font-bold bg-brand-800 hover:bg-brand-900 transition-colors
-              rounded-full px-3 py-1.5 text-amber-100"
+              rounded-full px-3 py-1.5 text-amber-100 shrink-0 ml-3"
           >
             {lang === "en" ? "አማርኛ" : "EN"}
           </button>
@@ -247,179 +281,272 @@ export default function GuestPage() {
 
       <div className="max-w-lg mx-auto p-4 space-y-4">
 
-        {/* ── My Requests tracker (visible on main screen) ── */}
-        {!selectedCat && !selectedItem && tracked.length > 0 && (
-          <div className="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
-              <p className="text-xs font-bold uppercase tracking-wider text-stone-500">{T("myRequests")}</p>
-              <button onClick={pollStatuses} className="text-stone-300 hover:text-brand-700 transition-colors">
-                <RefreshCw className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <div className="divide-y divide-stone-50">
-              {tracked.map(req => (
-                <div key={req.id} className="px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-stone-800 truncate">{req.itemName}</p>
-                      {req.quantity > 1 && (
-                        <span className="text-xs font-bold text-brand-700">×{req.quantity}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-400">
-                      <Clock className="h-3 w-3" />
-                      {timeAgo(req.submittedAt)}
-                    </div>
-                  </div>
-                  <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0 ${STATUS_STYLE[req.status]}`}>
-                    {statusLabel(req.status)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 1: Category selection ── */}
-        {!selectedCat && !selectedItem && (
-          <>
-            <p className="text-sm text-stone-500 font-medium pt-1">{T("selectCategory")}</p>
-            <div className="grid grid-cols-2 gap-3">
-              {room!.menu.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCat(cat)}
-                  className="bg-white rounded-xl p-5 text-left shadow-sm border border-stone-100
-                    hover:border-brand-700 hover:shadow-md transition-all active:scale-95"
-                >
-                  <p className="text-2xl mb-2">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
-                  <p className="font-semibold text-stone-800 text-sm">{cat.name}</p>
-                  <p className="text-xs text-stone-400 mt-0.5">{cat.items.length} {T("options")}</p>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ── Step 2: Item selection ── */}
-        {selectedCat && !selectedItem && (
+        {/* ── Cart view ─────────────────────────────────────────────────── */}
+        {showCart && (
           <>
             <button
-              onClick={() => setSelectedCat(null)}
+              onClick={() => setShowCart(false)}
               className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2"
             >
               <ChevronLeft className="h-4 w-4" /> {T("back")}
             </button>
-            <h2 className="font-bold text-stone-900">{selectedCat.name}</h2>
-            <div className="space-y-2">
-              {selectedCat.items.map(item => (
+
+            <h2 className="font-bold text-stone-900 flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-brand-700" /> {T("yourCart")}
+            </h2>
+
+            {cart.length === 0 ? (
+              <p className="text-sm text-stone-400 text-center py-8">{T("cartEmpty")}</p>
+            ) : (
+              <>
+                <div className="bg-white rounded-xl border border-stone-100 shadow-sm divide-y divide-stone-50">
+                  {cart.map((ci, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-3">
+                      <span className="text-xl shrink-0">{CATEGORY_EMOJI[ci.categoryIcon] ?? "🛎️"}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-stone-800">{ci.itemName}</p>
+                        <p className="text-xs text-stone-400">
+                          {ci.categoryName}{ci.quantity > 1 ? ` · ×${ci.quantity}` : ""}
+                        </p>
+                        {ci.notes && (
+                          <p className="text-xs text-stone-400 italic mt-0.5">"{ci.notes}"</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => removeFromCart(i)}
+                        className="text-stone-300 hover:text-red-500 transition-colors shrink-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
                 <button
-                  key={item.id}
-                  onClick={() => selectItem(item)}
-                  className="w-full bg-white rounded-xl px-4 py-4 text-left shadow-sm border border-stone-100
-                    hover:border-brand-700 hover:shadow-md transition-all flex items-center justify-between"
+                  onClick={sendAll}
+                  disabled={sending}
+                  className="w-full h-12 bg-brand-700 text-white rounded-xl font-bold text-sm
+                    hover:bg-brand-800 transition-colors flex items-center justify-center gap-2
+                    disabled:opacity-50"
                 >
+                  {sending
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> {T("sending")}</>
+                    : <><Send className="h-4 w-4" /> {T("sendAll")} ({cart.length})</>}
+                </button>
+              </>
+            )}
+          </>
+        )}
+
+        {/* ── Main flow (hidden while cart is open) ─────────────────────── */}
+        {!showCart && (
+          <>
+            {/* My Requests tracker — only on main screen */}
+            {!selectedCat && !selectedItem && tracked.length > 0 && (
+              <div className="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">{T("myRequests")}</p>
+                  <button onClick={pollStatuses} className="text-stone-300 hover:text-brand-700 transition-colors">
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div className="divide-y divide-stone-50">
+                  {tracked.map(req => (
+                    <div key={req.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-semibold text-stone-800 truncate">{req.itemName}</p>
+                          {req.quantity > 1 && (
+                            <span className="text-xs font-bold text-brand-700">×{req.quantity}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-400">
+                          <Clock className="h-3 w-3" />
+                          {timeAgo(req.submittedAt)}
+                        </div>
+                      </div>
+                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0 ${STATUS_STYLE[req.status]}`}>
+                        {statusLabel(req.status)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 1: Category selection */}
+            {!selectedCat && !selectedItem && (
+              <>
+                <p className="text-sm text-stone-500 font-medium pt-1">{T("selectCategory")}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {room!.menu.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCat(cat)}
+                      className="bg-white rounded-xl p-5 text-left shadow-sm border border-stone-100
+                        hover:border-brand-700 hover:shadow-md transition-all active:scale-95"
+                    >
+                      <p className="text-2xl mb-2">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
+                      <p className="font-semibold text-stone-800 text-sm">{cat.name}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">{cat.items.length} {T("options")}</p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Step 2: Item selection */}
+            {selectedCat && !selectedItem && (
+              <>
+                <button
+                  onClick={() => setSelectedCat(null)}
+                  className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2"
+                >
+                  <ChevronLeft className="h-4 w-4" /> {T("back")}
+                </button>
+                <h2 className="font-bold text-stone-900">{selectedCat.name}</h2>
+                <div className="space-y-2">
+                  {selectedCat.items.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => selectItem(item)}
+                      className="w-full bg-white rounded-xl px-4 py-4 text-left shadow-sm border border-stone-100
+                        hover:border-brand-700 hover:shadow-md transition-all flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
+                        {item.description && (
+                          <p className="text-xs text-stone-400 mt-0.5">{item.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.maxQuantity > 1 && (
+                          <span className="text-xs text-stone-400">{T("upTo")} {item.maxQuantity}</span>
+                        )}
+                        <ChevronRight className="h-4 w-4 text-stone-300" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Step 3: Quantity + Add to Cart */}
+            {selectedItem && (
+              <>
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2"
+                >
+                  <ChevronLeft className="h-4 w-4" /> {T("back")}
+                </button>
+
+                <div className="bg-white rounded-xl p-5 shadow-sm border border-stone-100 space-y-5">
                   <div>
-                    <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
-                    {item.description && (
-                      <p className="text-xs text-stone-400 mt-0.5">{item.description}</p>
+                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
+                    <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
+                  </div>
+
+                  {/* Quantity stepper */}
+                  {selectedItem.maxQuantity > 1 && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">{T("quantity")}</p>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                          disabled={quantity <= 1}
+                          className="w-10 h-10 rounded-full border-2 border-stone-200 flex items-center justify-center
+                            text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
+                            disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="text-2xl font-bold text-stone-900 w-8 text-center">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(q => Math.min(selectedItem.maxQuantity, q + 1))}
+                          disabled={quantity >= selectedItem.maxQuantity}
+                          className="w-10 h-10 rounded-full border-2 border-stone-200 flex items-center justify-center
+                            text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
+                            disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        <span className="text-xs text-stone-400 ml-1">{T("max")} {selectedItem.maxQuantity}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optional notes */}
+                  <div>
+                    <button
+                      onClick={() => setShowNotes(v => !v)}
+                      className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400
+                        hover:text-brand-700 transition-colors"
+                    >
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showNotes ? "rotate-180" : ""}`} />
+                      {T("addInstructions")}
+                    </button>
+                    {showNotes && (
+                      <textarea
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        placeholder={T("instructionsHint")}
+                        rows={3}
+                        autoFocus
+                        className="mt-2 w-full border border-stone-200 rounded-lg px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none"
+                      />
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {item.maxQuantity > 1 && (
-                      <span className="text-xs text-stone-400">{T("upTo")} {item.maxQuantity}</span>
-                    )}
-                    <ChevronRight className="h-4 w-4 text-stone-300" />
-                  </div>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
 
-        {/* ── Step 3: Quantity + confirm ── */}
-        {selectedItem && (
-          <>
-            <button
-              onClick={() => setSelectedItem(null)}
-              className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2"
-            >
-              <ChevronLeft className="h-4 w-4" /> {T("back")}
-            </button>
-
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-stone-100 space-y-5">
-              <div>
-                <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
-                <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
-              </div>
-
-              {/* Quantity stepper */}
-              {selectedItem.maxQuantity > 1 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">{T("quantity")}</p>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      disabled={quantity <= 1}
-                      className="w-10 h-10 rounded-full border-2 border-stone-200 flex items-center justify-center
-                        text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
-                        disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="text-2xl font-bold text-stone-900 w-8 text-center">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(q => Math.min(selectedItem.maxQuantity, q + 1))}
-                      disabled={quantity >= selectedItem.maxQuantity}
-                      className="w-10 h-10 rounded-full border-2 border-stone-200 flex items-center justify-center
-                        text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
-                        disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                    <span className="text-xs text-stone-400 ml-1">{T("max")} {selectedItem.maxQuantity}</span>
-                  </div>
+                  <button
+                    onClick={addToCart}
+                    className="w-full h-12 bg-brand-700 text-white rounded-xl font-bold text-sm
+                      hover:bg-brand-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="h-4 w-4" /> {T("addToCart")}
+                  </button>
                 </div>
-              )}
-
-              {/* Optional notes */}
-              <div>
-                <button
-                  onClick={() => setShowNotes(v => !v)}
-                  className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400
-                    hover:text-brand-700 transition-colors"
-                >
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showNotes ? "rotate-180" : ""}`} />
-                  {T("addInstructions")}
-                </button>
-                {showNotes && (
-                  <textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder={T("instructionsHint")}
-                    rows={3}
-                    autoFocus
-                    className="mt-2 w-full border border-stone-200 rounded-lg px-3 py-2 text-sm
-                      focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none"
-                  />
-                )}
-              </div>
-
-              <button
-                onClick={submit}
-                disabled={submitting}
-                className="w-full h-12 bg-brand-700 text-white rounded-xl font-bold text-sm
-                  hover:bg-brand-800 transition-colors flex items-center justify-center gap-2
-                  disabled:opacity-50"
-              >
-                {submitting
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> {T("sending")}</>
-                  : T("sendRequest")}
-              </button>
-            </div>
+              </>
+            )}
           </>
         )}
       </div>
+
+      {/* ── Sticky cart bar (visible whenever cart has items) ── */}
+      {cart.length > 0 && !showCart && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-2xl px-4 py-3">
+          <div className="max-w-lg mx-auto flex items-center gap-3">
+            <button
+              onClick={() => setShowCart(true)}
+              className="flex-1 flex items-center gap-3 bg-stone-50 rounded-xl px-4 py-3
+                border border-stone-200 hover:border-brand-700 transition-colors text-left"
+            >
+              <div className="relative">
+                <ShoppingCart className="h-5 w-5 text-brand-700" />
+                <span className="absolute -top-2 -right-2 bg-brand-700 text-white text-[10px] font-bold
+                  rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                  {cart.length}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-stone-800">{cart.length} {T("cartItems")}</p>
+                <p className="text-[11px] text-stone-400">{T("viewCart")}</p>
+              </div>
+            </button>
+            <button
+              onClick={sendAll}
+              disabled={sending}
+              className="h-12 px-5 bg-brand-700 text-white rounded-xl font-bold text-sm
+                hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50 shrink-0"
+            >
+              {sending
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <><Send className="h-4 w-4" /> {T("sendAll")}</>}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

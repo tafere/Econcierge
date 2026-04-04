@@ -121,6 +121,26 @@ public class DataSeeder implements CommandLineRunner {
             item("Airport Shuttle",     null, 1)
         ));
 
+        if (staffRepository.findByUsername("housekeeping").isEmpty()) {
+            Staff hk = new Staff();
+            hk.setHotelId(hotel.getId());
+            hk.setUsername("housekeeping");
+            hk.setPassword(passwordEncoder.encode("house123"));
+            hk.setFullName("Housekeeping Team");
+            hk.setRole(Staff.Role.HOUSEKEEPING);
+            staffRepository.save(hk);
+        }
+
+        if (staffRepository.findByUsername("maintenance").isEmpty()) {
+            Staff mt = new Staff();
+            mt.setHotelId(hotel.getId());
+            mt.setUsername("maintenance");
+            mt.setPassword(passwordEncoder.encode("maint123"));
+            mt.setFullName("Maintenance Team");
+            mt.setRole(Staff.Role.MAINTENANCE);
+            staffRepository.save(mt);
+        }
+
         System.out.println("Econcierge: demo hotel seeded — login: admin / admin123");
     }
 

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Table(name = "staff")
 public class Staff {
 
-    public enum Role { ADMIN, STAFF }
+    public enum Role { ADMIN, STAFF, HOUSEKEEPING, MAINTENANCE }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
