@@ -265,13 +265,13 @@ export default function GuestPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-amber-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <Loader2 className="h-8 w-8 animate-spin text-brand-700" />
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center bg-amber-50 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
       <div className="text-center max-w-xs">
         <ConciergeBell className="h-12 w-12 text-stone-300 mx-auto mb-4" />
         <p className="text-stone-600 text-sm">{error}</p>
@@ -280,7 +280,7 @@ export default function GuestPage() {
   );
 
   return (
-    <div className="min-h-screen bg-amber-50 pb-28">
+    <div className="min-h-screen bg-slate-50 pb-28">
 
       {/* Header */}
       <div className="bg-brand-700 text-white px-4 py-5">

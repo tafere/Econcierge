@@ -79,7 +79,7 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-slate-100">
       <nav className="bg-brand-700 text-white px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
