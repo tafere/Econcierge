@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
   Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
-  XCircle, Ban, TriangleAlert, X,
+  XCircle, Ban, TriangleAlert, X, Check, CheckCheck,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -139,15 +139,16 @@ function DeclineModal({
         </div>
         <div className="flex gap-3">
           <button onClick={onCancel}
-            className="flex-1 h-10 border border-stone-200 rounded-xl text-sm font-semibold
-              text-stone-600 hover:bg-stone-50 transition-colors">
+            className="flex-1 h-10 bg-white border border-stone-200 rounded-full text-sm font-semibold
+              text-stone-600 hover:bg-stone-50 active:scale-95 transition-all shadow-sm">
             Cancel
           </button>
           <button
             onClick={() => { if (comment.trim()) onConfirm(comment.trim()); }}
             disabled={!comment.trim()}
-            className="flex-1 h-10 bg-red-600 text-white rounded-xl text-sm font-semibold
-              hover:bg-red-700 transition-colors disabled:opacity-40"
+            className="flex-1 h-10 bg-gradient-to-b from-rose-500 to-rose-600 text-white rounded-full
+              text-sm font-semibold shadow-sm shadow-rose-200 hover:from-rose-600 hover:to-rose-700
+              active:scale-95 transition-all disabled:opacity-40"
           >
             Decline
           </button>
@@ -310,29 +311,35 @@ function RequestTable({
                 {updatingId === req.id ? (
                   <Loader2 className="h-4 w-4 animate-spin text-stone-400 mx-auto" />
                 ) : req.status === "PENDING" ? (
-                  <div className="flex items-center justify-center gap-1.5">
+                  <div className="flex items-center justify-center gap-2">
                     <button
                       onClick={() => onAccept(req.id)}
-                      className="text-xs bg-blue-600 text-white rounded-lg px-2.5 py-1.5
-                        font-semibold hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white
+                        bg-gradient-to-b from-blue-500 to-blue-600 rounded-full px-3 py-1.5
+                        shadow-sm shadow-blue-200 hover:from-blue-600 hover:to-blue-700
+                        active:scale-95 transition-all"
                     >
-                      Accept
+                      <Check className="h-3 w-3" /> Accept
                     </button>
                     <button
                       onClick={() => onDecline(req)}
-                      className="text-xs bg-red-50 text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5
-                        font-semibold hover:bg-red-100 transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600
+                        bg-white border border-rose-200 rounded-full px-3 py-1.5
+                        shadow-sm hover:bg-rose-50 hover:border-rose-300
+                        active:scale-95 transition-all"
                     >
-                      Decline
+                      <X className="h-3 w-3" /> Decline
                     </button>
                   </div>
                 ) : req.status === "IN_PROGRESS" ? (
                   <button
                     onClick={() => onDone(req.id)}
-                    className="text-xs bg-green-600 text-white rounded-lg px-3 py-1.5
-                      font-semibold hover:bg-green-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-white
+                      bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full px-3 py-1.5
+                      shadow-sm shadow-emerald-200 hover:from-emerald-600 hover:to-emerald-700
+                      active:scale-95 transition-all"
                   >
-                    Mark Done
+                    <CheckCheck className="h-3 w-3" /> Mark Done
                   </button>
                 ) : (
                   <span className="text-stone-200 text-xs">—</span>
