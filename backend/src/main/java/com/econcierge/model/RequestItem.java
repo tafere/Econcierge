@@ -24,6 +24,9 @@ public class RequestItem {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Column(name = "max_quantity", nullable = false)
+    private int maxQuantity = 1;
+
     public Long getId()                  { return id; }
     public Long getCategoryId()          { return categoryId; }
     public void setCategoryId(Long v)    { this.categoryId = v; }
@@ -35,4 +38,6 @@ public class RequestItem {
     public void setSortOrder(int v)      { this.sortOrder = v; }
     public boolean isEnabled()           { return enabled; }
     public void setEnabled(boolean v)    { this.enabled = v; }
+    public int getMaxQuantity()          { return maxQuantity; }
+    public void setMaxQuantity(int v)    { this.maxQuantity = v; }
 }

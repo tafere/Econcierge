@@ -32,72 +32,125 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (hotelRepository.count() > 0) return;
+        Hotel hotel;
+        if (hotelRepository.count() == 0) {
+            hotel = new Hotel();
+            hotel.setName("Skylight Hotel");
+            hotel.setSlug("skylight");
+            hotel.setAddress("Addis Ababa, Ethiopia");
+            hotel.setPhone("+251111234567");
+            hotel.setEmail("info@skylighthotel.com");
+            hotelRepository.save(hotel);
 
-        // Create demo hotel
-        Hotel hotel = new Hotel();
-        hotel.setName("Skylight Hotel");
-        hotel.setSlug("skylight");
-        hotel.setAddress("Addis Ababa, Ethiopia");
-        hotel.setPhone("+251111234567");
-        hotel.setEmail("info@skylighthotel.com");
-        hotelRepository.save(hotel);
+            Staff admin = new Staff();
+            admin.setHotelId(hotel.getId());
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setFullName("Hotel Administrator");
+            admin.setRole(Staff.Role.ADMIN);
+            staffRepository.save(admin);
 
-        // Create admin staff
-        Staff admin = new Staff();
-        admin.setHotelId(hotel.getId());
-        admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setFullName("Hotel Administrator");
-        admin.setRole(Staff.Role.ADMIN);
-        staffRepository.save(admin);
-
-        // Create sample rooms
-        String[] floors = {"1", "2", "3", "4", "5"};
-        int roomNum = 101;
-        for (String floor : floors) {
-            for (int i = 0; i < 5; i++) {
-                Room room = new Room();
-                room.setHotelId(hotel.getId());
-                room.setRoomNumber(String.valueOf(roomNum++));
-                room.setFloor(floor);
-                room.setRoomType(i == 0 ? "Suite" : "Standard");
-                room.setQrToken(UUID.randomUUID().toString());
-                roomRepository.save(room);
+            String[] floors = {"1", "2", "3", "4", "5"};
+            int roomNum = 101;
+            for (String floor : floors) {
+                for (int i = 0; i < 5; i++) {
+                    Room room = new Room();
+                    room.setHotelId(hotel.getId());
+                    room.setRoomNumber(String.valueOf(roomNum++));
+                    room.setFloor(floor);
+                    room.setRoomType(i == 0 ? "Suite" : "Standard");
+                    room.setQrToken(UUID.randomUUID().toString());
+                    roomRepository.save(room);
+                }
+                roomNum = (Integer.parseInt(floor) + 1) * 100 + 1;
             }
-            roomNum = (Integer.parseInt(floor) + 1) * 100 + 1;
+        } else {
+            hotel = hotelRepository.findBySlug("skylight").orElse(null);
+            if (hotel == null) return;
         }
 
-        // Seed categories and items
-        seedCategory(hotel.getId(), "Housekeeping", "sparkles", 1,
-            List.of("Extra Towels", "Extra Pillows", "Extra Blanket", "Toiletries", "Room Cleaning"));
+        // Idempotent category seeding — adds missing categories/items only
+        ensureCategory(hotel.getId(), "Housekeeping", "broom", 1, List.of(
+            item("Room Cleaning",     null, 1),
+            item("Turn-Down Service", null, 1),
+            item("Make Up Room",      null, 1)
+        ));
 
-        seedCategory(hotel.getId(), "Food & Beverage", "utensils", 2,
-            List.of("Room Service Menu", "Extra Water Bottles", "Coffee / Tea", "Ice Bucket", "Minibar Restock"));
+        ensureCategory(hotel.getId(), "Amenities", "sparkles", 2, List.of(
+            item("Extra Towels",   null, 3),
+            item("Extra Pillows",  null, 3),
+            item("Extra Blanket",  null, 2),
+            item("Bathrobe",       null, 2),
+            item("Extra Hangers",  null, 5)
+        ));
 
-        seedCategory(hotel.getId(), "Maintenance", "wrench", 3,
-            List.of("AC / Heating Issue", "TV Not Working", "Plumbing Issue", "Lighting Issue", "Safe / Lock Issue"));
+        ensureCategory(hotel.getId(), "Toiletries", "soap", 3, List.of(
+            item("Toothbrush",    null, 2),
+            item("Toothpaste",    null, 2),
+            item("Shampoo",       null, 2),
+            item("Conditioner",   null, 2),
+            item("Body Lotion",   null, 2),
+            item("Razor",         null, 2),
+            item("Shower Cap",    null, 2),
+            item("Cotton Swabs",  null, 2)
+        ));
 
-        seedCategory(hotel.getId(), "Concierge", "concierge-bell", 4,
-            List.of("Taxi / Transport", "Tour Information", "Wake-Up Call", "Luggage Assistance", "Airport Shuttle"));
+        ensureCategory(hotel.getId(), "Food & Beverage", "utensils", 4, List.of(
+            item("Room Service Menu",   null, 1),
+            item("Extra Water Bottles", null, 4),
+            item("Coffee / Tea",        null, 4),
+            item("Ice Bucket",          null, 1),
+            item("Minibar Restock",     null, 1)
+        ));
+
+        ensureCategory(hotel.getId(), "Maintenance", "wrench", 5, List.of(
+            item("AC / Heating Issue", null, 1),
+            item("TV Not Working",     null, 1),
+            item("Plumbing Issue",     null, 1),
+            item("Lighting Issue",     null, 1),
+            item("Safe / Lock Issue",  null, 1)
+        ));
+
+        ensureCategory(hotel.getId(), "Concierge", "concierge-bell", 6, List.of(
+            item("Taxi / Transport",    null, 1),
+            item("Tour Information",    null, 1),
+            item("Wake-Up Call",        null, 1),
+            item("Luggage Assistance",  null, 1),
+            item("Airport Shuttle",     null, 1)
+        ));
 
         System.out.println("Econcierge: demo hotel seeded — login: admin / admin123");
     }
 
-    private void seedCategory(Long hotelId, String name, String icon, int order, List<String> items) {
-        RequestCategory cat = new RequestCategory();
-        cat.setHotelId(hotelId);
-        cat.setName(name);
-        cat.setIcon(icon);
-        cat.setSortOrder(order);
-        categoryRepository.save(cat);
+    private record ItemDef(String name, String description, int maxQuantity) {}
+
+    private ItemDef item(String name, String description, int maxQuantity) {
+        return new ItemDef(name, description, maxQuantity);
+    }
+
+    private void ensureCategory(Long hotelId, String name, String icon, int order, List<ItemDef> items) {
+        RequestCategory cat = categoryRepository
+                .findByHotelIdAndName(hotelId, name)
+                .orElseGet(() -> {
+                    RequestCategory c = new RequestCategory();
+                    c.setHotelId(hotelId);
+                    c.setName(name);
+                    c.setIcon(icon);
+                    c.setSortOrder(order);
+                    return categoryRepository.save(c);
+                });
 
         for (int i = 0; i < items.size(); i++) {
-            RequestItem item = new RequestItem();
-            item.setCategoryId(cat.getId());
-            item.setName(items.get(i));
-            item.setSortOrder(i);
-            itemRepository.save(item);
+            ItemDef def = items.get(i);
+            if (!itemRepository.existsByCategoryIdAndName(cat.getId(), def.name())) {
+                RequestItem item = new RequestItem();
+                item.setCategoryId(cat.getId());
+                item.setName(def.name());
+                item.setDescription(def.description());
+                item.setSortOrder(i);
+                item.setMaxQuantity(def.maxQuantity());
+                itemRepository.save(item);
+            }
         }
     }
 }

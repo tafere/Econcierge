@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="006-add-quantity" author="tafere">
+        <addColumn tableName="request_items">
+            <column name="max_quantity" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="service_requests">
+            <column name="quantity" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

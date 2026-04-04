@@ -131,6 +131,7 @@ public class DashboardController {
             Map.entry("itemName",      item != null ? item.getName() : ""),
             Map.entry("categoryName",  cat  != null ? cat.getName()  : ""),
             Map.entry("categoryIcon",  cat  != null && cat.getIcon() != null ? cat.getIcon() : ""),
+            Map.entry("quantity",       r.getQuantity()),
             Map.entry("notes",         r.getNotes() != null ? r.getNotes() : ""),
             Map.entry("status",        r.getStatus().name()),
             Map.entry("assignedTo",    assignedName),

@@ -50,7 +50,8 @@ public class GuestController {
                     .map(item -> Map.<String, Object>of(
                             "id",          item.getId(),
                             "name",        item.getName(),
-                            "description", item.getDescription() != null ? item.getDescription() : ""
+                            "description", item.getDescription() != null ? item.getDescription() : "",
+                            "maxQuantity", item.getMaxQuantity()
                     )).toList();
 
             return Map.<String, Object>of(
@@ -73,9 +74,10 @@ public class GuestController {
     /** Submit a service request */
     @PostMapping("/request")
     public ResponseEntity<?> submitRequest(@RequestBody Map<String, Object> body) {
-        Long roomId  = body.get("roomId")  != null ? Long.valueOf(body.get("roomId").toString())  : null;
-        Long itemId  = body.get("itemId")  != null ? Long.valueOf(body.get("itemId").toString())  : null;
-        String notes = body.get("notes")   != null ? body.get("notes").toString() : null;
+        Long roomId   = body.get("roomId")   != null ? Long.valueOf(body.get("roomId").toString())   : null;
+        Long itemId   = body.get("itemId")   != null ? Long.valueOf(body.get("itemId").toString())   : null;
+        String notes  = body.get("notes")    != null ? body.get("notes").toString() : null;
+        int quantity  = body.get("quantity") != null ? Integer.parseInt(body.get("quantity").toString()) : 1;
 
         if (roomId == null || itemId == null)
             return ResponseEntity.badRequest().body(Map.of("error", "roomId and itemId are required"));
@@ -89,10 +91,11 @@ public class GuestController {
         req.setRoomId(roomId);
         req.setItemId(itemId);
         req.setNotes(notes);
+        req.setQuantity(Math.max(1, quantity));
         requestRepository.save(req);
 
         // Push to staff dashboard via SSE
-        sseController.broadcast(room.getHotelId(), req.getId(), room.getRoomNumber(), itemId, notes);
+        sseController.broadcast(room.getHotelId(), req.getId(), room.getRoomNumber(), itemId, req.getQuantity(), notes);
 
         return ResponseEntity.ok(Map.of(
                 "id",     req.getId(),

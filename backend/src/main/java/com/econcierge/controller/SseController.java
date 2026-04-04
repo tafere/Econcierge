@@ -31,13 +31,14 @@ public class SseController {
     }
 
     /** Called internally when a guest submits a request */
-    public void broadcast(Long hotelId, Long requestId, String roomNumber, Long itemId, String notes) {
+    public void broadcast(Long hotelId, Long requestId, String roomNumber, Long itemId, int quantity, String notes) {
         Map<String, Object> event = Map.of(
                 "type",       "NEW_REQUEST",
                 "requestId",  requestId,
                 "hotelId",    hotelId,
                 "roomNumber", roomNumber,
                 "itemId",     itemId,
+                "quantity",   quantity,
                 "notes",      notes != null ? notes : ""
         );
 

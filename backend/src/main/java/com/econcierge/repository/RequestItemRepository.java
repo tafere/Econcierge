@@ -7,4 +7,5 @@ import java.util.List;
 public interface RequestItemRepository extends JpaRepository<RequestItem, Long> {
     List<RequestItem> findByCategoryIdAndEnabledTrueOrderBySortOrder(Long categoryId);
     List<RequestItem> findByCategoryIdOrderBySortOrder(Long categoryId);
+    boolean existsByCategoryIdAndName(Long categoryId, String name);
 }

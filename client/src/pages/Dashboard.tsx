@@ -14,6 +14,7 @@ interface ServiceRequest {
   itemName: string;
   categoryName: string;
   categoryIcon: string;
+  quantity: number;
   notes: string;
   status: "PENDING" | "IN_PROGRESS" | "DONE";
   assignedTo: string;
@@ -181,7 +182,13 @@ export default function DashboardPage() {
                         {STATUS_LABEL[req.status]}
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-stone-800">{req.itemName}</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-sm font-semibold text-stone-800">{req.itemName}</p>
+                      {req.quantity > 1 && (
+                        <span className="text-xs font-bold text-brand-700 bg-amber-50 border border-amber-200
+                          rounded-full px-2 py-0.5">×{req.quantity}</span>
+                      )}
+                    </div>
                     <p className="text-xs text-stone-400">{req.categoryName}</p>
                     {req.notes && (
                       <p className="text-xs text-stone-500 mt-1 bg-stone-50 rounded px-2 py-1">"{req.notes}"</p>

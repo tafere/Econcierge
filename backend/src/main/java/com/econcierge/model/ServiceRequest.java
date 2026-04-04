@@ -24,6 +24,9 @@ public class ServiceRequest {
     @Column(length = 1000)
     private String notes;
 
+    @Column(nullable = false)
+    private int quantity = 1;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Status status = Status.PENDING;
@@ -55,6 +58,8 @@ public class ServiceRequest {
     public void setItemId(Long v)            { this.itemId = v; }
     public String getNotes()                 { return notes; }
     public void setNotes(String v)           { this.notes = v; }
+    public int getQuantity()                 { return quantity; }
+    public void setQuantity(int v)           { this.quantity = v; }
     public Status getStatus()                { return status; }
     public void setStatus(Status v)          { this.status = v; }
     public Long getAssignedTo()              { return assignedTo; }
