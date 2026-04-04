@@ -5,6 +5,7 @@ import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import RoomsPage from "@/pages/Rooms";
 import GuestPage from "@/pages/Guest";
+import TvDisplay from "@/pages/TvDisplay";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -36,8 +37,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Switch>
-          {/* Guest route — public, no auth */}
-          <Route path="/r/:token" component={GuestPage} />
+          {/* Public routes — no auth */}
+          <Route path="/r/:token"  component={GuestPage} />
+          <Route path="/tv/:token" component={TvDisplay} />
           {/* Staff routes */}
           <Route component={StaffRouter} />
         </Switch>

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
-import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2 } from "lucide-react";
+import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2, Tv2 } from "lucide-react";
 import QRCode from "qrcode";
 
 interface Room {
@@ -163,14 +163,27 @@ export default function RoomsPage() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => downloadQR(room)}
-                  className="w-full flex items-center justify-center gap-2 text-xs font-semibold
-                    text-brand-700 border border-brand-700 rounded-lg py-2
-                    hover:bg-brand-50 transition-colors"
-                >
-                  <Download className="h-3.5 w-3.5" /> Download QR Code
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => downloadQR(room)}
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold
+                      text-brand-700 border border-brand-700 rounded-lg py-2
+                      hover:bg-brand-50 transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download QR
+                  </button>
+                  <a
+                    href={`/tv/${room.qrToken}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 text-xs font-semibold
+                      text-stone-500 border border-stone-200 rounded-lg px-3 py-2
+                      hover:border-brand-700 hover:text-brand-700 transition-colors"
+                    title="Open TV display"
+                  >
+                    <Tv2 className="h-3.5 w-3.5" />
+                  </a>
+                </div>
               </div>
             ))}
           </div>
