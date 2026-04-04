@@ -27,6 +27,9 @@ interface RoomInfo {
   roomNumber: string;
   floor: string;
   hotelId: number;
+  hotelName: string;
+  tagline: string;
+  logoUrl: string;
   menu: MenuCategory[];
 }
 
@@ -216,11 +219,19 @@ export default function GuestPage() {
       {/* Header */}
       <div className="bg-brand-700 text-white px-4 py-5">
         <div className="flex items-center justify-between max-w-lg mx-auto">
-          <div className="flex items-center gap-3">
-            <ConciergeBell className="h-6 w-6" />
-            <div>
-              <p className="text-xs text-amber-200 font-medium">{T("room")} {room!.roomNumber}</p>
-              <h1 className="font-bold text-lg leading-tight">{T("howCanWeHelp")}</h1>
+          <div className="flex items-center gap-3 min-w-0">
+            {room!.logoUrl ? (
+              <img src={room!.logoUrl} alt={room!.hotelName} className="h-9 w-9 rounded-lg object-cover shrink-0" />
+            ) : (
+              <ConciergeBell className="h-6 w-6 shrink-0" />
+            )}
+            <div className="min-w-0">
+              <p className="text-xs text-amber-200 font-medium truncate">
+                {room!.hotelName || "Econcierge"} · {T("room")} {room!.roomNumber}
+              </p>
+              <h1 className="font-bold text-lg leading-tight">
+                {room!.tagline || T("howCanWeHelp")}
+              </h1>
             </div>
           </div>
           {/* Language toggle */}

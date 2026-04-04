@@ -3,7 +3,7 @@ import { useAuth, getToken } from "@/lib/auth";
 import { useLocation } from "wouter";
 import {
   ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
-  Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash,
+  Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
 } from "lucide-react";
 
 interface ServiceRequest {
@@ -152,6 +152,12 @@ export default function DashboardPage() {
               className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
               <BedDouble className="h-4 w-4" /> Rooms
             </button>
+            {user?.role === "ADMIN" && (
+              <button onClick={() => navigate("/settings")}
+                className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                <Settings className="h-4 w-4" /> Settings
+              </button>
+            )}
             <button onClick={logout}
               className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
               <LogOut className="h-4 w-4" /> Sign out

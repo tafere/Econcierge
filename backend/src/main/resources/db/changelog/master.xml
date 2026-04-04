@@ -11,5 +11,6 @@
     <include file="db/changelog/004-categories-items.xml"/>
     <include file="db/changelog/005-requests.xml"/>
     <include file="db/changelog/006-add-quantity.xml"/>
+    <include file="db/changelog/007-hotel-branding.xml"/>
 
 </databaseChangeLog>

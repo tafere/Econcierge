@@ -2,6 +2,7 @@ package com.econcierge.controller;
 
 import com.econcierge.model.*;
 import com.econcierge.repository.*;
+import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +21,20 @@ public class GuestController {
     private final RequestCategoryRepository categoryRepository;
     private final RequestItemRepository itemRepository;
     private final ServiceRequestRepository requestRepository;
+    private final HotelRepository hotelRepository;
     private final SseController sseController;
 
     public GuestController(RoomRepository roomRepository,
                            RequestCategoryRepository categoryRepository,
                            RequestItemRepository itemRepository,
                            ServiceRequestRepository requestRepository,
+                           HotelRepository hotelRepository,
                            SseController sseController) {
         this.roomRepository = roomRepository;
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
         this.requestRepository = requestRepository;
+        this.hotelRepository = hotelRepository;
         this.sseController = sseController;
     }
 
@@ -62,13 +66,18 @@ public class GuestController {
             );
         }).toList();
 
-        return ResponseEntity.ok(Map.of(
-                "roomId",     room.getId(),
-                "roomNumber", room.getRoomNumber(),
-                "floor",      room.getFloor() != null ? room.getFloor() : "",
-                "hotelId",    room.getHotelId(),
-                "menu",       menu
-        ));
+        Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("roomId",     room.getId());
+        response.put("roomNumber", room.getRoomNumber());
+        response.put("floor",      room.getFloor() != null ? room.getFloor() : "");
+        response.put("hotelId",    room.getHotelId());
+        response.put("hotelName",  hotel != null ? hotel.getName() : "");
+        response.put("tagline",    hotel != null && hotel.getTagline()  != null ? hotel.getTagline()  : "");
+        response.put("logoUrl",    hotel != null && hotel.getLogoUrl()  != null ? hotel.getLogoUrl()  : "");
+        response.put("menu",       menu);
+        return ResponseEntity.ok(response);
     }
 
     /** Batch-check request statuses (guest status tracker) */

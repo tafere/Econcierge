@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
-import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2, Tv2, QrCode } from "lucide-react";
+import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2, Tv2, QrCode, Settings } from "lucide-react";
 import QRCode from "qrcode";
 
 interface Room {
@@ -86,12 +86,22 @@ export default function RoomsPage() {
             <ConciergeBell className="h-5 w-5" />
             <span className="font-bold text-sm">Econcierge</span>
           </div>
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" /> Dashboard
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" /> Dashboard
+            </button>
+            {user?.role === "ADMIN" && (
+              <button
+                onClick={() => navigate("/settings")}
+                className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors"
+              >
+                <Settings className="h-4 w-4" /> Settings
+              </button>
+            )}
+          </div>
         </div>
       </nav>
 

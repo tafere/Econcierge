@@ -35,11 +35,13 @@ public class DataSeeder implements CommandLineRunner {
         Hotel hotel;
         if (hotelRepository.count() == 0) {
             hotel = new Hotel();
-            hotel.setName("Skylight Hotel");
+            hotel.setName("Ethiopian Skylight Hotel");
             hotel.setSlug("skylight");
-            hotel.setAddress("Addis Ababa, Ethiopia");
-            hotel.setPhone("+251111234567");
-            hotel.setEmail("info@skylighthotel.com");
+            hotel.setTagline("Where the Sky is the Limit");
+            hotel.setAddress("Bole Sub City, Addis Ababa, Ethiopia");
+            hotel.setPhone("+251116671515");
+            hotel.setEmail("info@ethiopianskylighthotel.com");
+            hotel.setWebsite("https://www.ethiopianskylighthotel.com");
             hotelRepository.save(hotel);
 
             Staff admin = new Staff();

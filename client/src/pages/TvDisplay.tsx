@@ -6,6 +6,9 @@ import { ConciergeBell } from "lucide-react";
 interface RoomInfo {
   roomNumber: string;
   floor: string;
+  hotelName: string;
+  tagline: string;
+  logoUrl: string;
 }
 
 export default function TvDisplay() {
@@ -70,8 +73,19 @@ export default function TvDisplay() {
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-10 pt-8">
         <div className="flex items-center gap-3 text-amber-300">
-          <ConciergeBell className="h-7 w-7" />
-          <span className="text-xl font-bold tracking-wide">Econcierge</span>
+          {room?.logoUrl ? (
+            <img src={room.logoUrl} alt={room.hotelName} className="h-10 w-10 rounded-xl object-cover" />
+          ) : (
+            <ConciergeBell className="h-7 w-7" />
+          )}
+          <div>
+            <p className="text-xl font-bold tracking-wide leading-tight">
+              {room?.hotelName || "Econcierge"}
+            </p>
+            {room?.tagline && (
+              <p className="text-xs text-amber-500 leading-tight">{room.tagline}</p>
+            )}
+          </div>
         </div>
         <span className="text-amber-400 text-2xl font-light tabular-nums">{clockStr}</span>
       </div>

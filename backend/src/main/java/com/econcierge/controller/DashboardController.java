@@ -3,6 +3,7 @@ package com.econcierge.controller;
 import com.econcierge.config.JwtUtil;
 import com.econcierge.model.*;
 import com.econcierge.repository.*;
+import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class DashboardController {
     private final RequestItemRepository itemRepository;
     private final RequestCategoryRepository categoryRepository;
     private final StaffRepository staffRepository;
+    private final HotelRepository hotelRepository;
     private final JwtUtil jwtUtil;
 
     public DashboardController(ServiceRequestRepository requestRepository,
@@ -27,12 +29,14 @@ public class DashboardController {
                                RequestItemRepository itemRepository,
                                RequestCategoryRepository categoryRepository,
                                StaffRepository staffRepository,
+                               HotelRepository hotelRepository,
                                JwtUtil jwtUtil) {
         this.requestRepository = requestRepository;
         this.roomRepository = roomRepository;
         this.itemRepository = itemRepository;
         this.categoryRepository = categoryRepository;
         this.staffRepository = staffRepository;
+        this.hotelRepository = hotelRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -114,6 +118,42 @@ public class DashboardController {
                 "roomNumber", room.getRoomNumber(),
                 "qrToken",    room.getQrToken()
         ));
+    }
+
+    @GetMapping("/hotel")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<?> getHotel(@RequestHeader("Authorization") String header) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel == null) return ResponseEntity.notFound().build();
+        Map<String, Object> res = new HashMap<>();
+        res.put("id",      hotel.getId());
+        res.put("name",    hotel.getName());
+        res.put("tagline", hotel.getTagline()  != null ? hotel.getTagline()  : "");
+        res.put("logoUrl", hotel.getLogoUrl()  != null ? hotel.getLogoUrl()  : "");
+        res.put("website", hotel.getWebsite()  != null ? hotel.getWebsite()  : "");
+        res.put("address", hotel.getAddress()  != null ? hotel.getAddress()  : "");
+        res.put("phone",   hotel.getPhone()    != null ? hotel.getPhone()    : "");
+        res.put("email",   hotel.getEmail()    != null ? hotel.getEmail()    : "");
+        return ResponseEntity.ok(res);
+    }
+
+    @PutMapping("/hotel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateHotel(@RequestHeader("Authorization") String header,
+                                         @RequestBody Map<String, String> body) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel == null) return ResponseEntity.notFound().build();
+        if (body.containsKey("name")    && !body.get("name").isBlank())  hotel.setName(body.get("name"));
+        if (body.containsKey("tagline")) hotel.setTagline(body.get("tagline"));
+        if (body.containsKey("logoUrl")) hotel.setLogoUrl(body.get("logoUrl"));
+        if (body.containsKey("website")) hotel.setWebsite(body.get("website"));
+        if (body.containsKey("address")) hotel.setAddress(body.get("address"));
+        if (body.containsKey("phone"))   hotel.setPhone(body.get("phone"));
+        if (body.containsKey("email"))   hotel.setEmail(body.get("email"));
+        hotelRepository.save(hotel);
+        return ResponseEntity.ok(Map.of("message", "Hotel settings updated"));
     }
 
     private Map<String, Object> toMap(ServiceRequest r, Long hotelId) {

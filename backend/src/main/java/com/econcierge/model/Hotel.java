@@ -25,6 +25,15 @@ public class Hotel {
     @Column(length = 200)
     private String email;
 
+    @Column(length = 300)
+    private String tagline;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
+    @Column(length = 300)
+    private String website;
+
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -45,6 +54,12 @@ public class Hotel {
     public void setPhone(String v)       { this.phone = v; }
     public String getEmail()             { return email; }
     public void setEmail(String v)       { this.email = v; }
+    public String getTagline()           { return tagline; }
+    public void setTagline(String v)     { this.tagline = v; }
+    public String getLogoUrl()           { return logoUrl; }
+    public void setLogoUrl(String v)     { this.logoUrl = v; }
+    public String getWebsite()           { return website; }
+    public void setWebsite(String v)     { this.website = v; }
     public boolean isEnabled()           { return enabled; }
     public void setEnabled(boolean v)    { this.enabled = v; }
     public LocalDateTime getCreatedAt()  { return createdAt; }
