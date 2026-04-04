@@ -504,10 +504,10 @@ export default function DashboardPage() {
             {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-brand-800">
               <div className="flex items-center gap-3">
-                <ConciergeBell className="h-6 w-6 text-white" />
+                <ConciergeBell className="h-6 w-6 text-amber-400" />
                 <div>
-                  <p className="font-bold text-white text-sm">Econcierge</p>
-                  <p className="text-amber-300 text-xs">{user?.hotelName}</p>
+                  <p className="font-extrabold text-white text-xl leading-tight">{user?.hotelName}</p>
+                  <p className="text-amber-400 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
                 </div>
               </div>
               <button
