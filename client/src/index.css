@@ -34,8 +34,8 @@
     @apply font-sans antialiased text-slate-900;
     background-color: hsl(220 20% 96%);
     background-image:
-      radial-gradient(ellipse 110% 70% at 0% 0%,   hsl(215 90% 88% / 0.45) 0%, transparent 60%),
-      radial-gradient(ellipse 80%  60% at 100% 100%, hsl(250 60% 92% / 0.30) 0%, transparent 60%);
+      radial-gradient(ellipse 110% 70% at 0% 0%,   hsl(38 90% 88% / 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 80%  60% at 100% 100%, hsl(25 60% 92% / 0.30) 0%, transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
   }
