@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Table(name = "service_requests")
 public class ServiceRequest {
 
-    public enum Status { PENDING, IN_PROGRESS, DONE }
+    public enum Status { PENDING, IN_PROGRESS, DONE, CANCELLED, DECLINED }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,11 +34,17 @@ public class ServiceRequest {
     @Column(name = "assigned_to")
     private Long assignedTo;
 
+    @Column(name = "staff_comment", length = 500)
+    private String staffComment;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "accepted_at")
+    private LocalDateTime acceptedAt;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
@@ -49,23 +55,27 @@ public class ServiceRequest {
     @PreUpdate
     protected void onUpdate() { updatedAt = LocalDateTime.now(); }
 
-    public Long getId()                      { return id; }
-    public Long getHotelId()                 { return hotelId; }
-    public void setHotelId(Long v)           { this.hotelId = v; }
-    public Long getRoomId()                  { return roomId; }
-    public void setRoomId(Long v)            { this.roomId = v; }
-    public Long getItemId()                  { return itemId; }
-    public void setItemId(Long v)            { this.itemId = v; }
-    public String getNotes()                 { return notes; }
-    public void setNotes(String v)           { this.notes = v; }
-    public int getQuantity()                 { return quantity; }
-    public void setQuantity(int v)           { this.quantity = v; }
-    public Status getStatus()                { return status; }
-    public void setStatus(Status v)          { this.status = v; }
-    public Long getAssignedTo()              { return assignedTo; }
-    public void setAssignedTo(Long v)        { this.assignedTo = v; }
-    public LocalDateTime getCreatedAt()      { return createdAt; }
-    public LocalDateTime getUpdatedAt()      { return updatedAt; }
-    public LocalDateTime getCompletedAt()    { return completedAt; }
+    public Long getId()                         { return id; }
+    public Long getHotelId()                    { return hotelId; }
+    public void setHotelId(Long v)              { this.hotelId = v; }
+    public Long getRoomId()                     { return roomId; }
+    public void setRoomId(Long v)               { this.roomId = v; }
+    public Long getItemId()                     { return itemId; }
+    public void setItemId(Long v)               { this.itemId = v; }
+    public String getNotes()                    { return notes; }
+    public void setNotes(String v)              { this.notes = v; }
+    public int getQuantity()                    { return quantity; }
+    public void setQuantity(int v)              { this.quantity = v; }
+    public Status getStatus()                   { return status; }
+    public void setStatus(Status v)             { this.status = v; }
+    public Long getAssignedTo()                 { return assignedTo; }
+    public void setAssignedTo(Long v)           { this.assignedTo = v; }
+    public String getStaffComment()             { return staffComment; }
+    public void setStaffComment(String v)       { this.staffComment = v; }
+    public LocalDateTime getCreatedAt()         { return createdAt; }
+    public LocalDateTime getUpdatedAt()         { return updatedAt; }
+    public LocalDateTime getAcceptedAt()        { return acceptedAt; }
+    public void setAcceptedAt(LocalDateTime v)  { this.acceptedAt = v; }
+    public LocalDateTime getCompletedAt()       { return completedAt; }
     public void setCompletedAt(LocalDateTime v) { this.completedAt = v; }
 }

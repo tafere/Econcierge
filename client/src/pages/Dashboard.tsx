@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth, getToken } from "@/lib/auth";
 import { useLocation } from "wouter";
 import {
   ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
   Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
+  XCircle, Ban, TriangleAlert, X,
 } from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Status = "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "DECLINED";
 
 interface ServiceRequest {
   id: number;
@@ -15,22 +20,30 @@ interface ServiceRequest {
   categoryIcon: string;
   quantity: number;
   notes: string;
-  status: "PENDING" | "IN_PROGRESS" | "DONE";
+  staffComment: string;
+  status: Status;
   assignedTo: string;
   createdAt: string;
+  acceptedAt: string;
   completedAt: string;
 }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const STATUS_PILL: Record<string, string> = {
+  PENDING:     "bg-amber-100  text-amber-800  border-amber-300",
+  IN_PROGRESS: "bg-blue-100   text-blue-800   border-blue-300",
+  DONE:        "bg-green-100  text-green-700  border-green-300",
+  CANCELLED:   "bg-stone-100  text-stone-500  border-stone-300",
+  DECLINED:    "bg-red-100    text-red-700    border-red-300",
+};
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING:     "Pending",
   IN_PROGRESS: "In Progress",
   DONE:        "Done",
-};
-
-const STATUS_PILL: Record<string, string> = {
-  PENDING:     "bg-amber-100 text-amber-800 border-amber-300",
-  IN_PROGRESS: "bg-blue-100  text-blue-800  border-blue-300",
-  DONE:        "bg-green-100 text-green-700  border-green-300",
+  CANCELLED:   "Cancelled",
+  DECLINED:    "Declined",
 };
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -42,54 +55,305 @@ const CATEGORY_EMOJI: Record<string, string> = {
   "concierge-bell": "🛎️",
 };
 
+// Thresholds for overdue / escalated (minutes)
+const OVERDUE_PENDING_MINS    = 30;
+const ESCALATED_IN_PROG_MINS  = 120;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function timeAgo(iso: string) {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1)  return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  return fmtTime(iso);
+function fmtDateTime(iso: string) {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString([], { month: "short", day: "numeric" });
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return `${date} · ${time}`;
 }
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
-function StatCard({
-  label, value, color, active, onClick,
-}: { label: string; value: number; color: string; active: boolean; onClick: () => void }) {
+function ageMinutes(iso: string) {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+}
+
+function formatDateHeader(dateStr: string) {
+  const todayStr     = new Date().toISOString().slice(0, 10);
+  const yesterdayStr = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+  const d = new Date(dateStr + "T00:00:00");
+  const label = d.toLocaleDateString([], { month: "long", day: "numeric" });
+  if (dateStr === todayStr)     return `Today · ${label}`;
+  if (dateStr === yesterdayStr) return `Yesterday · ${label}`;
+  return d.toLocaleDateString([], { weekday: "short", month: "long", day: "numeric" });
+}
+
+function groupByDate(reqs: ServiceRequest[]): [string, ServiceRequest[]][] {
+  const map: Record<string, ServiceRequest[]> = {};
+  for (const r of reqs) {
+    const key = r.createdAt.slice(0, 10);
+    if (!map[key]) map[key] = [];
+    map[key].push(r);
+  }
+  return Object.entries(map).sort(([a], [b]) => b.localeCompare(a));
+}
+
+// ─── Decline modal ────────────────────────────────────────────────────────────
+
+function DeclineModal({
+  req,
+  onConfirm,
+  onCancel,
+}: {
+  req: ServiceRequest;
+  onConfirm: (comment: string) => void;
+  onCancel: () => void;
+}) {
+  const [comment, setComment] = useState("");
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => { ref.current?.focus(); }, []);
+
   return (
-    <button
-      onClick={onClick}
-      className={`flex-1 min-w-0 rounded-xl border px-4 py-3 text-left transition-all
-        ${active ? "ring-2 ring-offset-1 ring-brand-700 " + color : "bg-white border-stone-100 hover:border-stone-300"}`}
-    >
-      <p className="text-2xl font-extrabold tabular-nums text-stone-900">{value}</p>
-      <p className="text-xs font-medium text-stone-500 mt-0.5">{label}</p>
-    </button>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="font-bold text-stone-900">Decline Request</h3>
+            <p className="text-xs text-stone-400 mt-0.5">Room {req.roomNumber} · {req.itemName}</p>
+          </div>
+          <button onClick={onCancel} className="text-stone-300 hover:text-stone-500">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+            Reason (required)
+          </label>
+          <textarea
+            ref={ref}
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            placeholder="e.g. Out of stock, will restock tomorrow…"
+            rows={3}
+            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm
+              focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
+          />
+        </div>
+        <div className="flex gap-3">
+          <button onClick={onCancel}
+            className="flex-1 h-10 border border-stone-200 rounded-xl text-sm font-semibold
+              text-stone-600 hover:bg-stone-50 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={() => { if (comment.trim()) onConfirm(comment.trim()); }}
+            disabled={!comment.trim()}
+            className="flex-1 h-10 bg-red-600 text-white rounded-xl text-sm font-semibold
+              hover:bg-red-700 transition-colors disabled:opacity-40"
+          >
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Request table ────────────────────────────────────────────────────────────
+
+function RequestTable({
+  requests,
+  updatingId,
+  onAccept,
+  onDone,
+  onDecline,
+  showDepartmentRole,
+}: {
+  requests: ServiceRequest[];
+  updatingId: number | null;
+  onAccept:  (id: number) => void;
+  onDone:    (id: number) => void;
+  onDecline: (req: ServiceRequest) => void;
+  showDepartmentRole: boolean;
+}) {
+  if (requests.length === 0) return null;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-stone-50 border-b border-stone-200">
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-8">
+              <Hash className="h-3.5 w-3.5" />
+            </th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Room</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Request</th>
+            <th className="text-center px-3 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-12">Qty</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Notes</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-36">Date &amp; Time</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-28">Accepted By</th>
+            <th className="text-center px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-28">Status</th>
+            <th className="text-center px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-36">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-stone-100">
+          {requests.map((req, i) => (
+            <tr
+              key={req.id}
+              className={`transition-colors
+                ${req.status === "PENDING"     ? "bg-amber-50/40 hover:bg-amber-50" :
+                  req.status === "IN_PROGRESS" ? "hover:bg-blue-50/30" :
+                  req.status === "CANCELLED" || req.status === "DECLINED"
+                                               ? "opacity-60 hover:opacity-100 hover:bg-stone-50" :
+                                                 "opacity-70 hover:opacity-100 hover:bg-stone-50"}`}
+            >
+              {/* # */}
+              <td className="px-4 py-3 text-xs text-stone-300 tabular-nums">{i + 1}</td>
+
+              {/* Room */}
+              <td className="px-4 py-3 whitespace-nowrap">
+                <span className="font-bold text-stone-900">{req.roomNumber}</span>
+                {req.floor && <span className="ml-1.5 text-xs text-stone-400">F{req.floor}</span>}
+              </td>
+
+              {/* Request */}
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
+                  <div>
+                    <p className="font-semibold text-stone-800 whitespace-nowrap">{req.itemName}</p>
+                    <p className="text-xs text-stone-400">{req.categoryName}</p>
+                  </div>
+                </div>
+              </td>
+
+              {/* Qty */}
+              <td className="px-3 py-3 text-center">
+                {req.quantity > 1 ? (
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full
+                    bg-amber-100 text-amber-800 font-bold text-xs border border-amber-200">
+                    {req.quantity}
+                  </span>
+                ) : (
+                  <span className="text-stone-200 text-xs">—</span>
+                )}
+              </td>
+
+              {/* Notes / staffComment */}
+              <td className="px-4 py-3 max-w-[160px]">
+                {req.notes ? (
+                  <p className="text-xs text-stone-500 italic truncate" title={req.notes}>"{req.notes}"</p>
+                ) : req.staffComment ? (
+                  <p className="text-xs text-red-500 italic truncate" title={req.staffComment}>⚠ {req.staffComment}</p>
+                ) : (
+                  <span className="text-stone-200 text-xs">—</span>
+                )}
+              </td>
+
+              {/* Date & Time */}
+              <td className="px-4 py-3 whitespace-nowrap">
+                <div className="flex items-center gap-1 text-xs text-stone-500">
+                  <Clock className="h-3 w-3 text-stone-300 shrink-0" />
+                  {fmtDateTime(req.createdAt)}
+                </div>
+                {req.completedAt && (
+                  <div className="flex items-center gap-1 text-xs text-green-600 mt-0.5">
+                    <CheckCircle2 className="h-3 w-3 shrink-0" />
+                    {fmtTime(req.completedAt)}
+                  </div>
+                )}
+              </td>
+
+              {/* Accepted By */}
+              <td className="px-4 py-3">
+                {req.assignedTo ? (
+                  <div>
+                    <p className="text-xs font-semibold text-stone-700 truncate">{req.assignedTo}</p>
+                    {req.acceptedAt && (
+                      <p className="text-[11px] text-stone-400">{fmtTime(req.acceptedAt)}</p>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-stone-200 text-xs">—</span>
+                )}
+              </td>
+
+              {/* Status */}
+              <td className="px-4 py-3 text-center">
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold
+                  px-2.5 py-1 rounded-full border whitespace-nowrap ${STATUS_PILL[req.status]}`}>
+                  {req.status === "PENDING"     && <AlertCircle className="h-3 w-3" />}
+                  {req.status === "IN_PROGRESS" && <Zap className="h-3 w-3" />}
+                  {req.status === "DONE"        && <CheckCircle2 className="h-3 w-3" />}
+                  {req.status === "CANCELLED"   && <XCircle className="h-3 w-3" />}
+                  {req.status === "DECLINED"    && <Ban className="h-3 w-3" />}
+                  {STATUS_LABEL[req.status]}
+                </span>
+              </td>
+
+              {/* Action */}
+              <td className="px-4 py-3 text-center">
+                {updatingId === req.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-stone-400 mx-auto" />
+                ) : req.status === "PENDING" ? (
+                  <div className="flex items-center justify-center gap-1.5">
+                    <button
+                      onClick={() => onAccept(req.id)}
+                      className="text-xs bg-blue-600 text-white rounded-lg px-2.5 py-1.5
+                        font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => onDecline(req)}
+                      className="text-xs bg-red-50 text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5
+                        font-semibold hover:bg-red-100 transition-colors"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                ) : req.status === "IN_PROGRESS" ? (
+                  <button
+                    onClick={() => onDone(req.id)}
+                    className="text-xs bg-green-600 text-white rounded-lg px-3 py-1.5
+                      font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    Mark Done
+                  </button>
+                ) : (
+                  <span className="text-stone-200 text-xs">—</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+
+type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED";
+
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const [, navigate]     = useLocation();
-  const [requests, setRequests] = useState<ServiceRequest[]>([]);
-  const [filter, setFilter]     = useState<string>("ALL");
-  const [loading, setLoading]   = useState(true);
-  const [newCount, setNewCount] = useState(0);
+  const [requests, setRequests]   = useState<ServiceRequest[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [newCount, setNewCount]   = useState(0);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [tab, setTab]             = useState<Tab>("ACTIVE");
+  const [declining, setDeclining] = useState<ServiceRequest | null>(null);
 
   const fetchRequests = async () => {
     const token = getToken();
-    const url = filter === "ALL"
-      ? "/api/dashboard/requests"
-      : `/api/dashboard/requests?status=${filter}`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch("/api/dashboard/requests", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) setRequests(await res.json());
     setLoading(false);
   };
 
-  useEffect(() => { fetchRequests(); }, [filter]);
+  useEffect(() => { fetchRequests(); }, []);
 
   useEffect(() => {
     const token = getToken();
@@ -101,13 +365,15 @@ export default function DashboardPage() {
     return () => es.close();
   }, []);
 
-  const updateStatus = async (id: number, status: string) => {
+  const updateStatus = async (id: number, status: string, comment?: string) => {
     setUpdatingId(id);
     const token = getToken();
+    const body: Record<string, string> = { status };
+    if (comment) body.comment = comment;
     const res = await fetch(`/api/dashboard/requests/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(body),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -116,21 +382,40 @@ export default function DashboardPage() {
     setUpdatingId(null);
   };
 
-  const counts = {
-    all:        requests.length,
-    pending:    requests.filter(r => r.status === "PENDING").length,
-    inProgress: requests.filter(r => r.status === "IN_PROGRESS").length,
-    done:       requests.filter(r => r.status === "DONE").length,
-  };
+  // ── Tab data ──────────────────────────────────────────────────────────────
+  const active    = requests.filter(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
+  const completed = requests.filter(r => r.status === "DONE");
+  const cancelled = requests.filter(r => r.status === "CANCELLED" || r.status === "DECLINED");
 
-  const filtered = filter === "ALL" ? requests : requests.filter(r => r.status === filter);
+  // ── Overdue / escalated (admin only) ──────────────────────────────────────
+  const overduePending   = active.filter(r => r.status === "PENDING"     && ageMinutes(r.createdAt)  > OVERDUE_PENDING_MINS);
+  const escalatedInProg  = active.filter(r => r.status === "IN_PROGRESS" && r.acceptedAt && ageMinutes(r.acceptedAt) > ESCALATED_IN_PROG_MINS);
+
+  const currentRequests = tab === "ACTIVE" ? active : tab === "COMPLETED" ? completed : cancelled;
+  const grouped = groupByDate(currentRequests);
+
+  const TabBtn = ({ t, label, count }: { t: Tab; label: string; count: number }) => (
+    <button
+      onClick={() => setTab(t)}
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors
+        ${tab === t
+          ? "bg-brand-700 text-white shadow-sm"
+          : "bg-white text-stone-500 border border-stone-200 hover:border-stone-300"}`}
+    >
+      {label}
+      <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full
+        ${tab === t ? "bg-white/20 text-white" : "bg-stone-100 text-stone-500"}`}>
+        {count}
+      </span>
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-stone-50">
 
       {/* Nav */}
       <nav className="bg-brand-700 text-white px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ConciergeBell className="h-5 w-5" />
             <div>
@@ -147,7 +432,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             {newCount > 0 && (
               <button
-                onClick={() => { setNewCount(0); setFilter("ALL"); fetchRequests(); }}
+                onClick={() => { setNewCount(0); setTab("ACTIVE"); fetchRequests(); }}
                 className="flex items-center gap-1.5 text-xs bg-amber-400 text-amber-900
                   rounded-full px-3 py-1 font-bold animate-pulse"
               >
@@ -174,13 +459,13 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
 
-        {/* Page title + refresh */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-stone-900">Live Requests</h1>
-            <p className="text-xs text-stone-400">{user?.fullName} · today</p>
+            <h1 className="text-lg font-bold text-stone-900">Service Requests</h1>
+            <p className="text-xs text-stone-400">{user?.fullName}</p>
           </div>
           <button onClick={fetchRequests}
             className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title="Refresh">
@@ -188,184 +473,105 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Stat cards — also act as filters */}
-        <div className="flex gap-3">
-          <StatCard label="Total"       value={counts.all}        color="bg-stone-50 border-stone-300"   active={filter === "ALL"}        onClick={() => setFilter("ALL")} />
-          <StatCard label="Pending"     value={counts.pending}    color="bg-amber-50 border-amber-300"   active={filter === "PENDING"}    onClick={() => setFilter("PENDING")} />
-          <StatCard label="In Progress" value={counts.inProgress} color="bg-blue-50  border-blue-300"    active={filter === "IN_PROGRESS"} onClick={() => setFilter("IN_PROGRESS")} />
-          <StatCard label="Done"        value={counts.done}       color="bg-green-50 border-green-300"   active={filter === "DONE"}       onClick={() => setFilter("DONE")} />
+        {/* Tabs */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <TabBtn t="ACTIVE"    label="Active"    count={active.length} />
+          <TabBtn t="COMPLETED" label="Completed" count={completed.length} />
+          <TabBtn t="CANCELLED" label="Cancelled" count={cancelled.length} />
         </div>
 
-        {/* Table */}
+        {/* Overdue / Escalated — admin only, active tab */}
+        {user?.role === "ADMIN" && tab === "ACTIVE" && (overduePending.length > 0 || escalatedInProg.length > 0) && (
+          <div className="space-y-3">
+            {overduePending.length > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-orange-200 bg-orange-100">
+                  <TriangleAlert className="h-4 w-4 text-orange-600" />
+                  <p className="text-sm font-bold text-orange-800">
+                    Past Due — Pending over {OVERDUE_PENDING_MINS} minutes ({overduePending.length})
+                  </p>
+                </div>
+                <RequestTable
+                  requests={overduePending}
+                  updatingId={updatingId}
+                  onAccept={id => updateStatus(id, "IN_PROGRESS")}
+                  onDone={id => updateStatus(id, "DONE")}
+                  onDecline={setDeclining}
+                  showDepartmentRole={false}
+                />
+              </div>
+            )}
+            {escalatedInProg.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-red-200 bg-red-100">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <p className="text-sm font-bold text-red-800">
+                    Escalated — In Progress over {ESCALATED_IN_PROG_MINS / 60}h ({escalatedInProg.length})
+                  </p>
+                </div>
+                <RequestTable
+                  requests={escalatedInProg}
+                  updatingId={updatingId}
+                  onAccept={id => updateStatus(id, "IN_PROGRESS")}
+                  onDone={id => updateStatus(id, "DONE")}
+                  onDecline={setDeclining}
+                  showDepartmentRole={false}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Main request table */}
         {loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-brand-700" />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : currentRequests.length === 0 ? (
           <div className="text-center py-20">
             <ConciergeBell className="h-12 w-12 text-stone-200 mx-auto mb-3" />
-            <p className="text-stone-400 text-sm">No requests</p>
+            <p className="text-stone-400 text-sm">No {tab.toLowerCase()} requests</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-stone-50 border-b border-stone-200">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-8">
-                      <Hash className="h-3.5 w-3.5" />
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                      Room
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                      Request
-                    </th>
-                    <th className="text-center px-3 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-14">
-                      Qty
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                      Notes
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-28">
-                      Time
-                    </th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-28">
-                      Status
-                    </th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-28">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {filtered.map((req, i) => (
-                    <tr
-                      key={req.id}
-                      className={`transition-colors
-                        ${req.status === "PENDING"     ? "bg-amber-50/40 hover:bg-amber-50" :
-                          req.status === "IN_PROGRESS" ? "hover:bg-blue-50/30" :
-                                                         "opacity-70 hover:opacity-100 hover:bg-stone-50"}`}
-                    >
-                      {/* # */}
-                      <td className="px-4 py-3 text-xs text-stone-300 tabular-nums">{i + 1}</td>
+          <div className="space-y-4">
+            {grouped.map(([dateStr, dayReqs]) => (
+              <div key={dateStr} className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
+                {/* Day header */}
+                <div className="flex items-center justify-between px-4 py-2.5 bg-stone-50 border-b border-stone-200">
+                  <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">
+                    {formatDateHeader(dateStr)}
+                  </p>
+                  <span className="text-xs text-stone-400">{dayReqs.length} request{dayReqs.length !== 1 ? "s" : ""}</span>
+                </div>
+                <RequestTable
+                  requests={dayReqs}
+                  updatingId={updatingId}
+                  onAccept={id => updateStatus(id, "IN_PROGRESS")}
+                  onDone={id => updateStatus(id, "DONE")}
+                  onDecline={setDeclining}
+                  showDepartmentRole={false}
+                />
+              </div>
+            ))}
 
-                      {/* Room */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="font-bold text-stone-900">
-                          {req.roomNumber}
-                        </span>
-                        {req.floor && (
-                          <span className="ml-1.5 text-xs text-stone-400">F{req.floor}</span>
-                        )}
-                      </td>
-
-                      {/* Request */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base leading-none">
-                            {CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}
-                          </span>
-                          <div>
-                            <p className="font-semibold text-stone-800 whitespace-nowrap">{req.itemName}</p>
-                            <p className="text-xs text-stone-400">{req.categoryName}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Qty */}
-                      <td className="px-3 py-3 text-center">
-                        {req.quantity > 1 ? (
-                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full
-                            bg-amber-100 text-amber-800 font-bold text-sm border border-amber-200">
-                            {req.quantity}
-                          </span>
-                        ) : (
-                          <span className="text-stone-300 text-xs">—</span>
-                        )}
-                      </td>
-
-                      {/* Notes */}
-                      <td className="px-4 py-3 max-w-[180px]">
-                        {req.notes ? (
-                          <p className="text-xs text-stone-500 italic truncate" title={req.notes}>
-                            "{req.notes}"
-                          </p>
-                        ) : (
-                          <span className="text-stone-200 text-xs">—</span>
-                        )}
-                      </td>
-
-                      {/* Time */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-xs text-stone-500">
-                          <Clock className="h-3 w-3 text-stone-300" />
-                          {timeAgo(req.createdAt)}
-                        </div>
-                        {req.completedAt && (
-                          <div className="flex items-center gap-1 text-xs text-green-600 mt-0.5">
-                            <CheckCircle2 className="h-3 w-3" />
-                            {fmtTime(req.completedAt)}
-                          </div>
-                        )}
-                        {req.assignedTo && (
-                          <p className="text-[11px] text-stone-400 mt-0.5">{req.assignedTo}</p>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold
-                          px-2.5 py-1 rounded-full border whitespace-nowrap ${STATUS_PILL[req.status]}`}>
-                          {req.status === "PENDING"     && <AlertCircle className="h-3 w-3" />}
-                          {req.status === "IN_PROGRESS" && <Zap className="h-3 w-3" />}
-                          {req.status === "DONE"        && <CheckCircle2 className="h-3 w-3" />}
-                          {STATUS_LABEL[req.status]}
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-4 py-3 text-center">
-                        {updatingId === req.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin text-stone-400 mx-auto" />
-                        ) : req.status === "PENDING" ? (
-                          <button
-                            onClick={() => updateStatus(req.id, "IN_PROGRESS")}
-                            className="text-xs bg-blue-600 text-white rounded-lg px-3 py-1.5
-                              font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap"
-                          >
-                            Accept
-                          </button>
-                        ) : req.status === "IN_PROGRESS" ? (
-                          <button
-                            onClick={() => updateStatus(req.id, "DONE")}
-                            className="text-xs bg-green-600 text-white rounded-lg px-3 py-1.5
-                              font-semibold hover:bg-green-700 transition-colors whitespace-nowrap"
-                          >
-                            Mark Done
-                          </button>
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4 text-green-400 mx-auto" />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Table footer */}
-            <div className="px-4 py-2.5 border-t border-stone-100 bg-stone-50 flex items-center justify-between">
-              <p className="text-xs text-stone-400">
-                Showing {filtered.length} of {requests.length} requests
-              </p>
-              <p className="text-xs text-stone-400">
-                Auto-updates via live stream
-              </p>
-            </div>
+            <p className="text-xs text-stone-400 text-center pb-2">
+              {currentRequests.length} request{currentRequests.length !== 1 ? "s" : ""} · Auto-updates via live stream
+            </p>
           </div>
         )}
       </div>
+
+      {/* Decline modal */}
+      {declining && (
+        <DeclineModal
+          req={declining}
+          onConfirm={comment => {
+            updateStatus(declining.id, "DECLINED", comment);
+            setDeclining(null);
+          }}
+          onCancel={() => setDeclining(null)}
+        />
+      )}
     </div>
   );
 }

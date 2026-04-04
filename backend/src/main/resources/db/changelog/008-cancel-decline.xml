@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="008-cancel-decline" author="econcierge">
+        <addColumn tableName="service_requests">
+            <column name="staff_comment" type="VARCHAR(500)"/>
+            <column name="accepted_at"   type="TIMESTAMP"/>
+        </addColumn>
+        <!-- Widen status column to accommodate CANCELLED / DECLINED -->
+        <modifyDataType tableName="service_requests" columnName="status" newDataType="VARCHAR(20)"/>
+    </changeSet>
+
+</databaseChangeLog>

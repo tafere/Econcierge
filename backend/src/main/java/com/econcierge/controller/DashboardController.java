@@ -42,14 +42,11 @@ public class DashboardController {
 
     @GetMapping("/requests")
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'HOUSEKEEPING', 'MAINTENANCE')")
-    public ResponseEntity<?> getRequests(@RequestHeader("Authorization") String header,
-                                         @RequestParam(required = false) String status) {
+    public ResponseEntity<?> getRequests(@RequestHeader("Authorization") String header) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         String role   = jwtUtil.extractRole(header.substring(7));
 
-        List<ServiceRequest> requests = status != null
-                ? requestRepository.findByHotelIdAndStatusOrderByCreatedAtDesc(hotelId, ServiceRequest.Status.valueOf(status))
-                : requestRepository.findByHotelIdOrderByCreatedAtDesc(hotelId);
+        List<ServiceRequest> requests = requestRepository.findByHotelIdOrderByCreatedAtDesc(hotelId);
 
         return ResponseEntity.ok(requests.stream()
                 .filter(r -> matchesRole(r, role))
@@ -61,7 +58,7 @@ public class DashboardController {
     public ResponseEntity<?> updateStatus(@PathVariable Long id,
                                           @RequestBody Map<String, String> body,
                                           @RequestHeader("Authorization") String header) {
-        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        Long hotelId  = jwtUtil.extractHotelId(header.substring(7));
         String username = jwtUtil.extractUsername(header.substring(7));
 
         ServiceRequest req = requestRepository.findById(id).orElse(null);
@@ -73,10 +70,15 @@ public class DashboardController {
 
         if (newStatus == ServiceRequest.Status.IN_PROGRESS) {
             staffRepository.findByUsername(username).ifPresent(s -> req.setAssignedTo(s.getId()));
+            req.setAcceptedAt(LocalDateTime.now());
         }
         if (newStatus == ServiceRequest.Status.DONE) {
             req.setCompletedAt(LocalDateTime.now());
         }
+        if (newStatus == ServiceRequest.Status.DECLINED && body.containsKey("comment")) {
+            req.setStaffComment(body.get("comment"));
+        }
+
         requestRepository.save(req);
         return ResponseEntity.ok(toMap(req, hotelId));
     }
@@ -182,20 +184,22 @@ public class DashboardController {
         String assignedName = r.getAssignedTo() != null
                 ? staffRepository.findById(r.getAssignedTo()).map(Staff::getFullName).orElse("") : "";
 
-        return Map.ofEntries(
-            Map.entry("id",            r.getId()),
-            Map.entry("roomNumber",    room != null ? room.getRoomNumber() : ""),
-            Map.entry("floor",         room != null && room.getFloor() != null ? room.getFloor() : ""),
-            Map.entry("itemName",      item != null ? item.getName() : ""),
-            Map.entry("categoryName",  cat  != null ? cat.getName()  : ""),
-            Map.entry("categoryIcon",  cat  != null && cat.getIcon() != null ? cat.getIcon() : ""),
-            Map.entry("quantity",       r.getQuantity()),
-            Map.entry("notes",         r.getNotes() != null ? r.getNotes() : ""),
-            Map.entry("status",        r.getStatus().name()),
-            Map.entry("assignedTo",    assignedName),
-            Map.entry("createdAt",     r.getCreatedAt().toString() + "Z"),
-            Map.entry("updatedAt",     r.getUpdatedAt() != null ? r.getUpdatedAt().toString() + "Z" : ""),
-            Map.entry("completedAt",   r.getCompletedAt() != null ? r.getCompletedAt().toString() + "Z" : "")
-        );
+        Map<String, Object> m = new HashMap<>();
+        m.put("id",           r.getId());
+        m.put("roomNumber",   room != null ? room.getRoomNumber() : "");
+        m.put("floor",        room != null && room.getFloor() != null ? room.getFloor() : "");
+        m.put("itemName",     item != null ? item.getName() : "");
+        m.put("categoryName", cat  != null ? cat.getName()  : "");
+        m.put("categoryIcon", cat  != null && cat.getIcon() != null ? cat.getIcon() : "");
+        m.put("quantity",     r.getQuantity());
+        m.put("notes",        r.getNotes() != null ? r.getNotes() : "");
+        m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
+        m.put("status",       r.getStatus().name());
+        m.put("assignedTo",   assignedName);
+        m.put("createdAt",    r.getCreatedAt().toString() + "Z");
+        m.put("updatedAt",    r.getUpdatedAt()   != null ? r.getUpdatedAt().toString()   + "Z" : "");
+        m.put("acceptedAt",   r.getAcceptedAt()  != null ? r.getAcceptedAt().toString()  + "Z" : "");
+        m.put("completedAt",  r.getCompletedAt() != null ? r.getCompletedAt().toString() + "Z" : "");
+        return m;
     }
 }

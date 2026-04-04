@@ -48,7 +48,8 @@ interface TrackedRequest {
   categoryName: string;
   quantity: number;
   submittedAt: string;
-  status: "PENDING" | "IN_PROGRESS" | "DONE";
+  status: "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "DECLINED";
+  staffComment?: string;
 }
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
@@ -84,6 +85,8 @@ const STATUS_STYLE: Record<string, string> = {
   PENDING:     "bg-amber-100 text-amber-800 border-amber-200",
   IN_PROGRESS: "bg-blue-100  text-blue-800  border-blue-200",
   DONE:        "bg-green-100 text-green-800 border-green-200",
+  CANCELLED:   "bg-stone-100 text-stone-500 border-stone-200",
+  DECLINED:    "bg-red-100   text-red-700   border-red-200",
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -107,8 +110,11 @@ export default function GuestPage() {
   const [showNotes, setShowNotes] = useState(false);
 
   // cart
-  const [cart, setCart]     = useState<CartItem[]>([]);
+  const [cart, setCart]       = useState<CartItem[]>([]);
   const [sending, setSending] = useState(false);
+
+  // cancellation
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
@@ -140,10 +146,12 @@ export default function GuestPage() {
     const ids = pending.map(r => r.id).join(",");
     const res = await fetch(`/api/guest/requests/status?ids=${ids}`);
     if (!res.ok) return;
-    const updates: { id: number; status: TrackedRequest["status"] }[] = await res.json();
+    const updates: { id: number; status: TrackedRequest["status"]; staffComment?: string }[] = await res.json();
     setTracked(prev => {
-      const map = Object.fromEntries(updates.map(u => [u.id, u.status]));
-      const next = prev.map(r => map[r.id] ? { ...r, status: map[r.id] } : r);
+      const map = Object.fromEntries(updates.map(u => [u.id, u]));
+      const next = prev.map(r => map[r.id]
+        ? { ...r, status: map[r.id].status, staffComment: map[r.id].staffComment || r.staffComment }
+        : r);
       saveTracked(token, next);
       return next;
     });
@@ -215,6 +223,23 @@ export default function GuestPage() {
     setSending(false);
   };
 
+  // ── Cancel a pending request ─────────────────────────────────────────────
+  const cancelRequest = async (id: number) => {
+    const res = await fetch(`/api/guest/request/${id}/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ qrToken: token }),
+    });
+    if (res.ok) {
+      setTracked(prev => {
+        const next = prev.map(r => r.id === id ? { ...r, status: "CANCELLED" as const } : r);
+        saveTracked(token, next);
+        return next;
+      });
+    }
+    setCancellingId(null);
+  };
+
   // ── Helpers ──────────────────────────────────────────────────────────────
   const selectItem = (item: MenuItem) => {
     setSelectedItem(item);
@@ -229,8 +254,14 @@ export default function GuestPage() {
     return lang === "am" ? `${diff} ደቂቃ በፊት` : `${diff}m ago`;
   };
 
-  const statusLabel = (s: string) =>
-    s === "PENDING" ? T("pending") : s === "IN_PROGRESS" ? T("inProgress") : T("done");
+  const statusLabel = (s: string) => {
+    if (s === "PENDING")     return T("pending");
+    if (s === "IN_PROGRESS") return T("inProgress");
+    if (s === "DONE")        return T("done");
+    if (s === "CANCELLED")   return T("cancelled");
+    if (s === "DECLINED")    return T("declined");
+    return s;
+  };
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) return (
@@ -352,22 +383,59 @@ export default function GuestPage() {
                 </div>
                 <div className="divide-y divide-stone-50">
                   {tracked.map(req => (
-                    <div key={req.id} className="px-4 py-3 flex items-center justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-semibold text-stone-800 truncate">{req.itemName}</p>
-                          {req.quantity > 1 && (
-                            <span className="text-xs font-bold text-brand-700">×{req.quantity}</span>
+                    <div key={req.id} className="px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-semibold text-stone-800 truncate">{req.itemName}</p>
+                            {req.quantity > 1 && (
+                              <span className="text-xs font-bold text-brand-700">×{req.quantity}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-400">
+                            <Clock className="h-3 w-3" />
+                            {timeAgo(req.submittedAt)}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${STATUS_STYLE[req.status]}`}>
+                            {statusLabel(req.status)}
+                          </span>
+                          {req.status === "PENDING" && cancellingId !== req.id && (
+                            <button
+                              onClick={() => setCancellingId(req.id)}
+                              className="text-[11px] text-stone-400 hover:text-red-500 transition-colors"
+                              title={T("cancelRequest")}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
                           )}
                         </div>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-400">
-                          <Clock className="h-3 w-3" />
-                          {timeAgo(req.submittedAt)}
-                        </div>
                       </div>
-                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0 ${STATUS_STYLE[req.status]}`}>
-                        {statusLabel(req.status)}
-                      </span>
+                      {/* Inline cancel confirm */}
+                      {cancellingId === req.id && (
+                        <div className="mt-2 flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2">
+                          <p className="text-xs text-red-700 flex-1">{T("confirmCancel")}</p>
+                          <button
+                            onClick={() => cancelRequest(req.id)}
+                            className="text-xs font-bold text-red-600 hover:text-red-800 transition-colors"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => setCancellingId(null)}
+                            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      )}
+                      {/* Decline reason */}
+                      {req.status === "DECLINED" && req.staffComment && (
+                        <p className="mt-1 text-[11px] text-red-600 italic">
+                          {T("declinedReason")}: {req.staffComment}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>

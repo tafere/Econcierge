@@ -28,6 +28,11 @@ const translations: Record<Lang, Record<string, string>> = {
     viewCart:            "Tap to review",
     sendAll:             "Send All",
     cartEmpty:           "Your cart is empty — add items above",
+    cancelled:           "Cancelled",
+    declined:            "Declined",
+    cancelRequest:       "Cancel request",
+    confirmCancel:       "Cancel this request?",
+    declinedReason:      "Declined",
   },
   am: {
     howCanWeHelp:        "እንዴት ልናግዝዎ እንችላለን?",
@@ -56,6 +61,11 @@ const translations: Record<Lang, Record<string, string>> = {
     viewCart:            "ለማየት ይጫኑ",
     sendAll:             "ሁሉንም ላክ",
     cartEmpty:           "ቅርጫትዎ ባዶ ነው — ከላይ ዕቃዎችን ይጨምሩ",
+    cancelled:           "ተሰርዟል",
+    declined:            "ተቀባይነት አልሰጠም",
+    cancelRequest:       "ጥያቄ ሰርዝ",
+    confirmCancel:       "ጥያቄ ይሰረዝ?",
+    declinedReason:      "ምክንያት",
   },
 };
 

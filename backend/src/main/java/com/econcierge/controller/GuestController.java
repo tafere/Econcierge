@@ -91,10 +91,13 @@ public class GuestController {
                     .toList();
 
             List<Map<String, Object>> statuses = requestRepository.findAllById(idList).stream()
-                    .map(r -> Map.<String, Object>of(
-                            "id",     r.getId(),
-                            "status", r.getStatus().name()
-                    )).toList();
+                    .map(r -> {
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("id",           r.getId());
+                        m.put("status",       r.getStatus().name());
+                        m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
+                        return m;
+                    }).toList();
 
             return ResponseEntity.ok(statuses);
         } catch (NumberFormatException e) {
@@ -125,13 +128,38 @@ public class GuestController {
         req.setQuantity(Math.max(1, quantity));
         requestRepository.save(req);
 
-        // Push to staff dashboard via SSE
         sseController.broadcast(room.getHotelId(), req.getId(), room.getRoomNumber(), itemId, req.getQuantity(), notes);
 
         return ResponseEntity.ok(Map.of(
-                "id",     req.getId(),
-                "status", req.getStatus().name(),
+                "id",      req.getId(),
+                "status",  req.getStatus().name(),
                 "message", "Your request has been received. Our team will assist you shortly."
         ));
+    }
+
+    /**
+     * Cancel a pending request.
+     * Ownership is verified by matching the QR token to the request's room.
+     */
+    @PostMapping("/request/{id}/cancel")
+    public ResponseEntity<?> cancelRequest(@PathVariable Long id,
+                                           @RequestBody Map<String, String> body) {
+        String qrToken = body.get("qrToken");
+        if (qrToken == null || qrToken.isBlank())
+            return ResponseEntity.badRequest().body(Map.of("error", "qrToken required"));
+
+        ServiceRequest req = requestRepository.findById(id).orElse(null);
+        if (req == null) return ResponseEntity.notFound().build();
+
+        Room room = roomRepository.findById(req.getRoomId()).orElse(null);
+        if (room == null || !room.getQrToken().equals(qrToken))
+            return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+
+        if (req.getStatus() != ServiceRequest.Status.PENDING)
+            return ResponseEntity.badRequest().body(Map.of("error", "Only pending requests can be cancelled"));
+
+        req.setStatus(ServiceRequest.Status.CANCELLED);
+        requestRepository.save(req);
+        return ResponseEntity.ok(Map.of("status", "CANCELLED"));
     }
 }
