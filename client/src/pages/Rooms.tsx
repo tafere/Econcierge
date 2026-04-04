@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
-import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2, Tv2 } from "lucide-react";
+import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2, Tv2, QrCode } from "lucide-react";
 import QRCode from "qrcode";
 
 interface Room {
@@ -20,6 +20,7 @@ export default function RoomsPage() {
   const [rooms, setRooms]   = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [qrPreviews, setQrPreviews] = useState<Record<number, string>>({});
   const [newRoom, setNewRoom] = useState({ roomNumber: "", floor: "", roomType: "" });
   const [adding, setAdding]   = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -61,6 +62,20 @@ export default function RoomsPage() {
     a.href = dataUrl;
     a.download = `room-${room.roomNumber}-qr.png`;
     a.click();
+  };
+
+  const toggleQrPreview = async (room: Room) => {
+    if (qrPreviews[room.id]) {
+      setQrPreviews(prev => { const n = { ...prev }; delete n[room.id]; return n; });
+      return;
+    }
+    const url = `${window.location.origin}/r/${room.qrToken}`;
+    const dataUrl = await QRCode.toDataURL(url, {
+      width: 240, margin: 2,
+      color: { dark: "#451a03", light: "#fffbf5" },
+      errorCorrectionLevel: "H",
+    });
+    setQrPreviews(prev => ({ ...prev, [room.id]: dataUrl }));
   };
 
   return (
@@ -165,12 +180,24 @@ export default function RoomsPage() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => downloadQR(room)}
-                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold
-                      text-brand-700 border border-brand-700 rounded-lg py-2
-                      hover:bg-brand-50 transition-colors"
+                    onClick={() => toggleQrPreview(room)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold
+                      rounded-lg py-2 border transition-colors
+                      ${qrPreviews[room.id]
+                        ? "bg-brand-700 text-white border-brand-700"
+                        : "text-brand-700 border-brand-700 hover:bg-brand-50"}`}
                   >
-                    <Download className="h-3.5 w-3.5" /> Download QR
+                    <QrCode className="h-3.5 w-3.5" />
+                    {qrPreviews[room.id] ? "Hide QR" : "Show QR"}
+                  </button>
+                  <button
+                    onClick={() => downloadQR(room)}
+                    className="flex items-center justify-center gap-1 text-xs font-semibold
+                      text-stone-500 border border-stone-200 rounded-lg px-3 py-2
+                      hover:border-brand-700 hover:text-brand-700 transition-colors"
+                    title="Download QR as PNG"
+                  >
+                    <Download className="h-3.5 w-3.5" />
                   </button>
                   <a
                     href={`/tv/${room.qrToken}`}
@@ -184,6 +211,16 @@ export default function RoomsPage() {
                     <Tv2 className="h-3.5 w-3.5" />
                   </a>
                 </div>
+
+                {/* Inline QR preview */}
+                {qrPreviews[room.id] && (
+                  <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 rounded-xl p-4 border border-amber-100">
+                    <img src={qrPreviews[room.id]} alt={`QR Room ${room.roomNumber}`} className="w-40 h-40" />
+                    <p className="text-[11px] text-stone-400 text-center">
+                      Scan with your phone camera
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
