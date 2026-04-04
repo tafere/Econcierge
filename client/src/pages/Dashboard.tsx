@@ -438,16 +438,18 @@ export default function DashboardPage() {
       <nav className="bg-brand-700 text-white px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ConciergeBell className="h-5 w-5" />
+            <ConciergeBell className="h-5 w-5 text-amber-300 shrink-0" />
             <div>
-              <span className="font-bold text-sm">Econcierge</span>
-              <span className="text-amber-200 text-xs ml-2">{user?.hotelName}</span>
-              {user?.role === "HOUSEKEEPING" && (
-                <span className="text-[10px] bg-amber-400 text-amber-900 rounded px-2 py-0.5 font-bold ml-1">Housekeeping</span>
-              )}
-              {user?.role === "MAINTENANCE" && (
-                <span className="text-[10px] bg-blue-400 text-blue-900 rounded px-2 py-0.5 font-bold ml-1">Maintenance</span>
-              )}
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-white text-base leading-tight">{user?.hotelName}</span>
+                {user?.role === "HOUSEKEEPING" && (
+                  <span className="text-[10px] bg-amber-400 text-amber-900 rounded px-2 py-0.5 font-bold">Housekeeping</span>
+                )}
+                {user?.role === "MAINTENANCE" && (
+                  <span className="text-[10px] bg-blue-400 text-blue-900 rounded px-2 py-0.5 font-bold">Maintenance</span>
+                )}
+              </div>
+              <span className="text-amber-300 text-[11px] uppercase tracking-widest font-semibold">Econcierge</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
