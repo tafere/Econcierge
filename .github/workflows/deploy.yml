@@ -26,6 +26,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
       - name: Build backend
         working-directory: backend
         run: ./gradlew clean bootJar
