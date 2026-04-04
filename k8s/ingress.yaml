@@ -9,7 +9,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-redirect: '443'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:027653365943:certificate/e6e2aed7-c819-4651-b081-7628eb1acb49
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:027653365943:certificate/1db8c459-4820-41c2-98f6-031daddeb9d8
     alb.ingress.kubernetes.io/group.name: odvs-shared-alb
     alb.ingress.kubernetes.io/healthcheck-path: /
     alb.ingress.kubernetes.io/success-codes: '200'
