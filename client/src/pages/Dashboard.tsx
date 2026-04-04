@@ -165,14 +165,16 @@ function RequestTable({
   onAccept,
   onDone,
   onDecline,
-  showDepartmentRole,
+  overdueIds = new Set(),
+  escalatedIds = new Set(),
 }: {
   requests: ServiceRequest[];
   updatingId: number | null;
-  onAccept:  (id: number) => void;
-  onDone:    (id: number) => void;
-  onDecline: (req: ServiceRequest) => void;
-  showDepartmentRole: boolean;
+  onAccept:     (id: number) => void;
+  onDone:       (id: number) => void;
+  onDecline:    (req: ServiceRequest) => void;
+  overdueIds?:   Set<number>;
+  escalatedIds?: Set<number>;
 }) {
   if (requests.length === 0) return null;
 
@@ -198,12 +200,14 @@ function RequestTable({
           {requests.map((req, i) => (
             <tr
               key={req.id}
-              className={`transition-colors
-                ${req.status === "PENDING"     ? "bg-amber-50/40 hover:bg-amber-50" :
-                  req.status === "IN_PROGRESS" ? "hover:bg-blue-50/30" :
+              className={`transition-colors border-l-4
+                ${overdueIds.has(req.id)   ? "border-l-orange-400 bg-orange-50/50 hover:bg-orange-50" :
+                  escalatedIds.has(req.id) ? "border-l-red-400    bg-red-50/40    hover:bg-red-50/60" :
+                  req.status === "PENDING"     ? "border-l-transparent bg-amber-50/40 hover:bg-amber-50" :
+                  req.status === "IN_PROGRESS" ? "border-l-transparent hover:bg-blue-50/30" :
                   req.status === "CANCELLED" || req.status === "DECLINED"
-                                               ? "opacity-60 hover:opacity-100 hover:bg-stone-50" :
-                                                 "opacity-70 hover:opacity-100 hover:bg-stone-50"}`}
+                                               ? "border-l-transparent opacity-60 hover:opacity-100 hover:bg-stone-50" :
+                                                 "border-l-transparent opacity-70 hover:opacity-100 hover:bg-stone-50"}`}
             >
               {/* # */}
               <td className="px-4 py-3 text-xs text-stone-300 tabular-nums">{i + 1}</td>
@@ -254,6 +258,18 @@ function RequestTable({
                   <Clock className="h-3 w-3 text-stone-300 shrink-0" />
                   {fmtDateTime(req.createdAt)}
                 </div>
+                {overdueIds.has(req.id) && (
+                  <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-bold
+                    text-orange-700 bg-orange-100 border border-orange-200 rounded-full px-1.5 py-0.5">
+                    <TriangleAlert className="h-2.5 w-2.5" /> Past Due
+                  </span>
+                )}
+                {escalatedIds.has(req.id) && (
+                  <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-bold
+                    text-red-700 bg-red-100 border border-red-200 rounded-full px-1.5 py-0.5">
+                    <AlertCircle className="h-2.5 w-2.5" /> Escalated
+                  </span>
+                )}
                 {req.completedAt && (
                   <div className="flex items-center gap-1 text-xs text-green-600 mt-0.5">
                     <CheckCircle2 className="h-3 w-3 shrink-0" />
@@ -480,48 +496,6 @@ export default function DashboardPage() {
           <TabBtn t="CANCELLED" label="Cancelled" count={cancelled.length} />
         </div>
 
-        {/* Overdue / Escalated — admin only, active tab */}
-        {user?.role === "ADMIN" && tab === "ACTIVE" && (overduePending.length > 0 || escalatedInProg.length > 0) && (
-          <div className="space-y-3">
-            {overduePending.length > 0 && (
-              <div className="bg-orange-50 border border-orange-200 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-orange-200 bg-orange-100">
-                  <TriangleAlert className="h-4 w-4 text-orange-600" />
-                  <p className="text-sm font-bold text-orange-800">
-                    Past Due — Pending over {OVERDUE_PENDING_MINS} minutes ({overduePending.length})
-                  </p>
-                </div>
-                <RequestTable
-                  requests={overduePending}
-                  updatingId={updatingId}
-                  onAccept={id => updateStatus(id, "IN_PROGRESS")}
-                  onDone={id => updateStatus(id, "DONE")}
-                  onDecline={setDeclining}
-                  showDepartmentRole={false}
-                />
-              </div>
-            )}
-            {escalatedInProg.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-red-200 bg-red-100">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <p className="text-sm font-bold text-red-800">
-                    Escalated — In Progress over {ESCALATED_IN_PROG_MINS / 60}h ({escalatedInProg.length})
-                  </p>
-                </div>
-                <RequestTable
-                  requests={escalatedInProg}
-                  updatingId={updatingId}
-                  onAccept={id => updateStatus(id, "IN_PROGRESS")}
-                  onDone={id => updateStatus(id, "DONE")}
-                  onDecline={setDeclining}
-                  showDepartmentRole={false}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Main request table */}
         {loading ? (
           <div className="flex justify-center py-20">
@@ -534,14 +508,26 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {grouped.map(([dateStr, dayReqs]) => (
+            {grouped.map(([dateStr, dayReqs]) => {
+              const dayOverdue    = new Set(dayReqs.filter(r => overduePending.some(o => o.id === r.id)).map(r => r.id));
+              const dayEscalated  = new Set(dayReqs.filter(r => escalatedInProg.some(e => e.id === r.id)).map(r => r.id));
+              const alertCount    = dayOverdue.size + dayEscalated.size;
+              return (
               <div key={dateStr} className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
                 {/* Day header */}
                 <div className="flex items-center justify-between px-4 py-2.5 bg-stone-50 border-b border-stone-200">
                   <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">
                     {formatDateHeader(dateStr)}
                   </p>
-                  <span className="text-xs text-stone-400">{dayReqs.length} request{dayReqs.length !== 1 ? "s" : ""}</span>
+                  <div className="flex items-center gap-2">
+                    {user?.role === "ADMIN" && tab === "ACTIVE" && alertCount > 0 && (
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-orange-700
+                        bg-orange-100 border border-orange-200 rounded-full px-2 py-0.5">
+                        <TriangleAlert className="h-3 w-3" /> {alertCount} overdue
+                      </span>
+                    )}
+                    <span className="text-xs text-stone-400">{dayReqs.length} request{dayReqs.length !== 1 ? "s" : ""}</span>
+                  </div>
                 </div>
                 <RequestTable
                   requests={dayReqs}
@@ -549,10 +535,12 @@ export default function DashboardPage() {
                   onAccept={id => updateStatus(id, "IN_PROGRESS")}
                   onDone={id => updateStatus(id, "DONE")}
                   onDecline={setDeclining}
-                  showDepartmentRole={false}
+                  overdueIds={dayOverdue}
+                  escalatedIds={dayEscalated}
                 />
               </div>
-            ))}
+              );
+            })}
 
             <p className="text-xs text-stone-400 text-center pb-2">
               {currentRequests.length} request{currentRequests.length !== 1 ? "s" : ""} · Auto-updates via live stream
