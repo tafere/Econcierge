@@ -71,6 +71,28 @@ public class GuestController {
         ));
     }
 
+    /** Batch-check request statuses (guest status tracker) */
+    @GetMapping("/requests/status")
+    public ResponseEntity<?> getRequestStatuses(@RequestParam String ids) {
+        try {
+            List<Long> idList = java.util.Arrays.stream(ids.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::valueOf)
+                    .toList();
+
+            List<Map<String, Object>> statuses = requestRepository.findAllById(idList).stream()
+                    .map(r -> Map.<String, Object>of(
+                            "id",     r.getId(),
+                            "status", r.getStatus().name()
+                    )).toList();
+
+            return ResponseEntity.ok(statuses);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ids"));
+        }
+    }
+
     /** Submit a service request */
     @PostMapping("/request")
     public ResponseEntity<?> submitRequest(@RequestBody Map<String, Object> body) {
