@@ -1,0 +1,51 @@
+package com.econcierge.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "hotels")
+public class Hotel {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 200)
+    private String name;
+
+    @Column(nullable = false, unique = true, length = 100)
+    private String slug;
+
+    @Column(length = 500)
+    private String address;
+
+    @Column(length = 50)
+    private String phone;
+
+    @Column(length = 200)
+    private String email;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() { createdAt = LocalDateTime.now(); }
+
+    public Long getId()                  { return id; }
+    public String getName()              { return name; }
+    public void setName(String v)        { this.name = v; }
+    public String getSlug()              { return slug; }
+    public void setSlug(String v)        { this.slug = v; }
+    public String getAddress()           { return address; }
+    public void setAddress(String v)     { this.address = v; }
+    public String getPhone()             { return phone; }
+    public void setPhone(String v)       { this.phone = v; }
+    public String getEmail()             { return email; }
+    public void setEmail(String v)       { this.email = v; }
+    public boolean isEnabled()           { return enabled; }
+    public void setEnabled(boolean v)    { this.enabled = v; }
+    public LocalDateTime getCreatedAt()  { return createdAt; }
+}

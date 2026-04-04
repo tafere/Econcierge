@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="003-rooms" author="tafere">
+        <createTable tableName="rooms">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="hotel_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_room_hotel" references="hotels(id)"/>
+            </column>
+            <column name="room_number" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="floor" type="varchar(10)"/>
+            <column name="room_type" type="varchar(50)"/>
+            <column name="qr_token" type="varchar(36)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="rooms" indexName="idx_rooms_hotel_id">
+            <column name="hotel_id"/>
+        </createIndex>
+        <createIndex tableName="rooms" indexName="idx_rooms_qr_token">
+            <column name="qr_token"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

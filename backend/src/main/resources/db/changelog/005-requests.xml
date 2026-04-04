@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="005-requests" author="tafere">
+        <createTable tableName="service_requests">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="hotel_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_request_hotel" references="hotels(id)"/>
+            </column>
+            <column name="room_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_request_room" references="rooms(id)"/>
+            </column>
+            <column name="item_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_request_item" references="request_items(id)"/>
+            </column>
+            <column name="notes" type="varchar(1000)"/>
+            <column name="status" type="varchar(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_to" type="bigint">
+                <constraints foreignKeyName="fk_request_staff" references="staff(id)"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp"/>
+            <column name="completed_at" type="timestamp"/>
+        </createTable>
+        <createIndex tableName="service_requests" indexName="idx_requests_hotel_id">
+            <column name="hotel_id"/>
+        </createIndex>
+        <createIndex tableName="service_requests" indexName="idx_requests_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="service_requests" indexName="idx_requests_created_at">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
