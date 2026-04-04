@@ -79,7 +79,7 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen">
       <nav className="bg-brand-700 text-white px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -115,7 +115,7 @@ export default function RoomsPage() {
             <button
               onClick={() => setShowAdd(true)}
               className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
-                px-4 py-2 rounded-lg hover:bg-brand-800 transition-colors"
+                px-4 py-2 rounded hover:bg-brand-800 transition-colors"
             >
               <Plus className="h-4 w-4" /> Add Room
             </button>
@@ -124,7 +124,7 @@ export default function RoomsPage() {
 
         {/* Add room form */}
         {showAdd && (
-          <form onSubmit={addRoom} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+          <form onSubmit={addRoom} className="glass rounded p-5 space-y-4">
             <h3 className="font-semibold text-stone-800">New Room</h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -133,7 +133,7 @@ export default function RoomsPage() {
                   value={newRoom.roomNumber}
                   onChange={e => setNewRoom(r => ({ ...r, roomNumber: e.target.value }))}
                   required
-                  className="w-full h-10 border border-stone-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
               <div>
@@ -141,7 +141,7 @@ export default function RoomsPage() {
                 <input
                   value={newRoom.floor}
                   onChange={e => setNewRoom(r => ({ ...r, floor: e.target.value }))}
-                  className="w-full h-10 border border-stone-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
               <div>
@@ -150,19 +150,19 @@ export default function RoomsPage() {
                   value={newRoom.roomType}
                   onChange={e => setNewRoom(r => ({ ...r, roomType: e.target.value }))}
                   placeholder="Standard, Suite…"
-                  className="w-full h-10 border border-stone-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-2">
               <button type="submit" disabled={adding}
-                className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-lg
+                className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded
                   hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50">
                 {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Add Room
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
-                className="text-sm text-stone-500 px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors">
+                className="text-sm text-stone-500 px-4 py-2 rounded hover:bg-stone-100 transition-colors">
                 Cancel
               </button>
             </div>
@@ -175,7 +175,7 @@ export default function RoomsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {rooms.map(room => (
-              <div key={room.id} className="bg-white rounded-xl border border-stone-100 shadow-sm p-4">
+              <div key={room.id} className="glass rounded p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export default function RoomsPage() {
                   <button
                     onClick={() => toggleQrPreview(room)}
                     className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold
-                      rounded-lg py-2 border transition-colors
+                      rounded py-2 border transition-colors
                       ${qrPreviews[room.id]
                         ? "bg-brand-700 text-white border-brand-700"
                         : "text-brand-700 border-brand-700 hover:bg-brand-50"}`}
@@ -203,7 +203,7 @@ export default function RoomsPage() {
                   <button
                     onClick={() => downloadQR(room)}
                     className="flex items-center justify-center gap-1 text-xs font-semibold
-                      text-stone-500 border border-stone-200 rounded-lg px-3 py-2
+                      text-stone-500 border border-stone-200 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
                     title="Download QR as PNG"
                   >
@@ -214,7 +214,7 @@ export default function RoomsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-1.5 text-xs font-semibold
-                      text-stone-500 border border-stone-200 rounded-lg px-3 py-2
+                      text-stone-500 border border-stone-200 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
                     title="Open TV display"
                   >
@@ -224,7 +224,7 @@ export default function RoomsPage() {
 
                 {/* Inline QR preview */}
                 {qrPreviews[room.id] && (
-                  <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 rounded-xl p-4 border border-amber-100">
+                  <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 rounded p-4 border border-amber-100">
                     <img src={qrPreviews[room.id]} alt={`QR Room ${room.roomNumber}`} className="w-40 h-40" />
                     <p className="text-[11px] text-stone-400 text-center">
                       Scan with your phone camera

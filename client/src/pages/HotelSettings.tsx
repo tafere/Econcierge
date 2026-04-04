@@ -67,7 +67,7 @@ export default function HotelSettingsPage() {
           value={form[key]}
           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
           placeholder={placeholder}
-          className="w-full h-10 border border-stone-200 rounded-lg pl-9 pr-3 text-sm
+          className="w-full h-10 border border-stone-200 bg-white rounded pl-9 pr-3 text-sm
             focus:outline-none focus:ring-2 focus:ring-brand-700"
         />
       </div>
@@ -76,7 +76,7 @@ export default function HotelSettingsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen">
       <nav className="bg-brand-700 text-white px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -98,8 +98,8 @@ export default function HotelSettingsPage() {
 
             {/* Logo preview */}
             {form.logoUrl && (
-              <div className="flex items-center gap-4 bg-white rounded-xl border border-stone-100 p-4">
-                <img src={form.logoUrl} alt="Logo preview" className="h-16 w-16 rounded-xl object-cover border border-stone-200" />
+              <div className="flex items-center gap-4 glass rounded p-4">
+                <img src={form.logoUrl} alt="Logo preview" className="h-16 w-16 rounded object-cover border border-stone-200" />
                 <div>
                   <p className="font-bold text-stone-900">{form.name}</p>
                   {form.tagline && <p className="text-sm text-stone-400">{form.tagline}</p>}
@@ -107,7 +107,7 @@ export default function HotelSettingsPage() {
               </div>
             )}
 
-            <div className="bg-white rounded-xl border border-stone-100 shadow-sm p-6 space-y-5">
+            <div className="glass rounded p-6 space-y-5">
               <h2 className="font-bold text-stone-800 flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-brand-700" /> Identity
               </h2>
@@ -118,7 +118,7 @@ export default function HotelSettingsPage() {
               {field("website", "Website",     <Link      className="h-4 w-4" />, "https://www.yourhotel.com")}
             </div>
 
-            <div className="bg-white rounded-xl border border-stone-100 shadow-sm p-6 space-y-5">
+            <div className="glass rounded p-6 space-y-5">
               <h2 className="font-bold text-stone-800 flex items-center gap-2">
                 <Phone className="h-4 w-4 text-brand-700" /> Contact
               </h2>
@@ -130,7 +130,7 @@ export default function HotelSettingsPage() {
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             <button type="submit" disabled={saving}
-              className="w-full h-12 bg-brand-700 text-white rounded-xl font-bold text-sm
+              className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
                 hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
               {saving
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>

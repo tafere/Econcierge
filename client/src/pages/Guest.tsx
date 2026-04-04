@@ -265,13 +265,13 @@ export default function GuestPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-brand-700" />
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+    <div className="min-h-screen flex items-center justify-center p-6">
       <div className="text-center max-w-xs">
         <ConciergeBell className="h-12 w-12 text-stone-300 mx-auto mb-4" />
         <p className="text-stone-600 text-sm">{error}</p>
@@ -280,14 +280,14 @@ export default function GuestPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28">
+    <div className="min-h-screen pb-28">
 
       {/* Header */}
       <div className="bg-brand-700 text-white px-4 py-5">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             {room!.logoUrl ? (
-              <img src={room!.logoUrl} alt={room!.hotelName} className="h-9 w-9 rounded-lg object-cover shrink-0" />
+              <img src={room!.logoUrl} alt={room!.hotelName} className="h-9 w-9 rounded object-cover shrink-0" />
             ) : (
               <ConciergeBell className="h-6 w-6 shrink-0" />
             )}
@@ -303,7 +303,7 @@ export default function GuestPage() {
           <button
             onClick={toggleLang}
             className="text-xs font-bold bg-brand-800 hover:bg-brand-900 transition-colors
-              rounded-full px-3 py-1.5 text-amber-100 shrink-0 ml-3"
+              rounded px-3 py-1.5 text-amber-100 shrink-0 ml-3"
           >
             {lang === "en" ? "አማርኛ" : "EN"}
           </button>
@@ -330,7 +330,7 @@ export default function GuestPage() {
               <p className="text-sm text-stone-400 text-center py-8">{T("cartEmpty")}</p>
             ) : (
               <>
-                <div className="bg-white rounded-xl border border-stone-100 shadow-sm divide-y divide-stone-50">
+                <div className="glass rounded divide-y divide-stone-50">
                   {cart.map((ci, i) => (
                     <div key={i} className="flex items-center gap-3 px-4 py-3">
                       <span className="text-xl shrink-0">{CATEGORY_EMOJI[ci.categoryIcon] ?? "🛎️"}</span>
@@ -356,7 +356,7 @@ export default function GuestPage() {
                 <button
                   onClick={sendAll}
                   disabled={sending}
-                  className="w-full h-12 bg-brand-700 text-white rounded-xl font-bold text-sm
+                  className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
                     hover:bg-brand-800 transition-colors flex items-center justify-center gap-2
                     disabled:opacity-50"
                 >
@@ -374,7 +374,7 @@ export default function GuestPage() {
           <>
             {/* My Requests tracker — only on main screen */}
             {!selectedCat && !selectedItem && tracked.length > 0 && (
-              <div className="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden">
+              <div className="glass rounded overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
                   <p className="text-xs font-bold uppercase tracking-wider text-stone-500">{T("myRequests")}</p>
                   <button onClick={pollStatuses} className="text-stone-300 hover:text-brand-700 transition-colors">
@@ -398,7 +398,7 @@ export default function GuestPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${STATUS_STYLE[req.status]}`}>
+                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded border ${STATUS_STYLE[req.status]}`}>
                             {statusLabel(req.status)}
                           </span>
                           {req.status === "PENDING" && cancellingId !== req.id && (
@@ -414,7 +414,7 @@ export default function GuestPage() {
                       </div>
                       {/* Inline cancel confirm */}
                       {cancellingId === req.id && (
-                        <div className="mt-2 flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2">
+                        <div className="mt-2 flex items-center gap-2 bg-red-50 rounded px-3 py-2">
                           <p className="text-xs text-red-700 flex-1">{T("confirmCancel")}</p>
                           <button
                             onClick={() => cancelRequest(req.id)}
@@ -451,8 +451,8 @@ export default function GuestPage() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className="bg-white rounded-xl p-5 text-left shadow-sm border border-stone-100
-                        hover:border-brand-700 hover:shadow-md transition-all active:scale-95"
+                      className="glass rounded p-5 text-left
+                        hover:border-brand-700 hover:shadow-md transition-all"
                     >
                       <p className="text-2xl mb-2">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
                       <p className="font-semibold text-stone-800 text-sm">{cat.name}</p>
@@ -478,7 +478,7 @@ export default function GuestPage() {
                     <button
                       key={item.id}
                       onClick={() => selectItem(item)}
-                      className="w-full bg-white rounded-xl px-4 py-4 text-left shadow-sm border border-stone-100
+                      className="w-full glass rounded px-4 py-4 text-left
                         hover:border-brand-700 hover:shadow-md transition-all flex items-center justify-between"
                     >
                       <div>
@@ -509,7 +509,7 @@ export default function GuestPage() {
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
 
-                <div className="bg-white rounded-xl p-5 shadow-sm border border-stone-100 space-y-5">
+                <div className="glass rounded p-5 space-y-5">
                   <div>
                     <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
                     <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
@@ -523,7 +523,7 @@ export default function GuestPage() {
                         <button
                           onClick={() => setQuantity(q => Math.max(1, q - 1))}
                           disabled={quantity <= 1}
-                          className="w-10 h-10 rounded-full border-2 border-stone-200 flex items-center justify-center
+                          className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
                             text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
                             disabled:opacity-30 disabled:cursor-not-allowed"
                         >
@@ -533,7 +533,7 @@ export default function GuestPage() {
                         <button
                           onClick={() => setQuantity(q => Math.min(selectedItem.maxQuantity, q + 1))}
                           disabled={quantity >= selectedItem.maxQuantity}
-                          className="w-10 h-10 rounded-full border-2 border-stone-200 flex items-center justify-center
+                          className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
                             text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
                             disabled:opacity-30 disabled:cursor-not-allowed"
                         >
@@ -561,7 +561,7 @@ export default function GuestPage() {
                         placeholder={T("instructionsHint")}
                         rows={3}
                         autoFocus
-                        className="mt-2 w-full border border-stone-200 rounded-lg px-3 py-2 text-sm
+                        className="mt-2 w-full border border-stone-200 bg-white rounded px-3 py-2 text-sm
                           focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none"
                       />
                     )}
@@ -569,7 +569,7 @@ export default function GuestPage() {
 
                   <button
                     onClick={addToCart}
-                    className="w-full h-12 bg-brand-700 text-white rounded-xl font-bold text-sm
+                    className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
                       hover:bg-brand-800 transition-colors flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="h-4 w-4" /> {T("addToCart")}
@@ -583,17 +583,17 @@ export default function GuestPage() {
 
       {/* ── Sticky cart bar (visible whenever cart has items) ── */}
       {cart.length > 0 && !showCart && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-2xl px-4 py-3">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-stone-200 shadow-2xl px-4 py-3">
           <div className="max-w-lg mx-auto flex items-center gap-3">
             <button
               onClick={() => setShowCart(true)}
-              className="flex-1 flex items-center gap-3 bg-stone-50 rounded-xl px-4 py-3
+              className="flex-1 flex items-center gap-3 bg-stone-50 rounded px-4 py-3
                 border border-stone-200 hover:border-brand-700 transition-colors text-left"
             >
               <div className="relative">
                 <ShoppingCart className="h-5 w-5 text-brand-700" />
                 <span className="absolute -top-2 -right-2 bg-brand-700 text-white text-[10px] font-bold
-                  rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                  rounded w-4 h-4 flex items-center justify-center leading-none">
                   {cart.length}
                 </span>
               </div>
@@ -605,7 +605,7 @@ export default function GuestPage() {
             <button
               onClick={sendAll}
               disabled={sending}
-              className="h-12 px-5 bg-brand-700 text-white rounded-xl font-bold text-sm
+              className="h-12 px-5 bg-brand-700 text-white rounded font-bold text-sm
                 hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50 shrink-0"
             >
               {sending

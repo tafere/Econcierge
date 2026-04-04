@@ -24,11 +24,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
 
       {/* Icon + title */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center h-16 w-16 bg-brand-600 rounded-2xl mb-5
+        <div className="inline-flex items-center justify-center h-16 w-16 bg-brand-600 rounded mb-5
           shadow-lg shadow-brand-200">
           <ConciergeBell className="h-8 w-8 text-white" />
         </div>
@@ -40,7 +40,7 @@ export default function LoginPage() {
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="w-full max-w-lg glass rounded overflow-hidden">
 
         {/* Card header */}
         <div className="px-8 pt-8 pb-6 border-b border-slate-100">
@@ -62,9 +62,9 @@ export default function LoginPage() {
               required
               autoComplete="username"
               placeholder="Enter your username"
-              className="w-full h-12 bg-slate-100 rounded-xl px-4 text-sm text-slate-900
+              className="w-full h-12 bg-white border border-slate-200 rounded px-4 text-sm text-slate-900
                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
-                focus:bg-white transition-colors"
+                focus:border-brand-500 transition-colors"
             />
           </div>
 
@@ -80,9 +80,9 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className="w-full h-12 bg-slate-100 rounded-xl px-4 pr-11 text-sm text-slate-900
+                className="w-full h-12 bg-white border border-slate-200 rounded px-4 pr-11 text-sm text-slate-900
                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
-                  focus:bg-white transition-colors"
+                  focus:border-brand-500 transition-colors"
               />
               <button
                 type="button"
@@ -96,7 +96,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-4 py-3">
               {error}
             </p>
           )}
@@ -104,7 +104,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-13 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold
+            className="w-full h-13 bg-brand-600 hover:bg-brand-700 text-white rounded font-semibold
               text-sm flex items-center justify-center gap-2.5 transition-colors
               disabled:opacity-50 shadow-md shadow-brand-200 mt-2 py-3.5"
           >
