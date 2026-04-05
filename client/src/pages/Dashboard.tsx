@@ -295,8 +295,8 @@ function RequestTable({
 
               {/* Status */}
               <td className="px-4 py-3 text-center">
-                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold
-                  px-2.5 py-1 rounded border whitespace-nowrap ${STATUS_PILL[req.status]}`}>
+                <span className={`inline-flex items-center justify-center gap-1 text-[11px] font-semibold
+                  px-2.5 py-1 rounded border whitespace-nowrap min-w-[90px] ${STATUS_PILL[req.status]}`}>
                   {req.status === "PENDING"     && <AlertCircle className="h-3 w-3" />}
                   {req.status === "IN_PROGRESS" && <Zap className="h-3 w-3" />}
                   {req.status === "DONE"        && <CheckCircle2 className="h-3 w-3" />}
@@ -352,7 +352,7 @@ function RequestTable({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED";
+type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PASTDUE";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -408,24 +408,35 @@ export default function DashboardPage() {
   const completed = requests.filter(r => r.status === "DONE");
   const cancelled = requests.filter(r => r.status === "CANCELLED" || r.status === "DECLINED");
 
-  // ── Overdue / escalated (admin only) ──────────────────────────────────────
-  const overduePending   = active.filter(r => r.status === "PENDING"     && ageMinutes(r.createdAt)  > OVERDUE_PENDING_MINS);
-  const escalatedInProg  = active.filter(r => r.status === "IN_PROGRESS" && r.acceptedAt && ageMinutes(r.acceptedAt) > ESCALATED_IN_PROG_MINS);
+  // ── Overdue / escalated ───────────────────────────────────────────────────
+  const overduePending  = active.filter(r => r.status === "PENDING"     && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS);
+  const escalatedInProg = active.filter(r => r.status === "IN_PROGRESS" && r.acceptedAt && ageMinutes(r.acceptedAt) > ESCALATED_IN_PROG_MINS);
+  const pastDue = [...overduePending, ...escalatedInProg]
+    .filter((r, i, arr) => arr.findIndex(x => x.id === r.id) === i); // dedupe
 
-  const currentRequests = tab === "ACTIVE" ? active : tab === "COMPLETED" ? completed : cancelled;
+  const currentRequests =
+    tab === "ACTIVE"    ? active :
+    tab === "COMPLETED" ? completed :
+    tab === "PASTDUE"   ? pastDue :
+                          cancelled;
   const grouped = groupByDate(currentRequests);
 
-  const TabBtn = ({ t, label, count }: { t: Tab; label: string; count: number }) => (
+  const TabBtn = ({ t, label, count, urgent }: { t: Tab; label: string; count: number; urgent?: boolean }) => (
     <button
       onClick={() => setTab(t)}
       className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors
         ${tab === t
-          ? "bg-brand-700 text-white shadow-sm"
-          : "bg-white/70 text-stone-500 border border-stone-200 hover:border-stone-300"}`}
+          ? urgent ? "bg-orange-600 text-white shadow-sm"
+                   : "bg-brand-700 text-white shadow-sm"
+          : urgent && count > 0
+            ? "bg-white/70 text-orange-700 border border-orange-300 hover:border-orange-400"
+            : "bg-white/70 text-stone-500 border border-stone-200 hover:border-stone-300"}`}
     >
       {label}
       <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded
-        ${tab === t ? "bg-white/20 text-white" : "bg-stone-100 text-stone-500"}`}>
+        ${tab === t
+          ? "bg-white/20 text-white"
+          : urgent && count > 0 ? "bg-orange-100 text-orange-700" : "bg-stone-100 text-stone-500"}`}>
         {count}
       </span>
     </button>
@@ -577,6 +588,7 @@ export default function DashboardPage() {
         {/* Tabs */}
         <div className="flex items-center gap-2 flex-wrap">
           <TabBtn t="ACTIVE"    label="Active"    count={active.length} />
+          <TabBtn t="PASTDUE"   label="Past Due"  count={pastDue.length} urgent={pastDue.length > 0} />
           <TabBtn t="COMPLETED" label="Completed" count={completed.length} />
           <TabBtn t="CANCELLED" label="Cancelled" count={cancelled.length} />
         </div>
@@ -594,9 +606,8 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-4">
             {grouped.map(([dateStr, dayReqs]) => {
-              const dayOverdue    = new Set(dayReqs.filter(r => overduePending.some(o => o.id === r.id)).map(r => r.id));
-              const dayEscalated  = new Set(dayReqs.filter(r => escalatedInProg.some(e => e.id === r.id)).map(r => r.id));
-              const alertCount    = dayOverdue.size + dayEscalated.size;
+              const dayOverdue   = new Set(dayReqs.filter(r => overduePending.some(o => o.id === r.id)).map(r => r.id));
+              const dayEscalated = new Set(dayReqs.filter(r => escalatedInProg.some(e => e.id === r.id)).map(r => r.id));
               return (
               <div key={dateStr} className="glass rounded overflow-hidden">
                 {/* Day header */}
@@ -605,12 +616,6 @@ export default function DashboardPage() {
                     {formatDateHeader(dateStr)}
                   </p>
                   <div className="flex items-center gap-2">
-                    {user?.role === "ADMIN" && tab === "ACTIVE" && alertCount > 0 && (
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-orange-700
-                        bg-orange-100 border border-orange-200 rounded px-2 py-0.5">
-                        <TriangleAlert className="h-3 w-3" /> {alertCount} overdue
-                      </span>
-                    )}
                     <span className="text-xs text-stone-400">{dayReqs.length} request{dayReqs.length !== 1 ? "s" : ""}</span>
                   </div>
                 </div>
