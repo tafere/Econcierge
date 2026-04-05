@@ -513,7 +513,8 @@ export default function DashboardPage() {
             onClick={() => setSideNavOpen(false)}
           />
           {/* Drawer */}
-          <div className="absolute right-0 top-0 h-full w-72 glass flex flex-col shadow-2xl">
+          <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl border-l border-stone-200"
+            style={{ background: "hsl(220 20% 96%)" }}>
             {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200">
               <div className="flex items-center gap-3">
