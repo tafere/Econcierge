@@ -513,28 +513,28 @@ export default function DashboardPage() {
             onClick={() => setSideNavOpen(false)}
           />
           {/* Drawer */}
-          <div className="absolute right-0 top-0 h-full w-72 bg-brand-900 flex flex-col shadow-2xl">
+          <div className="absolute right-0 top-0 h-full w-72 glass flex flex-col shadow-2xl">
             {/* Drawer header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-brand-800">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200">
               <div className="flex items-center gap-3">
-                <ConciergeBell className="h-6 w-6 text-amber-400" />
+                <ConciergeBell className="h-6 w-6 text-brand-700 shrink-0" />
                 <div>
-                  <p className="font-extrabold text-white text-xl leading-tight">{user?.hotelName}</p>
-                  <p className="text-amber-400 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
+                  <p className="font-extrabold text-stone-900 text-xl leading-tight">{user?.hotelName}</p>
+                  <p className="text-brand-700 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
                 </div>
               </div>
               <button
                 onClick={() => setSideNavOpen(false)}
-                className="text-amber-300 hover:text-white transition-colors p-1"
+                className="text-stone-400 hover:text-stone-700 transition-colors p-1"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             {/* User info */}
-            <div className="px-5 py-4 border-b border-brand-800">
-              <p className="text-xs text-amber-300 uppercase tracking-wider font-semibold">Signed in as</p>
-              <p className="text-white font-semibold mt-0.5">{user?.fullName}</p>
-              <p className="text-amber-400 text-xs mt-0.5">{user?.role}</p>
+            <div className="px-5 py-4 border-b border-stone-100">
+              <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">Signed in as</p>
+              <p className="text-stone-900 font-semibold mt-0.5">{user?.fullName}</p>
+              <p className="text-stone-400 text-xs mt-0.5">{user?.role}</p>
             </div>
             {/* Nav links */}
             <nav className="flex-1 px-3 py-4 space-y-1">
@@ -542,7 +542,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => { navigate("/rooms"); setSideNavOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                    text-amber-200 hover:bg-brand-800 hover:text-white transition-colors text-left"
+                    text-stone-700 hover:bg-brand-50 hover:text-brand-700 transition-colors text-left"
                 >
                   <BedDouble className="h-5 w-5" /> Rooms
                 </button>
@@ -551,18 +551,18 @@ export default function DashboardPage() {
                 <button
                   onClick={() => { navigate("/settings"); setSideNavOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                    text-amber-200 hover:bg-brand-800 hover:text-white transition-colors text-left"
+                    text-stone-700 hover:bg-brand-50 hover:text-brand-700 transition-colors text-left"
                 >
                   <Settings className="h-5 w-5" /> Settings
                 </button>
               )}
             </nav>
             {/* Sign out at bottom */}
-            <div className="px-3 py-4 border-t border-brand-800">
+            <div className="px-3 py-4 border-t border-stone-200">
               <button
                 onClick={() => { logout(); setSideNavOpen(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                  text-amber-200 hover:bg-brand-800 hover:text-white transition-colors text-left"
+                  text-stone-500 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
               >
                 <LogOut className="h-5 w-5" /> Sign out
               </button>
