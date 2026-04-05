@@ -513,29 +513,27 @@ export default function DashboardPage() {
             onClick={() => setSideNavOpen(false)}
           />
           {/* Drawer */}
-          <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl border-l border-stone-200"
+          <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl"
             style={{ background: "hsl(220 20% 96%)" }}>
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200">
+            {/* Header — brand strip with staff info */}
+            <div className="bg-brand-700 px-5 py-5 flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <ConciergeBell className="h-6 w-6 text-brand-700 shrink-0" />
+                <div className="h-10 w-10 rounded bg-brand-600 flex items-center justify-center shrink-0">
+                  <span className="text-white font-extrabold text-base uppercase leading-none">
+                    {user?.fullName?.charAt(0) ?? "?"}
+                  </span>
+                </div>
                 <div>
-                  <p className="font-extrabold text-stone-900 text-xl leading-tight">{user?.hotelName}</p>
-                  <p className="text-brand-700 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
+                  <p className="font-extrabold text-white text-base leading-tight">{user?.fullName}</p>
+                  <p className="text-amber-300 text-[11px] uppercase tracking-widest font-semibold mt-0.5">{user?.role}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSideNavOpen(false)}
-                className="text-stone-400 hover:text-stone-700 transition-colors p-1"
+                className="text-amber-300 hover:text-white transition-colors p-1 mt-0.5"
               >
                 <X className="h-5 w-5" />
               </button>
-            </div>
-            {/* User info */}
-            <div className="px-5 py-4 border-b border-stone-100">
-              <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">Signed in as</p>
-              <p className="text-stone-900 font-semibold mt-0.5">{user?.fullName}</p>
-              <p className="text-stone-400 text-xs mt-0.5">{user?.role}</p>
             </div>
             {/* Nav links */}
             <nav className="flex-1 px-3 py-4 space-y-1">
@@ -543,18 +541,18 @@ export default function DashboardPage() {
                 <button
                   onClick={() => { navigate("/rooms"); setSideNavOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                    text-stone-700 hover:bg-brand-50 hover:text-brand-700 transition-colors text-left"
+                    text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
                 >
-                  <BedDouble className="h-5 w-5" /> Rooms
+                  <BedDouble className="h-5 w-5 text-brand-700" /> Rooms
                 </button>
               )}
               {user?.role === "ADMIN" && (
                 <button
                   onClick={() => { navigate("/settings"); setSideNavOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                    text-stone-700 hover:bg-brand-50 hover:text-brand-700 transition-colors text-left"
+                    text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
                 >
-                  <Settings className="h-5 w-5" /> Settings
+                  <Settings className="h-5 w-5 text-brand-700" /> Settings
                 </button>
               )}
             </nav>
