@@ -8,6 +8,7 @@ import GuestPage from "@/pages/Guest";
 import TvDisplay from "@/pages/TvDisplay";
 import HotelSettingsPage from "@/pages/HotelSettings";
 import StaffManagementPage from "@/pages/StaffManagement";
+import RegisterPage from "@/pages/Register";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ export default function App() {
           {/* Public routes — no auth */}
           <Route path="/r/:token"  component={GuestPage} />
           <Route path="/tv/:token" component={TvDisplay} />
+          <Route path="/register"  component={RegisterPage} />
           {/* Staff routes */}
           <Route component={StaffRouter} />
         </Switch>

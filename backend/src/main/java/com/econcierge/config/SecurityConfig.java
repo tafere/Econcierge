@@ -45,8 +45,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public: guest request submission and room lookup
                 .requestMatchers("/api/guest/**").permitAll()
-                // Public: staff login
+                // Public: staff login + hotel registration
                 .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/setup/register").permitAll()
                 // Everything else requires auth
                 .anyRequest().authenticated()
             )

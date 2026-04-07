@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Loader2, ConciergeBell, LogIn, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const [, navigate] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd]   = useState(false);
@@ -115,7 +117,13 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <p className="text-xs text-slate-400 mt-6">Econcierge · Staff access only</p>
+      <button
+        onClick={() => navigate("/register")}
+        className="mt-5 text-sm text-brand-700 hover:text-brand-900 font-semibold transition-colors"
+      >
+        Register your hotel →
+      </button>
+      <p className="text-xs text-slate-400 mt-3">Econcierge · Staff access only</p>
     </div>
   );
 }
