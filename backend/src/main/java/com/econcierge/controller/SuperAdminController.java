@@ -168,6 +168,14 @@ public class SuperAdminController {
         return ResponseEntity.ok(Map.of("updated", true));
     }
 
+    /** Seed default categories for an existing hotel (idempotent) */
+    @PostMapping("/hotels/{id}/seed-categories")
+    public ResponseEntity<?> seedCategories(@PathVariable Long id) {
+        if (!hotelRepository.existsById(id)) return ResponseEntity.notFound().build();
+        seedDefaultCategories(id);
+        return ResponseEntity.ok(Map.of("seeded", true));
+    }
+
     /** Toggle hotel enabled/disabled */
     @PatchMapping("/hotels/{id}/toggle")
     public ResponseEntity<?> toggleHotel(@PathVariable Long id) {

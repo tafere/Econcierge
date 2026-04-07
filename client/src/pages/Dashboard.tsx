@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
   Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
-  XCircle, Ban, TriangleAlert, X, Check, CheckCheck, Menu, Users,
+  XCircle, Ban, TriangleAlert, X, Check, CheckCheck, Menu, Users, LayoutList,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -483,6 +483,10 @@ export default function DashboardPage() {
               )}
               {user?.role === "ADMIN" && (
                 <>
+                  <button onClick={() => navigate("/categories")}
+                    className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                    <LayoutList className="h-4 w-4" /> Categories
+                  </button>
                   <button onClick={() => navigate("/staff")}
                     className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
                     <Users className="h-4 w-4" /> Staff
@@ -560,6 +564,13 @@ export default function DashboardPage() {
               )}
               {user?.role === "ADMIN" && (
                 <>
+                  <button
+                    onClick={() => { navigate("/categories"); setSideNavOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                      text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
+                  >
+                    <LayoutList className="h-5 w-5 text-brand-700" /> Categories
+                  </button>
                   <button
                     onClick={() => { navigate("/staff"); setSideNavOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold

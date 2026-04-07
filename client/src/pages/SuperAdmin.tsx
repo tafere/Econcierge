@@ -3,7 +3,7 @@ import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
 import {
   ConciergeBell, Plus, Loader2, Building2, Pencil, ToggleLeft,
-  ToggleRight, Eye, EyeOff, ChevronDown, X, KeyRound,
+  ToggleRight, Eye, EyeOff, X, KeyRound, ListChecks,
 } from "lucide-react";
 
 interface HotelEntry {
@@ -119,6 +119,12 @@ export default function SuperAdminPage() {
       const d = await res.json();
       setHotels(prev => prev.map(h => h.id === id ? { ...h, enabled: d.enabled } : h));
     }
+  };
+
+  const seedCategories = async (id: number, name: string) => {
+    const res = await fetch(`/api/super/hotels/${id}/seed-categories`, { method: "POST", headers: authH() });
+    if (res.ok) alert(`Default categories seeded for ${name}.`);
+    else alert("Failed to seed categories.");
   };
 
   const openEdit = (h: HotelEntry) => {
@@ -399,6 +405,12 @@ export default function SuperAdminPage() {
                     className="flex items-center gap-1 text-xs px-3 py-1.5 rounded text-stone-600
                       hover:bg-stone-100 transition-colors font-medium">
                     <KeyRound className="h-3.5 w-3.5" /> Password
+                  </button>
+                  <button onClick={() => seedCategories(h.id, h.name)}
+                    title="Seed default categories"
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded text-stone-600
+                      hover:bg-stone-100 transition-colors font-medium">
+                    <ListChecks className="h-3.5 w-3.5" /> Seed
                   </button>
                   <div className="flex-1" />
                   <button onClick={() => toggleHotel(h.id)} title={h.enabled ? "Disable hotel" : "Enable hotel"}

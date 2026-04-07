@@ -81,6 +81,12 @@ const CATEGORY_EMOJI: Record<string, string> = {
   utensils:         "🍽️",
   wrench:           "🔧",
   "concierge-bell": "🛎️",
+  car:              "🚗",
+  coffee:           "☕",
+  flower:           "🌸",
+  dumbbell:         "💪",
+  briefcase:        "💼",
+  star:             "⭐",
 };
 
 const STATUS_STYLE: Record<string, string> = {
