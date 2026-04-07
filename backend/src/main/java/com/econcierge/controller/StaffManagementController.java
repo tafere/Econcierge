@@ -96,6 +96,28 @@ public class StaffManagementController {
         return ResponseEntity.ok(Map.of("id", s.getId(), "enabled", s.isEnabled()));
     }
 
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> changeRole(@PathVariable Long id,
+                                         @RequestHeader("Authorization") String header,
+                                         @RequestBody Map<String, String> body) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        Staff s = staffRepository.findById(id).orElse(null);
+        if (s == null || !s.getHotelId().equals(hotelId))
+            return ResponseEntity.notFound().build();
+        if (s.getRole() == Staff.Role.ADMIN)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot change ADMIN role"));
+        Staff.Role newRole;
+        try { newRole = Staff.Role.valueOf(body.get("role")); } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid role"));
+        }
+        if (newRole == Staff.Role.ADMIN)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot assign ADMIN role"));
+        s.setRole(newRole);
+        staffRepository.save(s);
+        return ResponseEntity.ok(Map.of("id", s.getId(), "role", s.getRole().name()));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteStaff(@PathVariable Long id,
