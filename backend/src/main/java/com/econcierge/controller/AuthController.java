@@ -1,16 +1,18 @@
 package com.econcierge.controller;
 
 import com.econcierge.config.JwtUtil;
+import com.econcierge.model.Hotel;
 import com.econcierge.model.Staff;
 import com.econcierge.repository.HotelRepository;
 import com.econcierge.repository.StaffRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,22 +44,25 @@ public class AuthController {
         if (!staff.isEnabled())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Account disabled"));
 
-        String hotelName = hotelRepository.findById(staff.getHotelId())
-                .map(h -> h.getName()).orElse("");
+        Optional<Hotel> hotelOpt = staff.getHotelId() != null
+                ? hotelRepository.findById(staff.getHotelId()) : Optional.empty();
 
         String token = jwtUtil.generate(staff.getUsername(), staff.getRole().name(), staff.getHotelId());
-        return ResponseEntity.ok(Map.of(
-                "token",     token,
-                "username",  staff.getUsername(),
-                "fullName",  staff.getFullName(),
-                "role",      staff.getRole().name(),
-                "hotelId",   staff.getHotelId(),
-                "hotelName", hotelName
-        ));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token",        token);
+        response.put("username",     staff.getUsername());
+        response.put("fullName",     staff.getFullName());
+        response.put("role",         staff.getRole().name());
+        response.put("hotelId",      staff.getHotelId());
+        response.put("hotelName",    hotelOpt.map(Hotel::getName).orElse(""));
+        response.put("primaryColor", hotelOpt.map(Hotel::getPrimaryColor).orElse(null));
+        response.put("logoUrl",      hotelOpt.map(Hotel::getLogoUrl).orElse(null));
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication auth, @RequestHeader("Authorization") String header) {
+    public ResponseEntity<?> me(@RequestHeader("Authorization") String header) {
         String token = header.substring(7);
         if (!jwtUtil.isValid(token))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid token"));
@@ -66,15 +71,17 @@ public class AuthController {
         if (staff == null || !staff.isEnabled())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not found"));
 
-        String hotelName = hotelRepository.findById(staff.getHotelId())
-                .map(h -> h.getName()).orElse("");
+        Optional<Hotel> hotelOpt = staff.getHotelId() != null
+                ? hotelRepository.findById(staff.getHotelId()) : Optional.empty();
 
-        return ResponseEntity.ok(Map.of(
-                "username",  staff.getUsername(),
-                "fullName",  staff.getFullName(),
-                "role",      staff.getRole().name(),
-                "hotelId",   staff.getHotelId(),
-                "hotelName", hotelName
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("username",     staff.getUsername());
+        response.put("fullName",     staff.getFullName());
+        response.put("role",         staff.getRole().name());
+        response.put("hotelId",      staff.getHotelId());
+        response.put("hotelName",    hotelOpt.map(Hotel::getName).orElse(""));
+        response.put("primaryColor", hotelOpt.map(Hotel::getPrimaryColor).orElse(null));
+        response.put("logoUrl",      hotelOpt.map(Hotel::getLogoUrl).orElse(null));
+        return ResponseEntity.ok(response);
     }
 }

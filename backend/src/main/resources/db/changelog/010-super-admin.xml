@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="010-super-admin" author="econcierge">
+        <!-- Allow hotel_id to be null (for SUPER_ADMIN users) -->
+        <dropNotNullConstraint tableName="staff" columnName="hotel_id" columnDataType="bigint"/>
+        <!-- Add primary_color column to hotels -->
+        <addColumn tableName="hotels">
+            <column name="primary_color" type="VARCHAR(7)" defaultValue="#92400e"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

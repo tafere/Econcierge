@@ -11,6 +11,18 @@
   --glass-bg: rgba(255, 255, 255, 0.75);
   --glass-border: rgba(255, 255, 255, 0.5);
   --glass-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  /* Default amber/brown brand palette — RGB channels for dynamic theming */
+  --brand-50:  253 248 240;
+  --brand-100: 250 238 221;
+  --brand-200: 244 217 176;
+  --brand-300: 235 191 120;
+  --brand-400: 224 159 62;
+  --brand-500: 200 127 34;
+  --brand-600: 168 99 26;
+  --brand-700: 146 64 14;
+  --brand-800: 120 53 15;
+  --brand-900: 69 26 3;
 }
 
 /* ── Glassmorphism utility ──────────────────────────────────────────────────── */

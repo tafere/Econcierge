@@ -141,6 +141,19 @@ public class DataSeeder implements CommandLineRunner {
             staffRepository.save(mt);
         }
 
+        // Seed platform super admin from env vars
+        String superUsername = System.getenv().getOrDefault("SUPER_ADMIN_USERNAME", "superadmin");
+        String superPassword = System.getenv().getOrDefault("SUPER_ADMIN_PASSWORD", "super123");
+        if (staffRepository.findByUsername(superUsername).isEmpty()) {
+            Staff superAdmin = new Staff();
+            superAdmin.setHotelId(null);
+            superAdmin.setUsername(superUsername);
+            superAdmin.setPassword(passwordEncoder.encode(superPassword));
+            superAdmin.setFullName("Platform Admin");
+            superAdmin.setRole(Staff.Role.SUPER_ADMIN);
+            staffRepository.save(superAdmin);
+            System.out.println("Econcierge: super admin created — login: " + superUsername + " / " + superPassword);
+        }
         System.out.println("Econcierge: demo hotel seeded — login: admin / admin123");
     }
 

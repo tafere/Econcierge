@@ -34,6 +34,9 @@ public class Hotel {
     @Column(length = 300)
     private String website;
 
+    @Column(name = "primary_color", length = 7)
+    private String primaryColor;
+
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -60,6 +63,8 @@ public class Hotel {
     public void setLogoUrl(String v)     { this.logoUrl = v; }
     public String getWebsite()           { return website; }
     public void setWebsite(String v)     { this.website = v; }
+    public String getPrimaryColor()           { return primaryColor; }
+    public void setPrimaryColor(String v)     { this.primaryColor = v; }
     public boolean isEnabled()           { return enabled; }
     public void setEnabled(boolean v)    { this.enabled = v; }
     public LocalDateTime getCreatedAt()  { return createdAt; }

@@ -7,12 +7,12 @@ import java.time.LocalDateTime;
 @Table(name = "staff")
 public class Staff {
 
-    public enum Role { ADMIN, STAFF, HOUSEKEEPING, MAINTENANCE, TRANSPORT, RESTAURANT, CAFE_BAR, SPA, GYM, MEETING_CONFERENCE }
+    public enum Role { SUPER_ADMIN, ADMIN, STAFF, HOUSEKEEPING, MAINTENANCE, TRANSPORT, RESTAURANT, CAFE_BAR, SPA, GYM, MEETING_CONFERENCE }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "hotel_id", nullable = false)
+    @Column(name = "hotel_id")
     private Long hotelId;
 
     @Column(nullable = false, unique = true, length = 100)

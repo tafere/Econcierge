@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { applyHotelTheme } from "@/lib/theme";
 
 interface StaffUser {
   username: string;
   fullName: string;
-  role: "ADMIN" | "STAFF" | "HOUSEKEEPING" | "MAINTENANCE" | "TRANSPORT" | "RESTAURANT" | "CAFE_BAR" | "SPA" | "GYM" | "MEETING_CONFERENCE";
-  hotelId: number;
+  role: "SUPER_ADMIN" | "ADMIN" | "STAFF" | "HOUSEKEEPING" | "MAINTENANCE" | "TRANSPORT" | "RESTAURANT" | "CAFE_BAR" | "SPA" | "GYM" | "MEETING_CONFERENCE";
+  hotelId: number | null;
   hotelName: string;
   token: string;
+  primaryColor?: string | null;
+  logoUrl?: string | null;
 }
 
 interface AuthContextType {
@@ -29,9 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem(USER_KEY);
     if (token && saved) {
       try {
-        setUser({ ...JSON.parse(saved), token });
+        const parsed = JSON.parse(saved);
+        const u = { ...parsed, token };
+        setUser(u);
+        applyHotelTheme(u.primaryColor);
         fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-          .then(r => { if (r.status === 401) { localStorage.clear(); setUser(null); } })
+          .then(r => { if (r.status === 401) { localStorage.clear(); setUser(null); applyHotelTheme(null); } })
           .catch(() => {})
           .finally(() => setIsLoading(false));
       } catch {
@@ -55,17 +61,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const d = await res.json();
     const u: StaffUser = {
       username: d.username, fullName: d.fullName, role: d.role,
-      hotelId: d.hotelId, hotelName: d.hotelName, token: d.token,
+      hotelId: d.hotelId ?? null, hotelName: d.hotelName, token: d.token,
+      primaryColor: d.primaryColor ?? null,
+      logoUrl: d.logoUrl ?? null,
     };
     localStorage.setItem(TOKEN_KEY, d.token);
-    localStorage.setItem(USER_KEY, JSON.stringify({ username: u.username, fullName: u.fullName, role: u.role, hotelId: u.hotelId, hotelName: u.hotelName }));
+    localStorage.setItem(USER_KEY, JSON.stringify({
+      username: u.username, fullName: u.fullName, role: u.role,
+      hotelId: u.hotelId, hotelName: u.hotelName,
+      primaryColor: u.primaryColor, logoUrl: u.logoUrl,
+    }));
     setUser(u);
+    applyHotelTheme(u.primaryColor);
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     setUser(null);
+    applyHotelTheme(null);
   }, []);
 
   return <AuthContext.Provider value={{ user, isLoading, login, logout }}>{children}</AuthContext.Provider>;

@@ -5,6 +5,7 @@ import com.econcierge.model.Staff;
 import com.econcierge.repository.HotelRepository;
 import com.econcierge.repository.StaffRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,7 @@ public class SetupController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
         String hotelName  = body.get("hotelName");
