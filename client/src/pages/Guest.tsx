@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "wouter";
+import { applyHotelTheme } from "@/lib/theme";
 import {
   Loader2, ConciergeBell, ChevronRight, ChevronLeft,
   Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send,
@@ -30,6 +31,7 @@ interface RoomInfo {
   hotelName: string;
   tagline: string;
   logoUrl: string;
+  primaryColor: string;
   menu: MenuCategory[];
 }
 
@@ -133,6 +135,7 @@ export default function GuestPage() {
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((data: RoomInfo) => {
         setRoom(data);
+        applyHotelTheme(data.primaryColor);
         setTracked(loadTracked(token));
       })
       .catch(() => setError(T("invalidQr")))
@@ -292,12 +295,8 @@ export default function GuestPage() {
               <ConciergeBell className="h-6 w-6 shrink-0" />
             )}
             <div className="min-w-0">
-              <p className="text-xs text-amber-200 font-medium truncate">
-                {room!.hotelName || "Econcierge"} · {T("room")} {room!.roomNumber}
-              </p>
-              <h1 className="font-bold text-lg leading-tight">
-                {room!.tagline || T("howCanWeHelp")}
-              </h1>
+              <p className="font-extrabold text-base leading-tight truncate">{room!.hotelName}</p>
+              <p className="text-xs text-white/70 font-medium">Econcierge · {T("room")} {room!.roomNumber}</p>
             </div>
           </div>
           <button

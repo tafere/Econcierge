@@ -73,10 +73,11 @@ public class GuestController {
         response.put("roomNumber", room.getRoomNumber());
         response.put("floor",      room.getFloor() != null ? room.getFloor() : "");
         response.put("hotelId",    room.getHotelId());
-        response.put("hotelName",  hotel != null ? hotel.getName() : "");
-        response.put("tagline",    hotel != null && hotel.getTagline()  != null ? hotel.getTagline()  : "");
-        response.put("logoUrl",    hotel != null && hotel.getLogoUrl()  != null ? hotel.getLogoUrl()  : "");
-        response.put("menu",       menu);
+        response.put("hotelName",    hotel != null ? hotel.getName() : "");
+        response.put("tagline",      hotel != null && hotel.getTagline()     != null ? hotel.getTagline()     : "");
+        response.put("logoUrl",      hotel != null && hotel.getLogoUrl()     != null ? hotel.getLogoUrl()     : "");
+        response.put("primaryColor", hotel != null && hotel.getPrimaryColor() != null ? hotel.getPrimaryColor() : "#92400e");
+        response.put("menu",         menu);
         return ResponseEntity.ok(response);
     }
 

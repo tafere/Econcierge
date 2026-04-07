@@ -1,10 +1,7 @@
 package com.econcierge.controller;
 
-import com.econcierge.model.Hotel;
-import com.econcierge.model.Staff;
-import com.econcierge.repository.HotelRepository;
-import com.econcierge.repository.StaffRepository;
-import org.springframework.http.HttpStatus;
+import com.econcierge.model.*;
+import com.econcierge.repository.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,13 +18,19 @@ public class SuperAdminController {
     private final HotelRepository hotelRepository;
     private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RequestCategoryRepository categoryRepository;
+    private final RequestItemRepository itemRepository;
 
     public SuperAdminController(HotelRepository hotelRepository,
                                 StaffRepository staffRepository,
-                                PasswordEncoder passwordEncoder) {
+                                PasswordEncoder passwordEncoder,
+                                RequestCategoryRepository categoryRepository,
+                                RequestItemRepository itemRepository) {
         this.hotelRepository = hotelRepository;
         this.staffRepository = staffRepository;
         this.passwordEncoder = passwordEncoder;
+        this.categoryRepository = categoryRepository;
+        this.itemRepository = itemRepository;
     }
 
     /** List all hotels with their admin info */
@@ -102,6 +105,9 @@ public class SuperAdminController {
         admin.setRole(Staff.Role.ADMIN);
         staffRepository.save(admin);
 
+        // Seed default categories and items for this hotel
+        seedDefaultCategories(hotel.getId());
+
         Map<String, Object> resp = new HashMap<>();
         resp.put("id",           hotel.getId());
         resp.put("name",         hotel.getName());
@@ -170,5 +176,52 @@ public class SuperAdminController {
         hotel.setEnabled(!hotel.isEnabled());
         hotelRepository.save(hotel);
         return ResponseEntity.ok(Map.of("id", hotel.getId(), "enabled", hotel.isEnabled()));
+    }
+
+    private void seedDefaultCategories(Long hotelId) {
+        seedCat(hotelId, "Housekeeping", "broom", 1, new String[][]{
+            {"Room Cleaning","1"}, {"Turn-Down Service","1"}, {"Make Up Room","1"}
+        });
+        seedCat(hotelId, "Amenities", "sparkles", 2, new String[][]{
+            {"Extra Towels","3"}, {"Extra Pillows","3"}, {"Extra Blanket","2"},
+            {"Bathrobe","2"}, {"Extra Hangers","5"}
+        });
+        seedCat(hotelId, "Toiletries", "soap", 3, new String[][]{
+            {"Toothbrush","2"}, {"Toothpaste","2"}, {"Shampoo","2"}, {"Conditioner","2"},
+            {"Body Lotion","2"}, {"Razor","2"}, {"Shower Cap","2"}, {"Cotton Swabs","2"}
+        });
+        seedCat(hotelId, "Food & Beverage", "utensils", 4, new String[][]{
+            {"Room Service Menu","1"}, {"Extra Water Bottles","4"},
+            {"Coffee / Tea","4"}, {"Ice Bucket","1"}, {"Minibar Restock","1"}
+        });
+        seedCat(hotelId, "Maintenance", "wrench", 5, new String[][]{
+            {"AC / Heating Issue","1"}, {"TV Not Working","1"}, {"Plumbing Issue","1"},
+            {"Lighting Issue","1"}, {"Safe / Lock Issue","1"}
+        });
+        seedCat(hotelId, "Concierge", "concierge-bell", 6, new String[][]{
+            {"Taxi / Transport","1"}, {"Tour Information","1"}, {"Wake-Up Call","1"},
+            {"Luggage Assistance","1"}, {"Airport Shuttle","1"}
+        });
+    }
+
+    private void seedCat(Long hotelId, String name, String icon, int order, String[][] items) {
+        RequestCategory cat = categoryRepository.findByHotelIdAndName(hotelId, name).orElseGet(() -> {
+            RequestCategory c = new RequestCategory();
+            c.setHotelId(hotelId);
+            c.setName(name);
+            c.setIcon(icon);
+            c.setSortOrder(order);
+            return categoryRepository.save(c);
+        });
+        for (int i = 0; i < items.length; i++) {
+            if (!itemRepository.existsByCategoryIdAndName(cat.getId(), items[i][0])) {
+                RequestItem item = new RequestItem();
+                item.setCategoryId(cat.getId());
+                item.setName(items[i][0]);
+                item.setSortOrder(i);
+                item.setMaxQuantity(Integer.parseInt(items[i][1]));
+                itemRepository.save(item);
+            }
+        }
     }
 }
