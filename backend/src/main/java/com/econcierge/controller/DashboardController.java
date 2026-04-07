@@ -41,7 +41,7 @@ public class DashboardController {
     }
 
     @GetMapping("/requests")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'HOUSEKEEPING', 'MAINTENANCE')")
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN','HOUSEKEEPING','MAINTENANCE','TRANSPORT','RESTAURANT','CAFE_BAR','SPA','GYM','MEETING_CONFERENCE')")
     public ResponseEntity<?> getRequests(@RequestHeader("Authorization") String header) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         String role   = jwtUtil.extractRole(header.substring(7));
@@ -54,7 +54,7 @@ public class DashboardController {
     }
 
     @PatchMapping("/requests/{id}/status")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'HOUSEKEEPING', 'MAINTENANCE')")
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN','HOUSEKEEPING','MAINTENANCE','TRANSPORT','RESTAURANT','CAFE_BAR','SPA','GYM','MEETING_CONFERENCE')")
     public ResponseEntity<?> updateStatus(@PathVariable Long id,
                                           @RequestBody Map<String, String> body,
                                           @RequestHeader("Authorization") String header) {
@@ -170,8 +170,14 @@ public class DashboardController {
         if (cat == null) return false;
         String name = cat.getName();
         return switch (role) {
-            case "HOUSEKEEPING" -> name.equals("Housekeeping") || name.equals("Amenities") || name.equals("Toiletries");
-            case "MAINTENANCE"  -> name.equals("Maintenance");
+            case "HOUSEKEEPING"       -> name.equals("Housekeeping") || name.equals("Amenities") || name.equals("Toiletries");
+            case "MAINTENANCE"        -> name.equals("Maintenance");
+            case "TRANSPORT"          -> name.equals("Transport") || name.equals("Concierge");
+            case "RESTAURANT"         -> name.equals("Restaurant") || name.equals("Food & Beverage");
+            case "CAFE_BAR"           -> name.equals("Cafe & Bar") || name.equals("Food & Beverage");
+            case "SPA"                -> name.equals("Spa");
+            case "GYM"                -> name.equals("Gym");
+            case "MEETING_CONFERENCE" -> name.equals("Meeting & Conference");
             default -> true;
         };
     }

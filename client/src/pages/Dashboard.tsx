@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
   Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
-  XCircle, Ban, TriangleAlert, X, Check, CheckCheck, Menu,
+  XCircle, Ban, TriangleAlert, X, Check, CheckCheck, Menu, Users,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -482,24 +482,36 @@ export default function DashboardPage() {
                 </button>
               )}
               {user?.role === "ADMIN" && (
-                <button onClick={() => navigate("/settings")}
-                  className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                  <Settings className="h-4 w-4" /> Settings
-                </button>
+                <>
+                  <button onClick={() => navigate("/staff")}
+                    className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                    <Users className="h-4 w-4" /> Staff
+                  </button>
+                  <button onClick={() => navigate("/settings")}
+                    className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
+                    <Settings className="h-4 w-4" /> Settings
+                  </button>
+                </>
               )}
               <button onClick={logout}
                 className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
             </div>
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setSideNavOpen(true)}
-              className="sm:hidden p-1 text-amber-200 hover:text-white transition-colors"
-              aria-label="Open menu"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+            {/* Mobile: sign out always visible + hamburger for nav */}
+            <div className="flex sm:hidden items-center gap-3">
+              <button onClick={logout}
+                className="flex items-center gap-1 text-xs text-amber-200 hover:text-white transition-colors">
+                <LogOut className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setSideNavOpen(true)}
+                className="p-1 text-amber-200 hover:text-white transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -547,13 +559,22 @@ export default function DashboardPage() {
                 </button>
               )}
               {user?.role === "ADMIN" && (
-                <button
-                  onClick={() => { navigate("/settings"); setSideNavOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                    text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
-                >
-                  <Settings className="h-5 w-5 text-brand-700" /> Settings
-                </button>
+                <>
+                  <button
+                    onClick={() => { navigate("/staff"); setSideNavOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                      text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
+                  >
+                    <Users className="h-5 w-5 text-brand-700" /> Staff
+                  </button>
+                  <button
+                    onClick={() => { navigate("/settings"); setSideNavOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                      text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
+                  >
+                    <Settings className="h-5 w-5 text-brand-700" /> Settings
+                  </button>
+                </>
               )}
             </nav>
             {/* Sign out at bottom */}

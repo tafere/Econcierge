@@ -13,5 +13,6 @@
     <include file="db/changelog/006-add-quantity.xml"/>
     <include file="db/changelog/007-hotel-branding.xml"/>
     <include file="db/changelog/008-cancel-decline.xml"/>
+    <include file="classpath:db/changelog/009-widen-role.xml"/>
 
 </databaseChangeLog>

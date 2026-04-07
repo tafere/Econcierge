@@ -7,6 +7,7 @@ import RoomsPage from "@/pages/Rooms";
 import GuestPage from "@/pages/Guest";
 import TvDisplay from "@/pages/TvDisplay";
 import HotelSettingsPage from "@/pages/HotelSettings";
+import StaffManagementPage from "@/pages/StaffManagement";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ function StaffRouter() {
     <Switch>
       <Route path="/"         component={DashboardPage} />
       <Route path="/rooms"    component={RoomsPage} />
+      <Route path="/staff"    component={StaffManagementPage} />
       <Route path="/settings" component={HotelSettingsPage} />
       <Route component={DashboardPage} />
     </Switch>

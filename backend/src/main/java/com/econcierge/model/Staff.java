@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Table(name = "staff")
 public class Staff {
 
-    public enum Role { ADMIN, STAFF, HOUSEKEEPING, MAINTENANCE }
+    public enum Role { ADMIN, STAFF, HOUSEKEEPING, MAINTENANCE, TRANSPORT, RESTAURANT, CAFE_BAR, SPA, GYM, MEETING_CONFERENCE }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,7 +25,7 @@ public class Staff {
     private String fullName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     private Role role = Role.STAFF;
 
     @Column(nullable = false)

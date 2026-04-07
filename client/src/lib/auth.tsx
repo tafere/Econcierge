@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 interface StaffUser {
   username: string;
   fullName: string;
-  role: "ADMIN" | "STAFF" | "HOUSEKEEPING" | "MAINTENANCE";
+  role: "ADMIN" | "STAFF" | "HOUSEKEEPING" | "MAINTENANCE" | "TRANSPORT" | "RESTAURANT" | "CAFE_BAR" | "SPA" | "GYM" | "MEETING_CONFERENCE";
   hotelId: number;
   hotelName: string;
   token: string;

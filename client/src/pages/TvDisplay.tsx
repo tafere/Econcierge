@@ -106,8 +106,8 @@ export default function TvDisplay() {
 
         {/* QR code with animated ring */}
         <div className="relative">
-          <div className="absolute inset-0 rounded-3xl bg-amber-400 opacity-10 animate-ping" />
-          <div className="relative bg-amber-50 rounded-3xl p-5 shadow-2xl">
+          <div className="absolute inset-0 rounded-xl bg-amber-400 opacity-10 animate-ping" />
+          <div className="relative bg-amber-50 rounded-xl p-5 shadow-2xl">
             {qrDataUrl
               ? <img src={qrDataUrl} alt="QR Code" className="w-64 h-64 sm:w-80 sm:h-80" />
               : <div className="w-64 h-64 sm:w-80 sm:h-80 bg-amber-100 rounded-xl animate-pulse" />
