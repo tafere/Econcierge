@@ -20,17 +20,23 @@ public class SuperAdminController {
     private final PasswordEncoder passwordEncoder;
     private final RequestCategoryRepository categoryRepository;
     private final RequestItemRepository itemRepository;
+    private final ServiceRequestRepository serviceRequestRepository;
+    private final RoomRepository roomRepository;
 
     public SuperAdminController(HotelRepository hotelRepository,
                                 StaffRepository staffRepository,
                                 PasswordEncoder passwordEncoder,
                                 RequestCategoryRepository categoryRepository,
-                                RequestItemRepository itemRepository) {
+                                RequestItemRepository itemRepository,
+                                ServiceRequestRepository serviceRequestRepository,
+                                RoomRepository roomRepository) {
         this.hotelRepository = hotelRepository;
         this.staffRepository = staffRepository;
         this.passwordEncoder = passwordEncoder;
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
+        this.serviceRequestRepository = serviceRequestRepository;
+        this.roomRepository = roomRepository;
     }
 
     /** List all hotels with their admin info */
@@ -166,6 +172,24 @@ public class SuperAdminController {
                 });
 
         return ResponseEntity.ok(Map.of("updated", true));
+    }
+
+    /** Delete a hotel and all its data */
+    @DeleteMapping("/hotels/{id}")
+    public ResponseEntity<?> deleteHotel(@PathVariable Long id) {
+        if (!hotelRepository.existsById(id)) return ResponseEntity.notFound().build();
+        // Delete in dependency order
+        serviceRequestRepository.findByHotelIdOrderByCreatedAtDesc(id)
+                .forEach(serviceRequestRepository::delete);
+        categoryRepository.findByHotelIdOrderBySortOrder(id).forEach(cat -> {
+            itemRepository.findByCategoryIdOrderBySortOrder(cat.getId())
+                    .forEach(itemRepository::delete);
+            categoryRepository.delete(cat);
+        });
+        roomRepository.findByHotelIdOrderByRoomNumber(id).forEach(roomRepository::delete);
+        staffRepository.findByHotelId(id).forEach(staffRepository::delete);
+        hotelRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("deleted", true));
     }
 
     /** Seed default categories for an existing hotel (idempotent) */

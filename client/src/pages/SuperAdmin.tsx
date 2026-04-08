@@ -3,7 +3,7 @@ import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
 import {
   ConciergeBell, Plus, Loader2, Building2, Pencil, ToggleLeft,
-  ToggleRight, Eye, EyeOff, X, KeyRound, ListChecks,
+  ToggleRight, Eye, EyeOff, X, KeyRound, ListChecks, Trash2,
 } from "lucide-react";
 
 interface HotelEntry {
@@ -125,6 +125,13 @@ export default function SuperAdminPage() {
     const res = await fetch(`/api/super/hotels/${id}/seed-categories`, { method: "POST", headers: authH() });
     if (res.ok) alert(`Default categories seeded for ${name}.`);
     else alert("Failed to seed categories.");
+  };
+
+  const deleteHotel = async (id: number, name: string) => {
+    if (!confirm(`Permanently delete "${name}" and ALL its data (rooms, staff, requests)? This cannot be undone.`)) return;
+    const res = await fetch(`/api/super/hotels/${id}`, { method: "DELETE", headers: authH() });
+    if (res.ok) setHotels(prev => prev.filter(h => h.id !== id));
+    else alert("Failed to delete hotel.");
   };
 
   const openEdit = (h: HotelEntry) => {
@@ -418,6 +425,10 @@ export default function SuperAdminPage() {
                     {h.enabled
                       ? <ToggleRight className="h-5 w-5 text-green-600" />
                       : <ToggleLeft  className="h-5 w-5 text-stone-400" />}
+                  </button>
+                  <button onClick={() => deleteHotel(h.id, h.name)} title="Delete hotel"
+                    className="p-1.5 rounded hover:bg-red-50 text-stone-300 hover:text-red-500 transition-colors">
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
