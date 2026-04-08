@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
 import { getToken } from "@/lib/auth";
 import {
-  ConciergeBell, ArrowLeft, Plus, Loader2, Users,
+  Plus, Loader2, Users,
   ShieldCheck, ToggleLeft, ToggleRight, Trash2, Eye, EyeOff, ChevronDown,
 } from "lucide-react";
+import NavBar from "@/components/NavBar";
 
 interface StaffMember {
   id: number;
@@ -29,7 +29,6 @@ const ROLES = [
 const roleInfo = (value: string) => ROLES.find(r => r.value === value) ?? { value, label: value, color: "bg-stone-100 text-stone-600 border-stone-200" };
 
 export default function StaffManagementPage() {
-  const [, navigate] = useLocation();
   const [staff, setStaff]           = useState<StaffMember[]>([]);
   const [loading, setLoading]       = useState(true);
   const [showAdd, setShowAdd]       = useState(false);
@@ -104,18 +103,7 @@ export default function StaffManagementPage() {
 
   return (
     <div className="min-h-screen">
-      <nav className="bg-brand-700 text-white px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ConciergeBell className="h-5 w-5" />
-            <span className="font-bold text-sm">Staff Management</span>
-          </div>
-          <button onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Dashboard
-          </button>
-        </div>
-      </nav>
+      <NavBar />
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
 import { getToken } from "@/lib/auth";
-import { ConciergeBell, ArrowLeft, Save, Loader2, Building2, Link, Phone, Mail, MapPin, Tag } from "lucide-react";
+import { Save, Loader2, Building2, Link, Phone, Mail, MapPin, Tag } from "lucide-react";
+import NavBar from "@/components/NavBar";
 
 interface HotelSettings {
   name:    string;
@@ -14,7 +14,6 @@ interface HotelSettings {
 }
 
 export default function HotelSettingsPage() {
-  const [, navigate] = useLocation();
   const [form, setForm]       = useState<HotelSettings>({ name: "", tagline: "", logoUrl: "", website: "", address: "", phone: "", email: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
@@ -77,18 +76,7 @@ export default function HotelSettingsPage() {
 
   return (
     <div className="min-h-screen">
-      <nav className="bg-brand-700 text-white px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ConciergeBell className="h-5 w-5" />
-            <span className="font-bold text-sm">Hotel Settings</span>
-          </div>
-          <button onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Dashboard
-          </button>
-        </div>
-      </nav>
+      <NavBar />
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         {loading ? (

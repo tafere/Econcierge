@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from "react";
-import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
-import { ConciergeBell, ArrowLeft, Download, Plus, BedDouble, Loader2, Tv2, QrCode, Settings } from "lucide-react";
+import { Download, Plus, BedDouble, Loader2, Tv2, QrCode } from "lucide-react";
 import QRCode from "qrcode";
+import NavBar from "@/components/NavBar";
 
 interface Room {
   id: number;
@@ -16,7 +16,6 @@ interface Room {
 
 export default function RoomsPage() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
   const [rooms, setRooms]   = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -80,30 +79,7 @@ export default function RoomsPage() {
 
   return (
     <div className="min-h-screen">
-      <nav className="bg-brand-700 text-white px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ConciergeBell className="h-5 w-5" />
-            <span className="font-bold text-sm">Econcierge</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" /> Dashboard
-            </button>
-            {user?.role === "ADMIN" && (
-              <button
-                onClick={() => navigate("/settings")}
-                className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors"
-              >
-                <Settings className="h-4 w-4" /> Settings
-              </button>
-            )}
-          </div>
-        </div>
-      </nav>
+      <NavBar />
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">

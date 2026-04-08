@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth, getToken } from "@/lib/auth";
-import { useLocation } from "wouter";
 import {
-  ConciergeBell, LogOut, BedDouble, Clock, CheckCircle2,
-  Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash, Settings,
-  XCircle, Ban, TriangleAlert, X, Check, CheckCheck, Menu, Users, LayoutList,
+  ConciergeBell, Clock, CheckCircle2,
+  Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash,
+  XCircle, Ban, TriangleAlert, X, Check, CheckCheck,
 } from "lucide-react";
+import NavBar from "@/components/NavBar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -355,15 +355,13 @@ function RequestTable({
 type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PASTDUE";
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
-  const [, navigate]     = useLocation();
+  const { user } = useAuth();
   const [requests, setRequests]   = useState<ServiceRequest[]>([]);
   const [loading, setLoading]     = useState(true);
   const [newCount, setNewCount]   = useState(0);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
   const [declining, setDeclining] = useState<ServiceRequest | null>(null);
-  const [sideNavOpen, setSideNavOpen] = useState(false);
 
   const fetchRequests = async () => {
     const token = getToken();
@@ -445,162 +443,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
 
-      {/* Nav */}
-      <nav className="bg-brand-700 text-white px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ConciergeBell className="h-5 w-5 text-amber-300 shrink-0" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-white text-base leading-tight">{user?.hotelName}</span>
-                {user?.role === "HOUSEKEEPING" && (
-                  <span className="text-[10px] bg-amber-400 text-amber-900 rounded px-2 py-0.5 font-bold">Housekeeping</span>
-                )}
-                {user?.role === "MAINTENANCE" && (
-                  <span className="text-[10px] bg-blue-400 text-blue-900 rounded px-2 py-0.5 font-bold">Maintenance</span>
-                )}
-              </div>
-              <span className="text-amber-300 text-[11px] uppercase tracking-widest font-semibold">Econcierge</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            {newCount > 0 && (
-              <button
-                onClick={() => { setNewCount(0); setTab("ACTIVE"); fetchRequests(); }}
-                className="flex items-center gap-1.5 text-xs bg-amber-400 text-amber-900
-                  rounded px-3 py-1 font-bold animate-pulse"
-              >
-                <Bell className="h-3.5 w-3.5" /> {newCount} new
-              </button>
-            )}
-            {/* Desktop nav links */}
-            <div className="hidden sm:flex items-center gap-4">
-              {(user?.role === "ADMIN" || user?.role === "STAFF") && (
-                <button onClick={() => navigate("/rooms")}
-                  className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                  <BedDouble className="h-4 w-4" /> Rooms
-                </button>
-              )}
-              {user?.role === "ADMIN" && (
-                <>
-                  <button onClick={() => navigate("/categories")}
-                    className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                    <LayoutList className="h-4 w-4" /> Categories
-                  </button>
-                  <button onClick={() => navigate("/staff")}
-                    className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                    <Users className="h-4 w-4" /> Staff
-                  </button>
-                  <button onClick={() => navigate("/settings")}
-                    className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                    <Settings className="h-4 w-4" /> Settings
-                  </button>
-                </>
-              )}
-              <button onClick={logout}
-                className="flex items-center gap-1.5 text-xs text-amber-200 hover:text-white transition-colors">
-                <LogOut className="h-4 w-4" /> Sign out
-              </button>
-            </div>
-            {/* Mobile: sign out always visible + hamburger for nav */}
-            <div className="flex sm:hidden items-center gap-3">
-              <button onClick={logout}
-                className="flex items-center gap-1 text-xs text-amber-200 hover:text-white transition-colors">
-                <LogOut className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setSideNavOpen(true)}
-                className="p-1 text-amber-200 hover:text-white transition-colors"
-                aria-label="Open menu"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile side drawer */}
-      {sideNavOpen && (
-        <div className="fixed inset-0 z-50 sm:hidden">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setSideNavOpen(false)}
-          />
-          {/* Drawer */}
-          <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl"
-            style={{ background: "hsl(220 20% 96%)" }}>
-            {/* Header — brand strip with staff info */}
-            <div className="bg-brand-700 px-5 py-5 flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded bg-brand-600 flex items-center justify-center shrink-0">
-                  <span className="text-white font-extrabold text-base uppercase leading-none">
-                    {user?.fullName?.charAt(0) ?? "?"}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-extrabold text-white text-base leading-tight">{user?.fullName}</p>
-                  <p className="text-amber-300 text-[11px] uppercase tracking-widest font-semibold mt-0.5">{user?.role}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSideNavOpen(false)}
-                className="text-amber-300 hover:text-white transition-colors p-1 mt-0.5"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            {/* Nav links */}
-            <nav className="flex-1 px-3 py-4 space-y-1">
-              {(user?.role === "ADMIN" || user?.role === "STAFF") && (
-                <button
-                  onClick={() => { navigate("/rooms"); setSideNavOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                    text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
-                >
-                  <BedDouble className="h-5 w-5 text-brand-700" /> Rooms
-                </button>
-              )}
-              {user?.role === "ADMIN" && (
-                <>
-                  <button
-                    onClick={() => { navigate("/categories"); setSideNavOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                      text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
-                  >
-                    <LayoutList className="h-5 w-5 text-brand-700" /> Categories
-                  </button>
-                  <button
-                    onClick={() => { navigate("/staff"); setSideNavOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                      text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
-                  >
-                    <Users className="h-5 w-5 text-brand-700" /> Staff
-                  </button>
-                  <button
-                    onClick={() => { navigate("/settings"); setSideNavOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                      text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left"
-                  >
-                    <Settings className="h-5 w-5 text-brand-700" /> Settings
-                  </button>
-                </>
-              )}
-            </nav>
-            {/* Sign out at bottom */}
-            <div className="px-3 py-4 border-t border-stone-200">
-              <button
-                onClick={() => { logout(); setSideNavOpen(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                  text-stone-500 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
-              >
-                <LogOut className="h-5 w-5" /> Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <NavBar newCount={newCount} onNewCountClick={() => { setNewCount(0); setTab("ACTIVE"); fetchRequests(); }} />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
 
