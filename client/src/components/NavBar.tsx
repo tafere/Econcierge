@@ -113,20 +113,20 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl"
             style={{ background: "hsl(220 20% 96%)" }}>
-            {/* Drawer header */}
-            <div className="bg-brand-700 px-5 py-5 flex items-start justify-between">
+            {/* Drawer header — same height as top nav */}
+            <div className="bg-brand-700 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded bg-brand-600 flex items-center justify-center shrink-0">
-                  <span className="text-white font-extrabold text-base uppercase">
+                <div className="h-7 w-7 rounded bg-brand-600 flex items-center justify-center shrink-0">
+                  <span className="text-white font-extrabold text-sm uppercase">
                     {user?.fullName?.charAt(0) ?? "?"}
                   </span>
                 </div>
                 <div>
-                  <p className="font-extrabold text-white text-base leading-tight">{user?.fullName}</p>
-                  <p className="text-amber-300 text-[11px] uppercase tracking-widest font-semibold mt-0.5">{user?.role}</p>
+                  <p className="font-extrabold text-white text-sm leading-tight">{user?.fullName}</p>
+                  <p className="text-amber-300 text-[10px] uppercase tracking-widest font-semibold">{user?.role}</p>
                 </div>
               </div>
-              <button onClick={() => setDrawerOpen(false)} className="text-amber-300 hover:text-white transition-colors p-1 mt-0.5">
+              <button onClick={() => setDrawerOpen(false)} className="text-amber-300 hover:text-white transition-colors p-1">
                 <X className="h-5 w-5" />
               </button>
             </div>
