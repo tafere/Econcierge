@@ -134,23 +134,23 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
             {/* Drawer links */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
               <button onClick={() => go("/")} className={drawerLink("/")}>
-                <LayoutDashboard className="h-5 w-5 text-brand-700" /> Dashboard
+                <LayoutDashboard className="h-5 w-5" /> Dashboard
               </button>
               {canSeeRooms && (
                 <button onClick={() => go("/rooms")} className={drawerLink("/rooms")}>
-                  <BedDouble className="h-5 w-5 text-brand-700" /> Rooms
+                  <BedDouble className="h-5 w-5" /> Rooms
                 </button>
               )}
               {isAdmin && (
                 <>
                   <button onClick={() => go("/categories")} className={drawerLink("/categories")}>
-                    <LayoutList className="h-5 w-5 text-brand-700" /> Categories
+                    <LayoutList className="h-5 w-5" /> Categories
                   </button>
                   <button onClick={() => go("/staff")} className={drawerLink("/staff")}>
-                    <Users className="h-5 w-5 text-brand-700" /> Staff
+                    <Users className="h-5 w-5" /> Staff
                   </button>
                   <button onClick={() => go("/settings")} className={drawerLink("/settings")}>
-                    <Settings className="h-5 w-5 text-brand-700" /> Settings
+                    <Settings className="h-5 w-5" /> Settings
                   </button>
                 </>
               )}
