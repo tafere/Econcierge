@@ -188,18 +188,22 @@ function RequestTable({
   if (requests.length === 0) return null;
 
   const hasActions = requests.some(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
+  const hasNotes   = requests.some(r => r.notes || r.staffComment);
+  const hasBy      = requests.some(r => r.assignedTo && r.status !== "PENDING");
+
+  const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap";
 
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm table-auto">
         <thead>
           <tr className="border-b border-stone-200 bg-stone-50/60">
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap">Room</th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Request</th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap">Time</th>
-            {hasActions && (
-              <th className="text-right px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap">Action</th>
-            )}
+            <th className={th}>Room</th>
+            <th className={th}>Request</th>
+            {hasNotes   && <th className={th}>Notes</th>}
+            <th className={th}>Date &amp; Time</th>
+            {hasBy      && <th className={th}>By</th>}
+            {hasActions && <th className={`${th} text-right`}>Action</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
@@ -224,42 +228,60 @@ function RequestTable({
                   {req.floor && <p className="text-[10px] text-stone-400">Floor {req.floor}</p>}
                 </td>
 
-                {/* Request — item + qty + category + notes all in one cell */}
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                {/* Request — item + qty + category */}
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
                     <span className="text-sm leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
                     <span className="font-semibold text-stone-900">{req.itemName}</span>
                     {req.quantity > 1 && (
                       <span className="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200
                         rounded px-1.5 py-0.5">×{req.quantity}</span>
                     )}
-                    <span className="text-xs text-stone-400">{req.categoryName}</span>
                   </div>
-                  {req.notes && (
-                    <p className="text-xs text-stone-400 italic mt-0.5 truncate max-w-xs">"{req.notes}"</p>
-                  )}
-                  {req.staffComment && (
-                    <p className="text-xs text-red-500 italic mt-0.5 truncate max-w-xs">⚠ {req.staffComment}</p>
-                  )}
+                  <p className="text-xs text-stone-400 mt-0.5">{req.categoryName}</p>
                 </td>
 
-                {/* Time — elapsed, colored if urgent */}
+                {/* Notes — truncated, full text on hover */}
+                {hasNotes && (
+                  <td className="px-4 py-3 max-w-[180px]">
+                    {req.notes && (
+                      <p className="text-xs text-stone-500 italic truncate cursor-default"
+                        title={req.notes}>
+                        {req.notes}
+                      </p>
+                    )}
+                    {req.staffComment && (
+                      <p className="text-xs text-red-500 italic truncate cursor-default mt-0.5"
+                        title={req.staffComment}>
+                        ⚠ {req.staffComment}
+                      </p>
+                    )}
+                  </td>
+                )}
+
+                {/* Date & Time — full timestamp */}
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className={`text-xs font-medium
-                    ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-400"}`}>
-                    {elapsedLabel(req.createdAt)}
+                    ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-500"}`}>
+                    {fmtDateTime(req.createdAt)}
                   </p>
-                  {req.assignedTo && (req.status === "IN_PROGRESS" || req.status === "DONE") && (
-                    <p className="text-[11px] text-stone-400 mt-0.5 truncate">{req.assignedTo}</p>
-                  )}
                   {req.completedAt && (
-                    <p className="text-[11px] text-green-600 mt-0.5">✓ {fmtTime(req.completedAt)}</p>
+                    <p className="text-[11px] text-green-600 mt-0.5">✓ {fmtDateTime(req.completedAt)}</p>
                   )}
                 </td>
 
-                {/* Action — only rendered when the table has actionable rows */}
+                {/* By — who acted on this request */}
+                {hasBy && (
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {req.assignedTo && req.status !== "PENDING" && (
+                      <p className="text-xs text-stone-600 font-medium">{req.assignedTo}</p>
+                    )}
+                  </td>
+                )}
+
+                {/* Action */}
                 {hasActions && (
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     {updatingId === req.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
                     ) : req.status === "PENDING" ? (
