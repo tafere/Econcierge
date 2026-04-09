@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth, getToken } from "@/lib/auth";
 import {
-  ConciergeBell, Clock, CheckCircle2,
-  Loader2, RefreshCw, Bell, AlertCircle, Zap, Hash,
-  XCircle, Ban, TriangleAlert, X, Check, CheckCheck,
+  CheckCircle2, Loader2, RefreshCw, Bell,
+  X, Check, CheckCheck,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
@@ -160,6 +159,15 @@ function DeclineModal({
 
 // ─── Request table ────────────────────────────────────────────────────────────
 
+function elapsedLabel(iso: string) {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1)  return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
 function RequestTable({
   requests,
   updatingId,
@@ -183,167 +191,102 @@ function RequestTable({
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-slate-50 border-b border-slate-200">
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-8">
-              <Hash className="h-3.5 w-3.5" />
-            </th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Room</th>
+          <tr className="border-b border-stone-200 bg-stone-50/60">
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-20">Room</th>
             <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Request</th>
-            <th className="text-center px-3 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-12">Qty</th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Notes</th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-36">Date &amp; Time</th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-28">Accepted By</th>
-            <th className="text-center px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-28">Status</th>
-            <th className="text-center px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-36">Action</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-24">Time</th>
+            <th className="text-right px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-40">Action</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
-          {requests.map((req, i) => (
-            <tr
-              key={req.id}
-              className={`transition-colors border-l-4
-                ${overdueIds.has(req.id)   ? "border-l-orange-400 bg-orange-50/50 hover:bg-orange-50" :
-                  escalatedIds.has(req.id) ? "border-l-red-400    bg-red-50/40    hover:bg-red-50/60" :
-                  req.status === "PENDING"     ? "border-l-transparent bg-amber-50/40 hover:bg-amber-50" :
-                  req.status === "IN_PROGRESS" ? "border-l-transparent hover:bg-blue-50/30" :
-                  req.status === "CANCELLED" || req.status === "DECLINED"
-                                               ? "border-l-transparent opacity-60 hover:opacity-100 hover:bg-stone-50" :
-                                                 "border-l-transparent opacity-70 hover:opacity-100 hover:bg-stone-50"}`}
-            >
-              {/* # */}
-              <td className="px-4 py-3 text-xs text-stone-300 tabular-nums">{i + 1}</td>
+          {requests.map(req => {
+            const isOverdue   = overdueIds.has(req.id);
+            const isEscalated = escalatedIds.has(req.id);
+            const dimmed      = req.status === "DONE" || req.status === "CANCELLED" || req.status === "DECLINED";
 
-              {/* Room */}
-              <td className="px-4 py-3 whitespace-nowrap">
-                <span className="font-bold text-stone-900">{req.roomNumber}</span>
-                {req.floor && <span className="ml-1.5 text-xs text-stone-400">F{req.floor}</span>}
-              </td>
+            return (
+              <tr key={req.id}
+                className={`border-l-4 transition-colors
+                  ${isEscalated  ? "border-l-red-400    bg-red-50/30   hover:bg-red-50/50" :
+                    isOverdue    ? "border-l-orange-400 bg-orange-50/30 hover:bg-orange-50/50" :
+                    req.status === "PENDING"     ? "border-l-amber-300 bg-amber-50/20 hover:bg-amber-50/40" :
+                    req.status === "IN_PROGRESS" ? "border-l-blue-400  bg-blue-50/20  hover:bg-blue-50/40" :
+                    "border-l-transparent hover:bg-stone-50"}
+                  ${dimmed ? "opacity-55" : ""}`}
+              >
+                {/* Room */}
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="font-extrabold text-stone-900">{req.roomNumber}</p>
+                  {req.floor && <p className="text-[10px] text-stone-400">Floor {req.floor}</p>}
+                </td>
 
-              {/* Request */}
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-base leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
-                  <div>
-                    <p className="font-semibold text-stone-800 whitespace-nowrap">{req.itemName}</p>
-                    <p className="text-xs text-stone-400">{req.categoryName}</p>
-                  </div>
-                </div>
-              </td>
-
-              {/* Qty */}
-              <td className="px-3 py-3 text-center">
-                {req.quantity > 1 ? (
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded
-                    bg-amber-100 text-amber-800 font-bold text-xs border border-amber-200">
-                    {req.quantity}
-                  </span>
-                ) : (
-                  <span className="text-stone-200 text-xs">—</span>
-                )}
-              </td>
-
-              {/* Notes / staffComment */}
-              <td className="px-4 py-3 max-w-[160px]">
-                {req.notes ? (
-                  <p className="text-xs text-stone-500 italic truncate" title={req.notes}>"{req.notes}"</p>
-                ) : req.staffComment ? (
-                  <p className="text-xs text-red-500 italic truncate" title={req.staffComment}>⚠ {req.staffComment}</p>
-                ) : (
-                  <span className="text-stone-200 text-xs">—</span>
-                )}
-              </td>
-
-              {/* Date & Time */}
-              <td className="px-4 py-3 whitespace-nowrap">
-                <div className="flex items-center gap-1 text-xs text-stone-500">
-                  <Clock className="h-3 w-3 text-stone-300 shrink-0" />
-                  {fmtDateTime(req.createdAt)}
-                </div>
-                {overdueIds.has(req.id) && (
-                  <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-bold
-                    text-orange-700 bg-orange-100 border border-orange-200 rounded px-1.5 py-0.5">
-                    <TriangleAlert className="h-2.5 w-2.5" /> Past Due
-                  </span>
-                )}
-                {escalatedIds.has(req.id) && (
-                  <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-bold
-                    text-red-700 bg-red-100 border border-red-200 rounded px-1.5 py-0.5">
-                    <AlertCircle className="h-2.5 w-2.5" /> Escalated
-                  </span>
-                )}
-                {req.completedAt && (
-                  <div className="flex items-center gap-1 text-xs text-green-600 mt-0.5">
-                    <CheckCircle2 className="h-3 w-3 shrink-0" />
-                    {fmtTime(req.completedAt)}
-                  </div>
-                )}
-              </td>
-
-              {/* Accepted By */}
-              <td className="px-4 py-3">
-                {req.assignedTo ? (
-                  <div>
-                    <p className="text-xs font-semibold text-stone-700 truncate">{req.assignedTo}</p>
-                    {req.acceptedAt && (
-                      <p className="text-[11px] text-stone-400">{fmtTime(req.acceptedAt)}</p>
+                {/* Request — item + qty + category + notes all in one cell */}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-sm leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
+                    <span className="font-semibold text-stone-900">{req.itemName}</span>
+                    {req.quantity > 1 && (
+                      <span className="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200
+                        rounded px-1.5 py-0.5">×{req.quantity}</span>
                     )}
+                    <span className="text-xs text-stone-400">{req.categoryName}</span>
                   </div>
-                ) : (
-                  <span className="text-stone-200 text-xs">—</span>
-                )}
-              </td>
+                  {req.notes && (
+                    <p className="text-xs text-stone-400 italic mt-0.5 truncate max-w-xs">"{req.notes}"</p>
+                  )}
+                  {req.staffComment && (
+                    <p className="text-xs text-red-500 italic mt-0.5 truncate max-w-xs">⚠ {req.staffComment}</p>
+                  )}
+                </td>
 
-              {/* Status */}
-              <td className="px-4 py-3 text-center">
-                <span className={`inline-flex items-center justify-center gap-1 text-[11px] font-semibold
-                  px-2.5 py-1 rounded border whitespace-nowrap min-w-[90px] ${STATUS_PILL[req.status]}`}>
-                  {req.status === "PENDING"     && <AlertCircle className="h-3 w-3" />}
-                  {req.status === "IN_PROGRESS" && <Zap className="h-3 w-3" />}
-                  {req.status === "DONE"        && <CheckCircle2 className="h-3 w-3" />}
-                  {req.status === "CANCELLED"   && <XCircle className="h-3 w-3" />}
-                  {req.status === "DECLINED"    && <Ban className="h-3 w-3" />}
-                  {STATUS_LABEL[req.status]}
-                </span>
-              </td>
+                {/* Time — elapsed, colored if urgent */}
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className={`text-xs font-medium
+                    ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-400"}`}>
+                    {elapsedLabel(req.createdAt)}
+                  </p>
+                  {req.assignedTo && req.status === "IN_PROGRESS" && (
+                    <p className="text-[11px] text-stone-400 mt-0.5 truncate">{req.assignedTo}</p>
+                  )}
+                  {req.completedAt && (
+                    <p className="text-[11px] text-green-600 mt-0.5">✓ {fmtTime(req.completedAt)}</p>
+                  )}
+                </td>
 
-              {/* Action */}
-              <td className="px-4 py-3 text-center">
-                {updatingId === req.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-stone-400 mx-auto" />
-                ) : req.status === "PENDING" ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => onAccept(req.id)}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-white
-                        bg-blue-600 rounded px-3 py-1.5
-                        shadow-sm hover:bg-blue-700 transition-all"
-                    >
-                      <Check className="h-3 w-3" /> Accept
+                {/* Action — the button IS the status */}
+                <td className="px-4 py-3 text-right">
+                  {updatingId === req.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
+                  ) : req.status === "PENDING" ? (
+                    <div className="inline-flex items-center gap-1.5">
+                      <button onClick={() => onAccept(req.id)}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-white
+                          bg-brand-700 hover:bg-brand-800 rounded px-3 py-1.5 transition-colors">
+                        <Check className="h-3.5 w-3.5" /> Accept
+                      </button>
+                      <button onClick={() => onDecline(req)} title="Decline"
+                        className="p-1.5 rounded text-stone-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : req.status === "IN_PROGRESS" ? (
+                    <button onClick={() => onDone(req.id)}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-white
+                        bg-emerald-600 hover:bg-emerald-700 rounded px-3 py-1.5 transition-colors">
+                      <CheckCheck className="h-3.5 w-3.5" /> Mark Done
                     </button>
-                    <button
-                      onClick={() => onDecline(req)}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600
-                        bg-white border border-rose-200 rounded px-3 py-1.5
-                        shadow-sm hover:bg-rose-50 hover:border-rose-300 transition-all"
-                    >
-                      <X className="h-3 w-3" /> Decline
-                    </button>
-                  </div>
-                ) : req.status === "IN_PROGRESS" ? (
-                  <button
-                    onClick={() => onDone(req.id)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-white
-                      bg-emerald-600 rounded px-3 py-1.5
-                      shadow-sm hover:bg-emerald-700 transition-all"
-                  >
-                    <CheckCheck className="h-3 w-3" /> Mark Done
-                  </button>
-                ) : (
-                  <span className="text-stone-200 text-xs">—</span>
-                )}
-              </td>
-            </tr>
-          ))}
+                  ) : (
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded
+                      ${req.status === "DONE"     ? "text-green-700 bg-green-50 border border-green-200" :
+                        req.status === "DECLINED" ? "text-red-600   bg-red-50   border border-red-200"   :
+                        "text-stone-400 bg-stone-50 border border-stone-200"}`}>
+                      {STATUS_LABEL[req.status]}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
