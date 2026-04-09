@@ -511,15 +511,8 @@ export default function DashboardPage() {
   const grouped = groupByDate(currentRequests);
 
   // ── Booking slices per tab ────────────────────────────────────────────────
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const activeBookings    = bookings.filter(b =>
-    (b.status === "PENDING" || b.status === "CONFIRMED") && new Date(b.slotTimeIso) >= todayStart
-  );
-  const completedBookings = bookings.filter(b =>
-    b.status === "CONFIRMED" && new Date(b.slotTimeIso) < todayStart
-  );
+  const activeBookings    = bookings.filter(b => b.status === "PENDING");
+  const completedBookings = bookings.filter(b => b.status === "CONFIRMED");
   const cancelledBookings = bookings.filter(b => b.status === "CANCELLED");
 
   const tabBookings =
