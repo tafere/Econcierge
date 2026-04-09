@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
-  Users, Settings, LogOut, Menu, X, Bell, BarChart2, CalendarClock,
+  Users, Settings, LogOut, Menu, X, Bell, BarChart2,
 } from "lucide-react";
 
 interface NavBarProps {

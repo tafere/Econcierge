@@ -71,6 +71,44 @@ public class BookingController {
     }
 
     /**
+     * GET /api/dashboard/bookings/all
+     * List all bookings for the hotel across a wide window (past 7 days → next 30 days).
+     * Used by the dashboard to show bookings inline within Active/Completed/Cancelled tabs.
+     */
+    @GetMapping("/all")
+    public ResponseEntity<?> listAll(@RequestHeader("Authorization") String header) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+
+        LocalDateTime from = LocalDateTime.now().minusDays(7);
+        LocalDateTime to   = LocalDateTime.now().plusDays(30);
+
+        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("MMM d");
+
+        List<Map<String, Object>> result = bookingRepository
+                .findByHotelIdAndSlotTimeBetweenOrderBySlotTime(hotelId, from, to)
+                .stream()
+                .map(b -> {
+                    RequestItem item = itemRepository.findById(b.getItemId()).orElse(null);
+                    Room room = roomRepository.findById(b.getRoomId()).orElse(null);
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id",          b.getId());
+                    m.put("status",      b.getStatus().name());
+                    m.put("slotTimeIso", b.getSlotTime().toString());
+                    m.put("slotTime",    b.getSlotTime().toLocalTime().format(timeFmt));
+                    m.put("slotDate",    b.getSlotTime().toLocalDate().format(dateFmt));
+                    m.put("guestCount",  b.getGuestCount());
+                    m.put("notes",       b.getNotes() != null ? b.getNotes() : "");
+                    m.put("itemName",    item != null ? item.getName() : "");
+                    m.put("roomNumber",  room != null ? room.getRoomNumber() : "");
+                    m.put("floor",       room != null && room.getFloor() != null ? room.getFloor() : "");
+                    return m;
+                }).toList();
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * PATCH /api/dashboard/bookings/{id}/status
      * Confirm or cancel a booking.
      */

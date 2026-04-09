@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, getToken } from "@/lib/auth";
 import {
   ConciergeBell, Loader2, RefreshCw,
-  X, Check, CheckCheck, ChevronLeft, ChevronRight, Users, CalendarClock,
+  X, Check, CheckCheck, Users, CalendarClock,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
@@ -27,6 +27,19 @@ interface ServiceRequest {
   completedAt: string;
 }
 
+interface Booking {
+  id: number;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  slotTimeIso: string;
+  slotTime: string;
+  slotDate: string;
+  guestCount: number;
+  notes: string;
+  itemName: string;
+  roomNumber: string;
+  floor: string;
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_PILL: Record<string, string> = {
@@ -35,14 +48,6 @@ const STATUS_PILL: Record<string, string> = {
   DONE:        "bg-green-100  text-green-700  border-green-300",
   CANCELLED:   "bg-stone-100  text-stone-500  border-stone-300",
   DECLINED:    "bg-red-100    text-red-700    border-red-300",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  PENDING:     "Pending",
-  IN_PROGRESS: "In Progress",
-  DONE:        "Done",
-  CANCELLED:   "Cancelled",
-  DECLINED:    "Declined",
 };
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -59,10 +64,6 @@ const OVERDUE_PENDING_MINS    = 30;
 const ESCALATED_IN_PROG_MINS  = 120;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
 
 function fmtDateTime(iso: string) {
   const d = new Date(iso);
@@ -95,6 +96,15 @@ function groupByDate(reqs: ServiceRequest[]): [string, ServiceRequest[]][] {
   return Object.entries(map).sort(([a], [b]) => b.localeCompare(a));
 }
 
+function groupByItem(bookings: Booking[]): [string, Booking[]][] {
+  const map: Record<string, Booking[]> = {};
+  for (const b of bookings) {
+    if (!map[b.itemName]) map[b.itemName] = [];
+    map[b.itemName].push(b);
+  }
+  return Object.entries(map);
+}
+
 // ─── Decline modal ────────────────────────────────────────────────────────────
 
 function DeclineModal({
@@ -107,8 +117,6 @@ function DeclineModal({
   onCancel: () => void;
 }) {
   const [comment, setComment] = useState("");
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => { ref.current?.focus(); }, []);
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -127,7 +135,7 @@ function DeclineModal({
             Reason (required)
           </label>
           <textarea
-            ref={ref}
+            autoFocus
             value={comment}
             onChange={e => setComment(e.target.value)}
             placeholder="e.g. Out of stock, will restock tomorrow…"
@@ -158,15 +166,6 @@ function DeclineModal({
 }
 
 // ─── Request table ────────────────────────────────────────────────────────────
-
-function elapsedLabel(iso: string) {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1)  return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
 
 function RequestTable({
   requests,
@@ -228,7 +227,7 @@ function RequestTable({
                   {req.floor && <p className="text-[10px] text-stone-400">Floor {req.floor}</p>}
                 </td>
 
-                {/* Request — item + qty + category */}
+                {/* Request */}
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
@@ -241,25 +240,23 @@ function RequestTable({
                   <p className="text-xs text-stone-400 mt-0.5">{req.categoryName}</p>
                 </td>
 
-                {/* Notes — truncated, full text on hover */}
+                {/* Notes */}
                 {hasNotes && (
                   <td className="px-4 py-3 max-w-[180px]">
                     {req.notes && (
-                      <p className="text-xs text-stone-500 italic truncate cursor-default"
-                        title={req.notes}>
+                      <p className="text-xs text-stone-500 italic truncate cursor-default" title={req.notes}>
                         {req.notes}
                       </p>
                     )}
                     {req.staffComment && (
-                      <p className="text-xs text-red-500 italic truncate cursor-default mt-0.5"
-                        title={req.staffComment}>
+                      <p className="text-xs text-red-500 italic truncate cursor-default mt-0.5" title={req.staffComment}>
                         ⚠ {req.staffComment}
                       </p>
                     )}
                   </td>
                 )}
 
-                {/* Date & Time — full timestamp */}
+                {/* Date & Time */}
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className={`text-xs font-medium
                     ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-500"}`}>
@@ -270,7 +267,7 @@ function RequestTable({
                   )}
                 </td>
 
-                {/* By — who acted on this request */}
+                {/* Handled By */}
                 {hasBy && (
                   <td className="px-4 py-3 whitespace-nowrap">
                     {req.assignedTo && req.status !== "PENDING" && (
@@ -315,177 +312,155 @@ function RequestTable({
   );
 }
 
-// ─── Bookings panel ───────────────────────────────────────────────────────────
+// ─── Booking section (inline within tabs) ─────────────────────────────────────
 
-interface Booking {
-  id: number;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
-  slotTime: string;
-  guestCount: number;
-  notes: string;
+const BOOKING_STATUS_PILL: Record<string, string> = {
+  PENDING:   "bg-amber-100 text-amber-800 border-amber-300",
+  CONFIRMED: "bg-green-100 text-green-800 border-green-300",
+  CANCELLED: "bg-stone-100 text-stone-500 border-stone-300",
+};
+
+function BookingSection({
+  itemName,
+  bookings,
+  updatingId,
+  onUpdateStatus,
+}: {
   itemName: string;
-  roomNumber: string;
-  floor: string;
-}
-
-function fmtDateNav(dateStr: string) {
-  const today    = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-  const d = new Date(dateStr + "T00:00:00");
-  const label = d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
-  if (dateStr === today)    return `Today · ${label}`;
-  if (dateStr === tomorrow) return `Tomorrow · ${label}`;
-  return label;
-}
-
-function BookingsPanel() {
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const [date, setDate]         = useState(todayStr);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
-
-  const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
-
-  const fetchBookings = async (d: string) => {
-    setLoading(true);
-    const res = await fetch(`/api/dashboard/bookings?date=${d}`, { headers: authH() });
-    if (res.ok) setBookings(await res.json());
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchBookings(date); }, [date]);
-
-  const changeDate = (delta: number) => {
-    const d = new Date(date + "T12:00:00");
-    d.setDate(d.getDate() + delta);
-    setDate(d.toISOString().slice(0, 10));
-  };
-
-  const updateStatus = async (id: number, status: string) => {
-    setUpdatingId(id);
-    const res = await fetch(`/api/dashboard/bookings/${id}/status`, {
-      method: "PATCH", headers: authH(), body: JSON.stringify({ status }),
-    });
-    if (res.ok)
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: status as Booking["status"] } : b));
-    setUpdatingId(null);
-  };
-
-  const grouped: Record<string, Booking[]> = {};
-  for (const b of bookings) {
-    if (!grouped[b.slotTime]) grouped[b.slotTime] = [];
-    grouped[b.slotTime].push(b);
-  }
-  const sortedTimes = Object.keys(grouped).sort();
+  bookings: Booking[];
+  updatingId: number | null;
+  onUpdateStatus: (id: number, status: string) => void;
+}) {
+  const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap";
+  const totalGuests = bookings.filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.guestCount, 0);
+  const hasNotes    = bookings.some(b => b.notes);
+  const hasActions  = bookings.some(b => b.status === "PENDING" || b.status === "CONFIRMED");
 
   return (
-    <div className="space-y-4">
-      {/* Date navigator */}
-      <div className="flex items-center gap-3">
-        <button onClick={() => changeDate(-1)}
-          className="p-2 rounded hover:bg-stone-100 text-stone-500 transition-colors">
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <p className="flex-1 text-center text-sm font-bold text-stone-900">{fmtDateNav(date)}</p>
-        <button onClick={() => changeDate(1)}
-          className="p-2 rounded hover:bg-stone-100 text-stone-500 transition-colors">
-          <ChevronRight className="h-4 w-4" />
-        </button>
+    <div className="glass rounded overflow-hidden">
+      {/* Section header */}
+      <div className="px-4 py-2.5 bg-indigo-50 border-b border-indigo-100 flex items-center gap-2">
+        <CalendarClock className="h-4 w-4 text-indigo-500 shrink-0" />
+        <p className="text-sm font-bold text-indigo-900">{itemName} Schedule</p>
+        <div className="flex items-center gap-1 text-xs text-indigo-500 ml-auto">
+          <Users className="h-3.5 w-3.5" /> {totalGuests} guest{totalGuests !== 1 ? "s" : ""}
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-brand-700" /></div>
-      ) : bookings.length === 0 ? (
-        <div className="text-center py-16 glass rounded">
-          <CalendarClock className="h-10 w-10 text-stone-200 mx-auto mb-3" />
-          <p className="text-stone-400 text-sm">No bookings for this day</p>
-        </div>
-      ) : (
-        sortedTimes.map(time => (
-          <div key={time} className="glass rounded overflow-hidden">
-            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <p className="text-sm font-extrabold text-stone-800">{time}</p>
-              <div className="flex items-center gap-1.5 text-xs text-stone-500">
-                <Users className="h-3.5 w-3.5" />
-                {grouped[time].filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.guestCount, 0)} guests
-              </div>
-            </div>
-            <div className="divide-y divide-stone-50">
-              {grouped[time].map(b => (
-                <div key={b.id} className={`px-4 py-3 flex items-center gap-3 ${b.status === "CANCELLED" ? "opacity-50" : ""}`}>
-                  <div className="shrink-0 w-14">
-                    <p className="font-extrabold text-stone-900 text-sm">{b.roomNumber}</p>
-                    {b.floor && <p className="text-[10px] text-stone-400">Floor {b.floor}</p>}
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm table-auto">
+          <thead>
+            <tr className="border-b border-stone-200 bg-stone-50/60">
+              <th className={th}>Date &amp; Time</th>
+              <th className={th}>Room</th>
+              <th className={th}>Guests</th>
+              {hasNotes   && <th className={th}>Notes</th>}
+              <th className={th}>Status</th>
+              {hasActions && <th className={`${th} text-right`}>Action</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-stone-100">
+            {bookings.map(b => (
+              <tr key={b.id} className={b.status === "CANCELLED" ? "opacity-50" : ""}>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-xs font-semibold text-stone-700">{b.slotDate}</p>
+                  <p className="text-xs text-stone-500">{b.slotTime}</p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="font-extrabold text-stone-900">{b.roomNumber}</p>
+                  {b.floor && <p className="text-[10px] text-stone-400">Floor {b.floor}</p>}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1 text-xs text-stone-600">
+                    <Users className="h-3 w-3 text-stone-400" /> {b.guestCount}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-stone-800">{b.itemName}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <Users className="h-3 w-3 text-stone-400" />
-                      <span className="text-xs text-stone-500">{b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}</span>
-                      {b.notes && <span className="text-xs text-stone-400 italic truncate">· {b.notes}</span>}
-                    </div>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-2">
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border
-                      ${b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-300" :
-                        b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-300" :
-                        "bg-amber-100 text-amber-800 border-amber-300"}`}>
-                      {b.status === "CONFIRMED" ? "Confirmed" : b.status === "CANCELLED" ? "Cancelled" : "Pending"}
+                </td>
+                {hasNotes && (
+                  <td className="px-4 py-3 max-w-[160px]">
+                    {b.notes && (
+                      <p className="text-xs text-stone-400 italic truncate cursor-default" title={b.notes}>
+                        {b.notes}
+                      </p>
+                    )}
+                  </td>
+                )}
+                {/* Status — hide badge for PENDING when action buttons will show instead */}
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {b.status !== "PENDING" && (
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${BOOKING_STATUS_PILL[b.status]}`}>
+                      {b.status === "CONFIRMED" ? "Confirmed" : "Cancelled"}
                     </span>
+                  )}
+                </td>
+                {hasActions && (
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     {updatingId === b.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                      <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
                     ) : b.status === "PENDING" ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => updateStatus(b.id, "CONFIRMED")}
+                      <div className="inline-flex gap-1">
+                        <button onClick={() => onUpdateStatus(b.id, "CONFIRMED")}
                           className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700
-                            rounded px-2.5 py-1 transition-colors">Confirm</button>
-                        <button onClick={() => updateStatus(b.id, "CANCELLED")}
+                            rounded px-2.5 py-1 transition-colors">
+                          Confirm
+                        </button>
+                        <button onClick={() => onUpdateStatus(b.id, "CANCELLED")}
                           className="text-xs font-bold text-red-500 border border-red-200 hover:bg-red-50
-                            rounded px-2.5 py-1 transition-colors">Cancel</button>
+                            rounded px-2.5 py-1 transition-colors">
+                          Cancel
+                        </button>
                       </div>
                     ) : b.status === "CONFIRMED" ? (
-                      <button onClick={() => updateStatus(b.id, "CANCELLED")}
-                        className="text-xs text-stone-400 hover:text-red-500 transition-colors">Cancel</button>
+                      <button onClick={() => onUpdateStatus(b.id, "CANCELLED")}
+                        className="text-xs text-stone-400 hover:text-red-500 transition-colors">
+                        Cancel
+                      </button>
                     ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
-      )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PASTDUE" | "BOOKINGS";
+type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PASTDUE";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [requests, setRequests]   = useState<ServiceRequest[]>([]);
+  const [bookings, setBookings]   = useState<Booking[]>([]);
   const [loading, setLoading]     = useState(true);
   const [newCount, setNewCount]   = useState(0);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [updatingId, setUpdatingId]         = useState<number | null>(null);
+  const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
   const [declining, setDeclining] = useState<ServiceRequest | null>(null);
 
+  const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
+
   const fetchRequests = async () => {
-    const token = getToken();
-    const res = await fetch("/api/dashboard/requests", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch("/api/dashboard/requests", { headers: authH() });
     if (res.ok) setRequests(await res.json());
     setLoading(false);
   };
 
-  useEffect(() => { fetchRequests(); }, []);
+  const fetchBookings = async () => {
+    const res = await fetch("/api/dashboard/bookings/all", { headers: authH() });
+    if (res.ok) setBookings(await res.json());
+  };
 
   useEffect(() => {
-    const token = getToken();
-    const es = new EventSource(`/api/dashboard/stream?token=${token}`);
+    fetchRequests();
+    if (user?.role === "ADMIN") fetchBookings();
+  }, []);
+
+  useEffect(() => {
+    const es = new EventSource(`/api/dashboard/stream?token=${getToken()}`);
     es.addEventListener("request", () => {
       setNewCount(n => n + 1);
       fetchRequests();
@@ -495,19 +470,26 @@ export default function DashboardPage() {
 
   const updateStatus = async (id: number, status: string, comment?: string) => {
     setUpdatingId(id);
-    const token = getToken();
     const body: Record<string, string> = { status };
     if (comment) body.comment = comment;
     const res = await fetch(`/api/dashboard/requests/${id}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(body),
+      method: "PATCH", headers: authH(), body: JSON.stringify(body),
     });
     if (res.ok) {
       const updated = await res.json();
       setRequests(prev => prev.map(r => r.id === id ? updated : r));
     }
     setUpdatingId(null);
+  };
+
+  const updateBookingStatus = async (id: number, status: string) => {
+    setUpdatingBookingId(id);
+    const res = await fetch(`/api/dashboard/bookings/${id}/status`, {
+      method: "PATCH", headers: authH(), body: JSON.stringify({ status }),
+    });
+    if (res.ok)
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: status as Booking["status"] } : b));
+    setUpdatingBookingId(null);
   };
 
   // ── Tab data ──────────────────────────────────────────────────────────────
@@ -519,7 +501,7 @@ export default function DashboardPage() {
   const overduePending  = active.filter(r => r.status === "PENDING"     && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS);
   const escalatedInProg = active.filter(r => r.status === "IN_PROGRESS" && r.acceptedAt && ageMinutes(r.acceptedAt) > ESCALATED_IN_PROG_MINS);
   const pastDue = [...overduePending, ...escalatedInProg]
-    .filter((r, i, arr) => arr.findIndex(x => x.id === r.id) === i); // dedupe
+    .filter((r, i, arr) => arr.findIndex(x => x.id === r.id) === i);
 
   const currentRequests =
     tab === "ACTIVE"    ? active :
@@ -528,7 +510,29 @@ export default function DashboardPage() {
                           cancelled;
   const grouped = groupByDate(currentRequests);
 
-  const TabBtn = ({ t, label, count, urgent, noCount }: { t: Tab; label: string; count?: number; urgent?: boolean; noCount?: boolean }) => (
+  // ── Booking slices per tab ────────────────────────────────────────────────
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const activeBookings    = bookings.filter(b =>
+    (b.status === "PENDING" || b.status === "CONFIRMED") && new Date(b.slotTimeIso) >= todayStart
+  );
+  const completedBookings = bookings.filter(b =>
+    b.status === "CONFIRMED" && new Date(b.slotTimeIso) < todayStart
+  );
+  const cancelledBookings = bookings.filter(b => b.status === "CANCELLED");
+
+  const tabBookings =
+    tab === "ACTIVE"    ? activeBookings :
+    tab === "COMPLETED" ? completedBookings :
+    tab === "CANCELLED" ? cancelledBookings :
+                          [];
+
+  const bookingGroups = groupByItem(tabBookings);
+
+  const TabBtn = ({ t, label, count, urgent, noCount }: {
+    t: Tab; label: string; count?: number; urgent?: boolean; noCount?: boolean;
+  }) => (
     <button
       onClick={() => setTab(t)}
       className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors
@@ -564,7 +568,7 @@ export default function DashboardPage() {
             <h1 className="text-lg font-bold text-stone-900">Service Requests</h1>
             <p className="text-xs text-stone-400">{user?.fullName}</p>
           </div>
-          <button onClick={fetchRequests}
+          <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
             className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
@@ -576,58 +580,63 @@ export default function DashboardPage() {
           <TabBtn t="PASTDUE"   label="Past Due"  count={pastDue.length} urgent={pastDue.length > 0} />
           <TabBtn t="COMPLETED" label="Completed" count={completed.length} />
           <TabBtn t="CANCELLED" label="Cancelled" count={cancelled.length} />
-          {user?.role === "ADMIN" && (
-            <TabBtn t="BOOKINGS" label="Bookings" noCount />
-          )}
         </div>
 
-        {/* Bookings panel */}
-        {tab === "BOOKINGS" && <BookingsPanel />}
-
         {/* Main request table */}
-        {tab !== "BOOKINGS" && (loading ? (
+        {loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-brand-700" />
           </div>
-        ) : currentRequests.length === 0 ? (
+        ) : currentRequests.length === 0 && bookingGroups.length === 0 ? (
           <div className="text-center py-20">
             <ConciergeBell className="h-12 w-12 text-stone-200 mx-auto mb-3" />
             <p className="text-stone-400 text-sm">No {tab.toLowerCase()} requests</p>
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Service request groups (by date) */}
             {grouped.map(([dateStr, dayReqs]) => {
               const dayOverdue   = new Set(dayReqs.filter(r => overduePending.some(o => o.id === r.id)).map(r => r.id));
               const dayEscalated = new Set(dayReqs.filter(r => escalatedInProg.some(e => e.id === r.id)).map(r => r.id));
               return (
-              <div key={dateStr} className="glass rounded overflow-hidden">
-                {/* Day header */}
-                <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
-                  <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">
-                    {formatDateHeader(dateStr)}
-                  </p>
-                  <div className="flex items-center gap-2">
+                <div key={dateStr} className="glass rounded overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                    <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">
+                      {formatDateHeader(dateStr)}
+                    </p>
                     <span className="text-xs text-stone-400">{dayReqs.length} request{dayReqs.length !== 1 ? "s" : ""}</span>
                   </div>
+                  <RequestTable
+                    requests={dayReqs}
+                    updatingId={updatingId}
+                    onAccept={id => updateStatus(id, "IN_PROGRESS")}
+                    onDone={id => updateStatus(id, "DONE")}
+                    onDecline={setDeclining}
+                    overdueIds={dayOverdue}
+                    escalatedIds={dayEscalated}
+                  />
                 </div>
-                <RequestTable
-                  requests={dayReqs}
-                  updatingId={updatingId}
-                  onAccept={id => updateStatus(id, "IN_PROGRESS")}
-                  onDone={id => updateStatus(id, "DONE")}
-                  onDecline={setDeclining}
-                  overdueIds={dayOverdue}
-                  escalatedIds={dayEscalated}
-                />
-              </div>
               );
             })}
 
-            <p className="text-xs text-stone-400 text-center pb-2">
-              {currentRequests.length} request{currentRequests.length !== 1 ? "s" : ""} · Auto-updates via live stream
-            </p>
+            {/* Booking sections (by service name) */}
+            {bookingGroups.map(([itemName, itemBookings]) => (
+              <BookingSection
+                key={itemName}
+                itemName={itemName}
+                bookings={itemBookings}
+                updatingId={updatingBookingId}
+                onUpdateStatus={updateBookingStatus}
+              />
+            ))}
+
+            {currentRequests.length > 0 && (
+              <p className="text-xs text-stone-400 text-center pb-2">
+                {currentRequests.length} request{currentRequests.length !== 1 ? "s" : ""} · Auto-updates via live stream
+              </p>
+            )}
           </div>
-        ))}
+        )}
       </div>
 
       {/* Decline modal */}
