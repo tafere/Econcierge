@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
-  Users, Settings, LogOut, Menu, X, Bell, BarChart2,
+  Users, Settings, LogOut, Menu, X, Bell, BarChart2, CalendarClock,
 } from "lucide-react";
 
 interface NavBarProps {
@@ -82,6 +82,9 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
                   <button onClick={() => go("/reports")} className={desktopLink("/reports")}>
                     <BarChart2 className="h-3.5 w-3.5" /> Reports
                   </button>
+                  <button onClick={() => go("/bookings")} className={desktopLink("/bookings")}>
+                    <CalendarClock className="h-3.5 w-3.5" /> Bookings
+                  </button>
                   <button onClick={() => go("/staff")} className={desktopLink("/staff")}>
                     <Users className="h-3.5 w-3.5" /> Staff
                   </button>
@@ -151,6 +154,9 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
                   </button>
                   <button onClick={() => go("/reports")} className={drawerLink("/reports")}>
                     <BarChart2 className="h-5 w-5" /> Reports
+                  </button>
+                  <button onClick={() => go("/bookings")} className={drawerLink("/bookings")}>
+                    <CalendarClock className="h-5 w-5" /> Bookings
                   </button>
                   <button onClick={() => go("/staff")} className={drawerLink("/staff")}>
                     <Users className="h-5 w-5" /> Staff

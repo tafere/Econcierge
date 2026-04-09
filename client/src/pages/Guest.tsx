@@ -14,6 +14,9 @@ interface MenuItem {
   name: string;
   description: string;
   maxQuantity: number;
+  schedulable: boolean;
+  slotIntervalMins: number;
+  capacity: number;
 }
 
 interface MenuCategory {
@@ -52,6 +55,23 @@ interface TrackedRequest {
   submittedAt: string;
   status: "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "DECLINED";
   staffComment?: string;
+}
+
+interface SlotInfo {
+  time: string;
+  dateTime: string;
+  capacity: number;
+  remaining: number;
+  available: boolean;
+  past: boolean;
+}
+
+interface TrackedBooking {
+  id: number;
+  itemName: string;
+  slotTime: string;
+  guestCount: number;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
 }
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
@@ -126,6 +146,15 @@ export default function GuestPage() {
 
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
+
+  // scheduling
+  const [slotDate, setSlotDate]       = useState<string>("");
+  const [slots, setSlots]             = useState<SlotInfo[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<SlotInfo | null>(null);
+  const [guestCount, setGuestCount]   = useState(1);
+  const [bookings, setBookings]       = useState<TrackedBooking[]>([]);
+  const [booking, setBooking]         = useState(false);
 
   // ── Language toggle ──────────────────────────────────────────────────────
   const toggleLang = () => {
@@ -249,12 +278,53 @@ export default function GuestPage() {
     setCancellingId(null);
   };
 
+  // ── Scheduling helpers ────────────────────────────────────────────────────
+  const todayStr     = new Date().toISOString().slice(0, 10);
+  const tomorrowStr  = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+
+  const fetchSlots = async (itemId: number, date: string) => {
+    setSlotsLoading(true); setSlots([]); setSelectedSlot(null);
+    const res = await fetch(`/api/schedule/${itemId}/slots?date=${date}`);
+    if (res.ok) { const d = await res.json(); setSlots(d.slots ?? []); }
+    setSlotsLoading(false);
+  };
+
+  const bookSlot = async () => {
+    if (!room || !selectedItem || !selectedSlot) return;
+    setBooking(true);
+    const res = await fetch("/api/schedule/book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        roomId: room.roomId, itemId: selectedItem.id,
+        slotTime: selectedSlot.dateTime, guestCount, notes: notes.trim() || null,
+      }),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const nb: TrackedBooking = {
+        id: d.id, itemName: selectedItem.name,
+        slotTime: `${slotDate} ${selectedSlot.time}`,
+        guestCount, status: "PENDING",
+      };
+      setBookings(prev => [nb, ...prev]);
+      setSelectedItem(null); setSelectedCat(null);
+      setSelectedSlot(null); setSlots([]); setGuestCount(1); setNotes(""); setShowNotes(false);
+    }
+    setBooking(false);
+  };
+
   // ── Helpers ──────────────────────────────────────────────────────────────
   const selectItem = (item: MenuItem) => {
     setSelectedItem(item);
     setQuantity(1);
     setNotes("");
     setShowNotes(false);
+    if (item.schedulable) {
+      const d = todayStr;
+      setSlotDate(d);
+      fetchSlots(item.id, d);
+    }
   };
 
   const timeAgo = (iso: string) => {
@@ -447,6 +517,31 @@ export default function GuestPage() {
               </div>
             )}
 
+            {/* My Bookings tracker */}
+            {!selectedCat && !selectedItem && bookings.length > 0 && (
+              <div className="glass rounded overflow-hidden">
+                <div className="px-4 py-3 border-b border-stone-50">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">My Bookings</p>
+                </div>
+                <div className="divide-y divide-stone-50">
+                  {bookings.map(b => (
+                    <div key={b.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-stone-800">{b.itemName}</p>
+                        <p className="text-xs text-stone-400 mt-0.5">{b.slotTime} · {b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}</p>
+                      </div>
+                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded border shrink-0
+                        ${b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-200" :
+                          b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-200" :
+                          "bg-amber-100 text-amber-800 border-amber-200"}`}>
+                        {b.status === "CONFIRMED" ? "Confirmed" : b.status === "CANCELLED" ? "Cancelled" : "Pending"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Step 1: Category selection */}
             {!selectedCat && !selectedItem && (
               <>
@@ -504,8 +599,120 @@ export default function GuestPage() {
               </>
             )}
 
-            {/* Step 3: Quantity + Add to Cart */}
-            {selectedItem && (
+            {/* Step 3a: Slot picker (schedulable items) */}
+            {selectedItem && selectedItem.schedulable && (
+              <>
+                <button onClick={() => { setSelectedItem(null); setSlots([]); setSelectedSlot(null); }}
+                  className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2">
+                  <ChevronLeft className="h-4 w-4" /> {T("back")}
+                </button>
+
+                <div className="glass rounded p-5 space-y-4">
+                  <div>
+                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
+                    <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
+                    <p className="text-xs text-stone-400 mt-0.5">Every {selectedItem.slotIntervalMins} min · up to {selectedItem.capacity} people per slot</p>
+                  </div>
+
+                  {/* Date picker */}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Select Date</p>
+                    <div className="flex gap-2">
+                      {[todayStr, tomorrowStr].map(d => (
+                        <button key={d} onClick={() => { setSlotDate(d); fetchSlots(selectedItem.id, d); setSelectedSlot(null); }}
+                          className={`flex-1 py-2 rounded border text-sm font-semibold transition-colors
+                            ${slotDate === d ? "bg-brand-700 text-white border-brand-700" : "border-stone-200 text-stone-600 hover:border-brand-400"}`}>
+                          {d === todayStr ? "Today" : "Tomorrow"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Slot grid */}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Available Times</p>
+                    {slotsLoading ? (
+                      <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-brand-700" /></div>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {slots.filter(s => !s.past || slotDate !== todayStr).map(slot => (
+                          <button key={slot.dateTime}
+                            disabled={!slot.available}
+                            onClick={() => { setSelectedSlot(slot); setGuestCount(1); }}
+                            className={`py-2 px-1 rounded border text-xs font-semibold transition-colors text-center
+                              ${!slot.available ? "border-stone-100 text-stone-300 bg-stone-50 cursor-not-allowed" :
+                                selectedSlot?.dateTime === slot.dateTime ? "bg-brand-700 text-white border-brand-700" :
+                                "border-stone-200 text-stone-700 hover:border-brand-400"}`}>
+                            <p>{slot.time}</p>
+                            {slot.available && (
+                              <p className="text-[10px] opacity-70">{slot.remaining} left</p>
+                            )}
+                            {!slot.available && !slot.past && (
+                              <p className="text-[10px]">Full</p>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Guest count + notes + book */}
+                  {selectedSlot && (
+                    <>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Number of Guests</p>
+                        <div className="flex items-center gap-4">
+                          <button onClick={() => setGuestCount(n => Math.max(1, n - 1))} disabled={guestCount <= 1}
+                            className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
+                              text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors disabled:opacity-30">
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="text-2xl font-bold text-stone-900 w-8 text-center">{guestCount}</span>
+                          <button onClick={() => setGuestCount(n => Math.min(selectedSlot.remaining, n + 1))}
+                            disabled={guestCount >= selectedSlot.remaining}
+                            className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
+                              text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors disabled:opacity-30">
+                            <Plus className="h-4 w-4" />
+                          </button>
+                          <span className="text-xs text-stone-400">{selectedSlot.remaining} available</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <button onClick={() => setShowNotes(v => !v)}
+                          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400
+                            hover:text-brand-700 transition-colors">
+                          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showNotes ? "rotate-180" : ""}`} />
+                          {T("addInstructions")}
+                        </button>
+                        {showNotes && (
+                          <textarea value={notes} onChange={e => setNotes(e.target.value)}
+                            placeholder={T("instructionsHint")} rows={2} autoFocus
+                            className="mt-2 w-full border border-stone-200 bg-white rounded px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none" />
+                        )}
+                      </div>
+
+                      <div className="bg-brand-50 border border-brand-200 rounded px-4 py-3">
+                        <p className="text-sm font-semibold text-stone-800">
+                          {selectedItem.name} · {slotDate === todayStr ? "Today" : "Tomorrow"} at {selectedSlot.time}
+                        </p>
+                        <p className="text-xs text-stone-500 mt-0.5">{guestCount} guest{guestCount !== 1 ? "s" : ""}</p>
+                      </div>
+
+                      <button onClick={bookSlot} disabled={booking}
+                        className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
+                          hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                        {booking ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Confirm Booking</>}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Step 3b: Quantity + Add to Cart (regular items) */}
+            {selectedItem && !selectedItem.schedulable && (
               <>
                 <button
                   onClick={() => setSelectedItem(null)}

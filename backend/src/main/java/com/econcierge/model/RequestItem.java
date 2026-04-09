@@ -27,17 +27,32 @@ public class RequestItem {
     @Column(name = "max_quantity", nullable = false)
     private int maxQuantity = 1;
 
-    public Long getId()                  { return id; }
-    public Long getCategoryId()          { return categoryId; }
-    public void setCategoryId(Long v)    { this.categoryId = v; }
-    public String getName()              { return name; }
-    public void setName(String v)        { this.name = v; }
-    public String getDescription()       { return description; }
-    public void setDescription(String v) { this.description = v; }
-    public int getSortOrder()            { return sortOrder; }
-    public void setSortOrder(int v)      { this.sortOrder = v; }
-    public boolean isEnabled()           { return enabled; }
-    public void setEnabled(boolean v)    { this.enabled = v; }
-    public int getMaxQuantity()          { return maxQuantity; }
-    public void setMaxQuantity(int v)    { this.maxQuantity = v; }
+    @Column(nullable = false)
+    private boolean schedulable = false;
+
+    @Column(name = "slot_interval_mins", nullable = false)
+    private int slotIntervalMins = 30;
+
+    @Column(nullable = false)
+    private int capacity = 15;
+
+    public Long getId()                      { return id; }
+    public Long getCategoryId()              { return categoryId; }
+    public void setCategoryId(Long v)        { this.categoryId = v; }
+    public String getName()                  { return name; }
+    public void setName(String v)            { this.name = v; }
+    public String getDescription()           { return description; }
+    public void setDescription(String v)     { this.description = v; }
+    public int getSortOrder()                { return sortOrder; }
+    public void setSortOrder(int v)          { this.sortOrder = v; }
+    public boolean isEnabled()               { return enabled; }
+    public void setEnabled(boolean v)        { this.enabled = v; }
+    public int getMaxQuantity()              { return maxQuantity; }
+    public void setMaxQuantity(int v)        { this.maxQuantity = v; }
+    public boolean isSchedulable()           { return schedulable; }
+    public void setSchedulable(boolean v)    { this.schedulable = v; }
+    public int getSlotIntervalMins()         { return slotIntervalMins; }
+    public void setSlotIntervalMins(int v)   { this.slotIntervalMins = v; }
+    public int getCapacity()                 { return capacity; }
+    public void setCapacity(int v)           { this.capacity = v; }
 }

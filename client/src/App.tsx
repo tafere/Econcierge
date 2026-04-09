@@ -11,6 +11,7 @@ import StaffManagementPage from "@/pages/StaffManagement";
 import SuperAdminPage from "@/pages/SuperAdmin";
 import CategoriesPage from "@/pages/Categories";
 import ReportsPage from "@/pages/Reports";
+import BookingsPage from "@/pages/Bookings";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ function StaffRouter() {
       <Route path="/staff"      component={StaffManagementPage} />
       <Route path="/settings"   component={HotelSettingsPage} />
       <Route path="/reports"    component={ReportsPage} />
+      <Route path="/bookings"   component={BookingsPage} />
       <Route component={DashboardPage} />
     </Switch>
   );

@@ -41,10 +41,13 @@ public class CategoryController {
                             .stream()
                             .map(item -> {
                                 Map<String, Object> m = new HashMap<>();
-                                m.put("id",          item.getId());
-                                m.put("name",        item.getName());
-                                m.put("enabled",     item.isEnabled());
-                                m.put("maxQuantity", item.getMaxQuantity());
+                                m.put("id",               item.getId());
+                                m.put("name",             item.getName());
+                                m.put("enabled",          item.isEnabled());
+                                m.put("maxQuantity",      item.getMaxQuantity());
+                                m.put("schedulable",      item.isSchedulable());
+                                m.put("slotIntervalMins", item.getSlotIntervalMins());
+                                m.put("capacity",         item.getCapacity());
                                 return m;
                             }).toList();
                     Map<String, Object> m = new HashMap<>();
@@ -151,9 +154,22 @@ public class CategoryController {
             item.setEnabled(Boolean.parseBoolean(body.get("enabled").toString()));
         if (body.containsKey("maxQuantity"))
             item.setMaxQuantity(Math.max(1, Integer.parseInt(body.get("maxQuantity").toString())));
+        if (body.containsKey("schedulable"))
+            item.setSchedulable(Boolean.parseBoolean(body.get("schedulable").toString()));
+        if (body.containsKey("slotIntervalMins"))
+            item.setSlotIntervalMins(Math.max(5, Integer.parseInt(body.get("slotIntervalMins").toString())));
+        if (body.containsKey("capacity"))
+            item.setCapacity(Math.max(1, Integer.parseInt(body.get("capacity").toString())));
         itemRepository.save(item);
-        return ResponseEntity.ok(Map.of("id", item.getId(), "name", item.getName(),
-                "enabled", item.isEnabled(), "maxQuantity", item.getMaxQuantity()));
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id",               item.getId());
+        resp.put("name",             item.getName());
+        resp.put("enabled",          item.isEnabled());
+        resp.put("maxQuantity",      item.getMaxQuantity());
+        resp.put("schedulable",      item.isSchedulable());
+        resp.put("slotIntervalMins", item.getSlotIntervalMins());
+        resp.put("capacity",         item.getCapacity());
+        return ResponseEntity.ok(resp);
     }
 
     /** Delete an item */

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import {
   Plus, Loader2, Trash2, Pencil,
-  ToggleLeft, ToggleRight, ChevronDown, ChevronRight, X, Check,
+  ToggleLeft, ToggleRight, ChevronDown, ChevronRight, X, Check, CalendarClock,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
@@ -11,6 +11,9 @@ interface CatItem {
   name: string;
   enabled: boolean;
   maxQuantity: number;
+  schedulable: boolean;
+  slotIntervalMins: number;
+  capacity: number;
 }
 
 interface Category {
@@ -63,9 +66,12 @@ export default function CategoriesPage() {
   const [addingItem, setAddingItem]       = useState(false);
 
   // Inline edit item
-  const [editItemId, setEditItemId]     = useState<number | null>(null);
-  const [editItemName, setEditItemName] = useState("");
-  const [editItemQty, setEditItemQty]   = useState(1);
+  const [editItemId, setEditItemId]           = useState<number | null>(null);
+  const [editItemName, setEditItemName]       = useState("");
+  const [editItemQty, setEditItemQty]         = useState(1);
+  const [editSchedulable, setEditSchedulable] = useState(false);
+  const [editInterval, setEditInterval]       = useState(30);
+  const [editCapacity, setEditCapacity]       = useState(15);
 
   const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
 
@@ -145,13 +151,26 @@ export default function CategoriesPage() {
   const saveEditItem = async (catId: number, itemId: number) => {
     const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
       method: "PATCH", headers: authH(),
-      body: JSON.stringify({ name: editItemName, maxQuantity: editItemQty }),
+      body: JSON.stringify({
+        name: editItemName, maxQuantity: editItemQty,
+        schedulable: editSchedulable, slotIntervalMins: editInterval, capacity: editCapacity,
+      }),
     });
     if (res.ok) {
+      const updated = await res.json();
       setCats(prev => prev.map(c => c.id === catId
-        ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, name: editItemName, maxQuantity: editItemQty } : i) } : c));
+        ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, ...updated } : i) } : c));
       setEditItemId(null);
     }
+  };
+
+  const toggleSchedulable = async (catId: number, itemId: number, current: boolean) => {
+    const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
+      method: "PATCH", headers: authH(),
+      body: JSON.stringify({ schedulable: !current }),
+    });
+    if (res.ok) setCats(prev => prev.map(c => c.id === catId
+      ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, schedulable: !current } : i) } : c));
   };
 
   const deleteItem = async (catId: number, itemId: number) => {
@@ -293,29 +312,80 @@ export default function CategoriesPage() {
                         </button>
 
                         {editItemId === item.id ? (
-                          <>
-                            <input value={editItemName} onChange={e => setEditItemName(e.target.value)}
-                              className={`${inputCls} flex-1 min-w-0`} autoFocus
-                              onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
-                            <div className="flex items-center gap-1 shrink-0">
-                              <span className="text-xs text-stone-400">Max</span>
-                              <input type="number" min={1} max={99} value={editItemQty}
-                                onChange={e => setEditItemQty(Number(e.target.value))}
-                                className="w-14 h-9 border border-stone-200 bg-white rounded px-2 text-sm
-                                  text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input value={editItemName} onChange={e => setEditItemName(e.target.value)}
+                                className={`${inputCls} flex-1 min-w-0`} autoFocus
+                                onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
+                              <div className="flex items-center gap-1 shrink-0">
+                                <span className="text-xs text-stone-400">Max</span>
+                                <input type="number" min={1} max={99} value={editItemQty}
+                                  onChange={e => setEditItemQty(Number(e.target.value))}
+                                  className="w-14 h-9 border border-stone-200 bg-white rounded px-2 text-sm
+                                    text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                              </div>
+                              <button onClick={() => saveEditItem(cat.id, item.id)}
+                                className="p-1.5 rounded bg-brand-700 text-white hover:bg-brand-800 transition-colors shrink-0">
+                                <Check className="h-3.5 w-3.5" /></button>
+                              <button onClick={() => setEditItemId(null)}
+                                className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
+                                <X className="h-3.5 w-3.5" /></button>
                             </div>
-                            <button onClick={() => saveEditItem(cat.id, item.id)}
-                              className="p-1.5 rounded bg-brand-700 text-white hover:bg-brand-800 transition-colors shrink-0">
-                              <Check className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => setEditItemId(null)}
-                              className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
-                              <X className="h-3.5 w-3.5" /></button>
-                          </>
+                            {/* Scheduling settings */}
+                            <div className="flex items-center gap-3 pl-1 flex-wrap">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" checked={editSchedulable}
+                                  onChange={e => setEditSchedulable(e.target.checked)}
+                                  className="accent-brand-700" />
+                                <span className="text-xs font-semibold text-stone-600">Enable scheduling</span>
+                              </label>
+                              {editSchedulable && (
+                                <>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-stone-400">Every</span>
+                                    <input type="number" min={5} max={240} step={5} value={editInterval}
+                                      onChange={e => setEditInterval(Number(e.target.value))}
+                                      className="w-16 h-7 border border-stone-200 bg-white rounded px-2 text-xs
+                                        text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                                    <span className="text-xs text-stone-400">min</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-stone-400">Capacity</span>
+                                    <input type="number" min={1} max={500} value={editCapacity}
+                                      onChange={e => setEditCapacity(Number(e.target.value))}
+                                      className="w-16 h-7 border border-stone-200 bg-white rounded px-2 text-xs
+                                        text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                                    <span className="text-xs text-stone-400">people</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         ) : (
                           <>
-                            <span className="flex-1 text-sm text-stone-800">{item.name}</span>
-                            <span className="text-xs text-stone-400 shrink-0">max {item.maxQuantity}</span>
-                            <button onClick={() => { setEditItemId(item.id); setEditItemName(item.name); setEditItemQty(item.maxQuantity); }}
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm text-stone-800">{item.name}</span>
+                              {item.schedulable && (
+                                <span className="ml-2 text-[10px] font-semibold text-brand-700 bg-brand-50
+                                  border border-brand-200 rounded px-1.5 py-0.5 inline-flex items-center gap-0.5">
+                                  <CalendarClock className="h-2.5 w-2.5" />
+                                  {item.slotIntervalMins}min · {item.capacity} ppl
+                                </span>
+                              )}
+                            </div>
+                            {!item.schedulable && (
+                              <span className="text-xs text-stone-400 shrink-0">max {item.maxQuantity}</span>
+                            )}
+                            <button onClick={() => toggleSchedulable(cat.id, item.id, item.schedulable)}
+                              title={item.schedulable ? "Disable scheduling" : "Enable scheduling"}
+                              className={`p-1.5 rounded transition-colors shrink-0
+                                ${item.schedulable ? "text-brand-700 bg-brand-50 hover:bg-brand-100" : "text-stone-300 hover:text-stone-500 hover:bg-stone-100"}`}>
+                              <CalendarClock className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => {
+                              setEditItemId(item.id); setEditItemName(item.name);
+                              setEditItemQty(item.maxQuantity); setEditSchedulable(item.schedulable);
+                              setEditInterval(item.slotIntervalMins); setEditCapacity(item.capacity);
+                            }}
                               className="p-1.5 rounded hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors shrink-0">
                               <Pencil className="h-3 w-3" /></button>
                             <button onClick={() => deleteItem(cat.id, item.id)}

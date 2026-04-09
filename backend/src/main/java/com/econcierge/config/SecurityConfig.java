@@ -45,6 +45,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public: guest request submission and room lookup
                 .requestMatchers("/api/guest/**").permitAll()
+                // Public: guest scheduling (slot lookup + booking)
+                .requestMatchers("/api/schedule/**").permitAll()
                 // Public: staff login
                 .requestMatchers("/api/auth/login").permitAll()
                 // Super admin only

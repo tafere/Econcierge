@@ -51,12 +51,17 @@ public class GuestController {
             List<Map<String, Object>> items = itemRepository
                     .findByCategoryIdAndEnabledTrueOrderBySortOrder(cat.getId())
                     .stream()
-                    .map(item -> Map.<String, Object>of(
-                            "id",          item.getId(),
-                            "name",        item.getName(),
-                            "description", item.getDescription() != null ? item.getDescription() : "",
-                            "maxQuantity", item.getMaxQuantity()
-                    )).toList();
+                    .map(item -> {
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("id",               item.getId());
+                        m.put("name",             item.getName());
+                        m.put("description",      item.getDescription() != null ? item.getDescription() : "");
+                        m.put("maxQuantity",      item.getMaxQuantity());
+                        m.put("schedulable",      item.isSchedulable());
+                        m.put("slotIntervalMins", item.getSlotIntervalMins());
+                        m.put("capacity",         item.getCapacity());
+                        return m;
+                    }).toList();
 
             return Map.<String, Object>of(
                     "id",    cat.getId(),
