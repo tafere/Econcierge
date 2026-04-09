@@ -191,14 +191,14 @@ function RequestTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="min-w-full text-sm table-auto">
         <thead>
           <tr className="border-b border-stone-200 bg-stone-50/60">
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-20">Room</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap">Room</th>
             <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Request</th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-24">Time</th>
+            <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap">Time</th>
             {hasActions && (
-              <th className="text-right px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-44">Action</th>
+              <th className="text-right px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap">Action</th>
             )}
           </tr>
         </thead>
