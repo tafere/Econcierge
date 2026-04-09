@@ -77,22 +77,6 @@ function formatDateHeader(dateStr: string) {
   return d.toLocaleDateString([], { weekday: "short", month: "long", day: "numeric" });
 }
 
-function groupByRoom(reqs: ServiceRequest[]): { roomNumber: string; floor: string; requests: ServiceRequest[] }[] {
-  const map: Record<string, { floor: string; requests: ServiceRequest[] }> = {};
-  for (const r of reqs) {
-    if (!map[r.roomNumber]) map[r.roomNumber] = { floor: r.floor, requests: [] };
-    map[r.roomNumber].requests.push(r);
-  }
-  return Object.entries(map)
-    .sort(([aNum, aData], [bNum, bData]) => {
-      const aPending = aData.requests.filter(r => r.status === "PENDING").length;
-      const bPending = bData.requests.filter(r => r.status === "PENDING").length;
-      if (aPending !== bPending) return bPending - aPending;
-      return aNum.localeCompare(bNum, undefined, { numeric: true });
-    })
-    .map(([roomNumber, data]) => ({ roomNumber, floor: data.floor, requests: data.requests }));
-}
-
 // ─── Confirm modal ────────────────────────────────────────────────────────────
 
 function ConfirmModal({
@@ -465,7 +449,6 @@ export default function DashboardPage() {
   const [updatingId, setUpdatingId]             = useState<number | null>(null);
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
-  const [viewMode, setViewMode]   = useState<"date" | "room">("date");
   const [declining, setDeclining] = useState<ServiceRequest | null>(null);
   const [confirming, setConfirming] = useState<Confirming | null>(null);
 
@@ -614,25 +597,12 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Tabs + view toggle */}
+        {/* Tabs */}
         <div className="flex items-center gap-2 flex-wrap">
           <TabBtn t="ACTIVE"    label="Active"    count={active.length} />
           <TabBtn t="PASTDUE"   label="Past Due"  count={pastDue.length} urgent={pastDue.length > 0} />
           <TabBtn t="COMPLETED" label="Completed" count={completed.length} />
           <TabBtn t="CANCELLED" label="Cancelled" count={cancelled.length} />
-
-          <div className="ml-auto flex items-center border border-stone-200 rounded overflow-hidden">
-            <button onClick={() => setViewMode("date")}
-              className={`px-3 py-1.5 text-xs font-semibold transition-colors
-                ${viewMode === "date" ? "bg-stone-700 text-white" : "text-stone-500 hover:bg-stone-50"}`}>
-              By Date
-            </button>
-            <button onClick={() => setViewMode("room")}
-              className={`px-3 py-1.5 text-xs font-semibold transition-colors border-l border-stone-200
-                ${viewMode === "room" ? "bg-stone-700 text-white" : "text-stone-500 hover:bg-stone-50"}`}>
-              By Room
-            </button>
-          </div>
         </div>
 
         {/* Content */}
@@ -646,68 +616,13 @@ export default function DashboardPage() {
             <p className="text-stone-400 text-sm">No {tab.toLowerCase()} requests</p>
           </div>
 
-        ) : viewMode === "room" ? (
-          /* ── Room view ─────────────────────────────────────────────────── */
-          <div className="space-y-4">
-            {groupByRoom(currentRequests).map(({ roomNumber, floor, requests: roomReqs }) => {
-              const pendingCount  = roomReqs.filter(r => r.status === "PENDING").length;
-              const inProgCount   = roomReqs.filter(r => r.status === "IN_PROGRESS").length;
-              const roomOverdue   = new Set(roomReqs.filter(r => overduePending.some(o => o.id === r.id)).map(r => r.id));
-              const roomEscalated = new Set(roomReqs.filter(r => escalatedInProg.some(e => e.id === r.id)).map(r => r.id));
-              return (
-                <div key={roomNumber} className="glass rounded overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <p className="font-extrabold text-stone-900 text-base leading-tight">Room {roomNumber}</p>
-                        {floor && <p className="text-[10px] text-stone-400">Floor {floor}</p>}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        {pendingCount > 0 && (
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded
-                            bg-amber-100 text-amber-800 border border-amber-300">
-                            {pendingCount} pending
-                          </span>
-                        )}
-                        {inProgCount > 0 && (
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded
-                            bg-blue-100 text-blue-800 border border-blue-300">
-                            {inProgCount} in progress
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-xs text-stone-400">
-                      {roomReqs.length} request{roomReqs.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <RequestTable
-                    requests={roomReqs}
-                    updatingId={updatingId}
-                    onAccept={id => updateStatus(id, "IN_PROGRESS")}
-                    onDone={id => confirm({
-                      title: "Mark as done?",
-                      message: "This will move the request to Completed.",
-                      confirmLabel: "Mark Done",
-                      action: () => updateStatus(id, "DONE"),
-                    })}
-                    onDecline={setDeclining}
-                    overdueIds={roomOverdue}
-                    escalatedIds={roomEscalated}
-                  />
-                </div>
-              );
-            })}
-            <p className="text-xs text-stone-400 text-center pb-2">
-              {currentRequests.length} request{currentRequests.length !== 1 ? "s" : ""} · Auto-updates via live stream
-            </p>
-          </div>
-
         ) : (
-          /* ── Date view ─────────────────────────────────────────────────── */
           <div className="space-y-6">
             {allDates.map(dateStr => {
-              const dayReqs = reqsByDate[dateStr] ?? [];
+              // Sort requests by room number so same-room requests appear together
+              const dayReqs = [...(reqsByDate[dateStr] ?? [])].sort((a, b) =>
+                a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true })
+              );
               const dayOverdue   = new Set(dayReqs.filter(r => overduePending.some(o => o.id === r.id)).map(r => r.id));
               const dayEscalated = new Set(dayReqs.filter(r => escalatedInProg.some(e => e.id === r.id)).map(r => r.id));
               const dayBookingItems = Object.entries(bookingsByDateItem[dateStr] ?? {});
