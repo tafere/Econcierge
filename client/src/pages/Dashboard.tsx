@@ -187,6 +187,8 @@ function RequestTable({
 }) {
   if (requests.length === 0) return null;
 
+  const hasActions = requests.some(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -195,7 +197,9 @@ function RequestTable({
             <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-20">Room</th>
             <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider">Request</th>
             <th className="text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-24">Time</th>
-            <th className="text-right px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-40">Action</th>
+            {hasActions && (
+              <th className="text-right px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider w-44">Action</th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
@@ -253,37 +257,33 @@ function RequestTable({
                   )}
                 </td>
 
-                {/* Action — the button IS the status */}
-                <td className="px-4 py-3 text-right">
-                  {updatingId === req.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
-                  ) : req.status === "PENDING" ? (
-                    <div className="inline-flex items-center gap-1.5">
-                      <button onClick={() => onAccept(req.id)}
+                {/* Action — only rendered when the table has actionable rows */}
+                {hasActions && (
+                  <td className="px-4 py-3 text-right">
+                    {updatingId === req.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
+                    ) : req.status === "PENDING" ? (
+                      <div className="inline-flex items-center gap-1.5">
+                        <button onClick={() => onAccept(req.id)}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-white
+                            bg-brand-700 hover:bg-brand-800 rounded px-3 py-1.5 transition-colors">
+                          <Check className="h-3.5 w-3.5" /> Accept
+                        </button>
+                        <button onClick={() => onDecline(req)}
+                          className="text-xs font-bold text-red-500 border border-red-200 hover:bg-red-50
+                            rounded px-3 py-1.5 transition-colors">
+                          Decline
+                        </button>
+                      </div>
+                    ) : req.status === "IN_PROGRESS" ? (
+                      <button onClick={() => onDone(req.id)}
                         className="inline-flex items-center gap-1 text-xs font-bold text-white
-                          bg-brand-700 hover:bg-brand-800 rounded px-3 py-1.5 transition-colors">
-                        <Check className="h-3.5 w-3.5" /> Accept
+                          bg-emerald-600 hover:bg-emerald-700 rounded px-3 py-1.5 transition-colors">
+                        <CheckCheck className="h-3.5 w-3.5" /> Mark Done
                       </button>
-                      <button onClick={() => onDecline(req)} title="Decline"
-                        className="p-1.5 rounded text-stone-300 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : req.status === "IN_PROGRESS" ? (
-                    <button onClick={() => onDone(req.id)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-white
-                        bg-emerald-600 hover:bg-emerald-700 rounded px-3 py-1.5 transition-colors">
-                      <CheckCheck className="h-3.5 w-3.5" /> Mark Done
-                    </button>
-                  ) : (
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded
-                      ${req.status === "DONE"     ? "text-green-700 bg-green-50 border border-green-200" :
-                        req.status === "DECLINED" ? "text-red-600   bg-red-50   border border-red-200"   :
-                        "text-stone-400 bg-stone-50 border border-stone-200"}`}>
-                      {STATUS_LABEL[req.status]}
-                    </span>
-                  )}
-                </td>
+                    ) : null}
+                  </td>
+                )}
               </tr>
             );
           })}
