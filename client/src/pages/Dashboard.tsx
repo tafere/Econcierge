@@ -245,7 +245,7 @@ function RequestTable({
                     ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-400"}`}>
                     {elapsedLabel(req.createdAt)}
                   </p>
-                  {req.assignedTo && req.status === "IN_PROGRESS" && (
+                  {req.assignedTo && (req.status === "IN_PROGRESS" || req.status === "DONE") && (
                     <p className="text-[11px] text-stone-400 mt-0.5 truncate">{req.assignedTo}</p>
                   )}
                   {req.completedAt && (
