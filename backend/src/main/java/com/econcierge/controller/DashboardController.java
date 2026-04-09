@@ -8,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -75,8 +77,9 @@ public class DashboardController {
         if (newStatus == ServiceRequest.Status.DONE) {
             req.setCompletedAt(LocalDateTime.now());
         }
-        if (newStatus == ServiceRequest.Status.DECLINED && body.containsKey("comment")) {
-            req.setStaffComment(body.get("comment"));
+        if (newStatus == ServiceRequest.Status.DECLINED) {
+            staffRepository.findByUsername(username).ifPresent(s -> req.setAssignedTo(s.getId()));
+            if (body.containsKey("comment")) req.setStaffComment(body.get("comment"));
         }
 
         requestRepository.save(req);
@@ -159,6 +162,123 @@ public class DashboardController {
         if (body.containsKey("email"))   hotel.setEmail(body.get("email"));
         hotelRepository.save(hotel);
         return ResponseEntity.ok(Map.of("message", "Hotel settings updated"));
+    }
+
+    @GetMapping("/analytics")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAnalytics(@RequestHeader("Authorization") String header) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+
+        LocalDateTime now      = LocalDateTime.now();
+        LocalDateTime today    = now.toLocalDate().atStartOfDay();
+        LocalDateTime week     = now.minusDays(7);
+        LocalDateTime month    = now.minusDays(30);
+
+        List<ServiceRequest> all30 = requestRepository.findByHotelIdAndCreatedAtAfter(hotelId, month);
+        List<ServiceRequest> all7  = all30.stream().filter(r -> r.getCreatedAt().isAfter(week)).toList();
+        List<ServiceRequest> today_ = all30.stream().filter(r -> r.getCreatedAt().isAfter(today)).toList();
+
+        // ── KPI ──────────────────────────────────────────────────────────────
+        long openCount = all30.stream()
+                .filter(r -> r.getStatus() == ServiceRequest.Status.PENDING
+                          || r.getStatus() == ServiceRequest.Status.IN_PROGRESS)
+                .count();
+
+        long doneCount = all7.stream().filter(r -> r.getStatus() == ServiceRequest.Status.DONE).count();
+        long closedCount = all7.stream().filter(r ->
+                r.getStatus() == ServiceRequest.Status.DONE ||
+                r.getStatus() == ServiceRequest.Status.DECLINED ||
+                r.getStatus() == ServiceRequest.Status.CANCELLED).count();
+        long completionRate = closedCount == 0 ? 0 : Math.round(doneCount * 100.0 / closedCount);
+
+        OptionalDouble avgResponse = all7.stream()
+                .filter(r -> r.getAcceptedAt() != null)
+                .mapToLong(r -> java.time.Duration.between(r.getCreatedAt(), r.getAcceptedAt()).toMinutes())
+                .average();
+
+        Map<String, Object> kpi = new HashMap<>();
+        kpi.put("todayCount",    today_.size());
+        kpi.put("openCount",     openCount);
+        kpi.put("completionRate", completionRate);
+        kpi.put("avgResponseMins", avgResponse.isPresent() ? Math.round(avgResponse.getAsDouble()) : 0);
+
+        // ── By Category (last 7 days) ─────────────────────────────────────
+        Map<String, Long> catCounts = new LinkedHashMap<>();
+        for (ServiceRequest r : all7) {
+            RequestItem item = itemRepository.findById(r.getItemId()).orElse(null);
+            if (item == null) continue;
+            RequestCategory cat = categoryRepository.findById(item.getCategoryId()).orElse(null);
+            if (cat == null) continue;
+            catCounts.merge(cat.getName(), 1L, Long::sum);
+        }
+        List<Map<String, Object>> byCategory = catCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .map(e -> { Map<String, Object> m = new HashMap<>(); m.put("category", e.getKey()); m.put("count", e.getValue()); return m; })
+                .collect(Collectors.toList());
+
+        // ── By Hour (today) ───────────────────────────────────────────────
+        Map<Integer, Long> hourCounts = new TreeMap<>();
+        for (int h = 0; h < 24; h++) hourCounts.put(h, 0L);
+        for (ServiceRequest r : today_) hourCounts.merge(r.getCreatedAt().getHour(), 1L, Long::sum);
+        List<Map<String, Object>> byHour = hourCounts.entrySet().stream()
+                .map(e -> { Map<String, Object> m = new HashMap<>();
+                    m.put("hour", String.format("%02d:00", e.getKey()));
+                    m.put("count", e.getValue()); return m; })
+                .collect(Collectors.toList());
+
+        // ── By Day (last 7 days) ──────────────────────────────────────────
+        DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("MMM d");
+        Map<LocalDate, Long> dayCounts = new TreeMap<>();
+        for (int i = 6; i >= 0; i--) dayCounts.put(now.toLocalDate().minusDays(i), 0L);
+        for (ServiceRequest r : all7) dayCounts.merge(r.getCreatedAt().toLocalDate(), 1L, Long::sum);
+        List<Map<String, Object>> byDay = dayCounts.entrySet().stream()
+                .map(e -> { Map<String, Object> m = new HashMap<>();
+                    m.put("date", e.getKey().format(dayFmt));
+                    m.put("count", e.getValue()); return m; })
+                .collect(Collectors.toList());
+
+        // ── Top Items (last 30 days) ──────────────────────────────────────
+        Map<String, Long> itemCounts = new LinkedHashMap<>();
+        for (ServiceRequest r : all30) {
+            RequestItem item = itemRepository.findById(r.getItemId()).orElse(null);
+            if (item == null) continue;
+            itemCounts.merge(item.getName(), 1L, Long::sum);
+        }
+        List<Map<String, Object>> topItems = itemCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(8)
+                .map(e -> { Map<String, Object> m = new HashMap<>(); m.put("item", e.getKey()); m.put("count", e.getValue()); return m; })
+                .collect(Collectors.toList());
+
+        // ── Staff Leaderboard (last 30 days) ─────────────────────────────
+        Map<Long, List<ServiceRequest>> byStaff = all30.stream()
+                .filter(r -> r.getAssignedTo() != null && r.getStatus() == ServiceRequest.Status.DONE)
+                .collect(Collectors.groupingBy(ServiceRequest::getAssignedTo));
+        List<Map<String, Object>> leaderboard = byStaff.entrySet().stream()
+                .map(e -> {
+                    String name = staffRepository.findById(e.getKey()).map(Staff::getFullName).orElse("Unknown");
+                    long handled = e.getValue().size();
+                    OptionalDouble avg = e.getValue().stream()
+                            .filter(r -> r.getAcceptedAt() != null && r.getCompletedAt() != null)
+                            .mapToLong(r -> java.time.Duration.between(r.getAcceptedAt(), r.getCompletedAt()).toMinutes())
+                            .average();
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("name", name);
+                    m.put("handled", handled);
+                    m.put("avgMins", avg.isPresent() ? Math.round(avg.getAsDouble()) : 0);
+                    return m;
+                })
+                .sorted(Comparator.comparingLong(m -> -((Long) m.get("handled"))))
+                .collect(Collectors.toList());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("kpi",         kpi);
+        result.put("byCategory",  byCategory);
+        result.put("byHour",      byHour);
+        result.put("byDay",       byDay);
+        result.put("topItems",    topItems);
+        result.put("leaderboard", leaderboard);
+        return ResponseEntity.ok(result);
     }
 
     /** Returns true if the request's category is visible to this role. */
