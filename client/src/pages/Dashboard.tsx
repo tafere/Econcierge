@@ -339,10 +339,10 @@ function BookingSection({
   return (
     <div className="glass rounded overflow-hidden">
       {/* Section header */}
-      <div className="px-4 py-2.5 bg-indigo-50 border-b border-indigo-100 flex items-center gap-2">
-        <CalendarClock className="h-4 w-4 text-indigo-500 shrink-0" />
-        <p className="text-sm font-bold text-indigo-900">{itemName} Schedule</p>
-        <div className="flex items-center gap-1 text-xs text-indigo-500 ml-auto">
+      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+        <CalendarClock className="h-4 w-4 text-stone-400 shrink-0" />
+        <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">{itemName}</p>
+        <div className="flex items-center gap-1 text-xs text-stone-400 ml-auto">
           <Users className="h-3.5 w-3.5" /> {totalGuests} guest{totalGuests !== 1 ? "s" : ""}
         </div>
       </div>
