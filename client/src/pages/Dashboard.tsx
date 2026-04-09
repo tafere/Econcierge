@@ -202,7 +202,7 @@ function RequestTable({
             <th className={th}>Request</th>
             {hasNotes   && <th className={th}>Notes</th>}
             <th className={th}>Date &amp; Time</th>
-            {hasBy      && <th className={th}>By</th>}
+            {hasBy      && <th className={th}>Handled By</th>}
             {hasActions && <th className={`${th} text-right`}>Action</th>}
           </tr>
         </thead>
