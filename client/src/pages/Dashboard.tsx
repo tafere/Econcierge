@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useAuth, getToken } from "@/lib/auth";
 import {
   ConciergeBell, Loader2, RefreshCw,
-  X, Check, CheckCheck, TrendingUp,
+  X, Check, CheckCheck,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
@@ -319,8 +319,6 @@ function RequestTable({
 
 type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PASTDUE";
 
-interface Kpi { todayCount: number; openCount: number; completionRate: number; avgResponseMins: number; }
-
 export default function DashboardPage() {
   const { user } = useAuth();
   const [requests, setRequests]   = useState<ServiceRequest[]>([]);
@@ -329,7 +327,6 @@ export default function DashboardPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
   const [declining, setDeclining] = useState<ServiceRequest | null>(null);
-  const [kpi, setKpi]             = useState<Kpi | null>(null);
 
   const fetchRequests = async () => {
     const token = getToken();
@@ -340,15 +337,7 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
-  const fetchKpi = async () => {
-    const token = getToken();
-    const res = await fetch("/api/dashboard/analytics", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) { const d = await res.json(); setKpi(d.kpi); }
-  };
-
-  useEffect(() => { fetchRequests(); fetchKpi(); }, []);
+  useEffect(() => { fetchRequests(); }, []);
 
   useEffect(() => {
     const token = getToken();
@@ -434,24 +423,6 @@ export default function DashboardPage() {
             <RefreshCw className="h-4 w-4" />
           </button>
         </div>
-
-        {/* KPI strip — admin only */}
-        {user?.role === "ADMIN" && kpi && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Requests Today",    value: kpi.todayCount,                    sub: "last 24 h" },
-              { label: "Open Now",          value: kpi.openCount,                     sub: "pending + in progress" },
-              { label: "Completion Rate",   value: `${kpi.completionRate}%`,          sub: "last 7 days" },
-              { label: "Avg Response Time", value: `${kpi.avgResponseMins} min`,      sub: "time to accept" },
-            ].map(({ label, value, sub }) => (
-              <div key={label} className="glass rounded px-4 py-3">
-                <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">{label}</p>
-                <p className="text-2xl font-extrabold text-stone-900 mt-0.5">{value}</p>
-                <p className="text-[10px] text-stone-400 mt-0.5">{sub}</p>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Tabs */}
         <div className="flex items-center gap-2 flex-wrap">
