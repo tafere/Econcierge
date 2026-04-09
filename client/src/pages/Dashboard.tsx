@@ -96,13 +96,24 @@ function groupByDate(reqs: ServiceRequest[]): [string, ServiceRequest[]][] {
   return Object.entries(map).sort(([a], [b]) => b.localeCompare(a));
 }
 
-function groupByItem(bookings: Booking[]): [string, Booking[]][] {
+function groupByItemAndDate(bookings: Booking[]): { itemName: string; slotDate: string; bookings: Booking[] }[] {
   const map: Record<string, Booking[]> = {};
   for (const b of bookings) {
-    if (!map[b.itemName]) map[b.itemName] = [];
-    map[b.itemName].push(b);
+    const key = `${b.slotTimeIso.slice(0, 10)}|${b.itemName}`;
+    if (!map[key]) map[key] = [];
+    map[key].push(b);
   }
-  return Object.entries(map);
+  return Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, items]) => {
+      const [dateIso, itemName] = key.split("|");
+      const today    = new Date().toISOString().slice(0, 10);
+      const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+      const slotDate = dateIso === today    ? `Today · ${items[0].slotDate}` :
+                       dateIso === tomorrow ? `Tomorrow · ${items[0].slotDate}` :
+                       items[0].slotDate;
+      return { itemName, slotDate, bookings: items };
+    });
 }
 
 // ─── Decline modal ────────────────────────────────────────────────────────────
@@ -322,11 +333,13 @@ const BOOKING_STATUS_PILL: Record<string, string> = {
 
 function BookingSection({
   itemName,
+  slotDate,
   bookings,
   updatingId,
   onUpdateStatus,
 }: {
   itemName: string;
+  slotDate: string;
   bookings: Booking[];
   updatingId: number | null;
   onUpdateStatus: (id: number, status: string) => void;
@@ -342,6 +355,7 @@ function BookingSection({
       <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
         <CalendarClock className="h-4 w-4 text-stone-400 shrink-0" />
         <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">{itemName}</p>
+        <span className="text-xs text-stone-400 font-medium">{slotDate}</span>
         <div className="flex items-center gap-1 text-xs text-stone-400 ml-auto">
           <Users className="h-3.5 w-3.5" /> {totalGuests} guest{totalGuests !== 1 ? "s" : ""}
         </div>
@@ -521,7 +535,7 @@ export default function DashboardPage() {
     tab === "CANCELLED" ? cancelledBookings :
                           [];
 
-  const bookingGroups = groupByItem(tabBookings);
+  const bookingGroups = groupByItemAndDate(tabBookings);
 
   const TabBtn = ({ t, label, count, urgent, noCount }: {
     t: Tab; label: string; count?: number; urgent?: boolean; noCount?: boolean;
@@ -613,11 +627,12 @@ export default function DashboardPage() {
             })}
 
             {/* Booking sections (by service name) */}
-            {bookingGroups.map(([itemName, itemBookings]) => (
+            {bookingGroups.map(g => (
               <BookingSection
-                key={itemName}
-                itemName={itemName}
-                bookings={itemBookings}
+                key={`${g.slotDate}|${g.itemName}`}
+                itemName={g.itemName}
+                slotDate={g.slotDate}
+                bookings={g.bookings}
                 updatingId={updatingBookingId}
                 onUpdateStatus={updateBookingStatus}
               />
