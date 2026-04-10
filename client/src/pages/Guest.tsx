@@ -337,8 +337,8 @@ export default function GuestPage() {
 
   const timeAgo = (iso: string) => {
     const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-    if (diff < 1) return lang === "am" ? "አሁን ልክ" : "just now";
-    return lang === "am" ? `${diff} ደቂቃ በፊት` : `${diff}m ago`;
+    if (diff < 1) return T("justNow");
+    return lang === "am" ? `${diff} ${T("minutesAgo")}` : `${diff}${T("minutesAgo")}`;
   };
 
   const statusLabel = (s: string) => {
@@ -503,13 +503,13 @@ export default function GuestPage() {
                             onClick={() => cancelRequest(req.id)}
                             className="text-xs font-bold text-red-600 hover:text-red-800 transition-colors"
                           >
-                            Yes
+                            {T("yes")}
                           </button>
                           <button
                             onClick={() => setCancellingId(null)}
                             className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
                           >
-                            No
+                            {T("no")}
                           </button>
                         </div>
                       )}
@@ -529,20 +529,20 @@ export default function GuestPage() {
             {!selectedCat && !selectedItem && bookings.length > 0 && (
               <div className="glass rounded overflow-hidden">
                 <div className="px-4 py-3 border-b border-stone-50">
-                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">My Bookings</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">{T("myBookings")}</p>
                 </div>
                 <div className="divide-y divide-stone-50">
                   {bookings.map(b => (
                     <div key={b.id} className="px-4 py-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-stone-800">{b.itemName}</p>
-                        <p className="text-xs text-stone-400 mt-0.5">{b.slotTime} · {b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}</p>
+                        <p className="text-xs text-stone-400 mt-0.5">{b.slotTime} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}</p>
                       </div>
                       <span className={`text-[11px] font-semibold px-2.5 py-1 rounded border shrink-0
                         ${b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-200" :
                           b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-200" :
                           "bg-amber-100 text-amber-800 border-amber-200"}`}>
-                        {b.status === "CONFIRMED" ? "Confirmed" : b.status === "CANCELLED" ? "Cancelled" : "Pending"}
+                        {b.status === "CONFIRMED" ? T("confirmed") : b.status === "CANCELLED" ? T("cancelled") : T("pending")}
                       </span>
                     </div>
                   ))}
@@ -619,18 +619,18 @@ export default function GuestPage() {
                   <div>
                     <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
                     <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
-                    <p className="text-xs text-stone-400 mt-0.5">Every {selectedItem.slotIntervalMins} min · up to {selectedItem.capacity} people per slot</p>
+                    <p className="text-xs text-stone-400 mt-0.5">{lang === "am" ? `በእያንዳንዱ ${selectedItem.slotIntervalMins} ደቂቃ · ${T("upTo")} ${selectedItem.capacity} ${T("guests")}` : `Every ${selectedItem.slotIntervalMins} min · up to ${selectedItem.capacity} people per slot`}</p>
                   </div>
 
                   {/* Date picker */}
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Select Date</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">{T("selectDate")}</p>
                     <div className="flex gap-2">
                       {[todayStr, tomorrowStr].map(d => (
                         <button key={d} onClick={() => { setSlotDate(d); fetchSlots(selectedItem.id, d); setSelectedSlot(null); }}
                           className={`flex-1 py-2 rounded border text-sm font-semibold transition-colors
                             ${slotDate === d ? "bg-brand-700 text-white border-brand-700" : "border-stone-200 text-stone-600 hover:border-brand-400"}`}>
-                          {d === todayStr ? "Today" : "Tomorrow"}
+                          {d === todayStr ? T("today") : T("tomorrow")}
                         </button>
                       ))}
                     </div>
@@ -638,7 +638,7 @@ export default function GuestPage() {
 
                   {/* Slot grid */}
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Available Times</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">{T("availableTimes")}</p>
                     {slotsLoading ? (
                       <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-brand-700" /></div>
                     ) : (
@@ -653,10 +653,10 @@ export default function GuestPage() {
                                 "border-stone-200 text-stone-700 hover:border-brand-400"}`}>
                             <p>{slot.time}</p>
                             {slot.available && (
-                              <p className="text-[10px] opacity-70">{slot.remaining} left</p>
+                              <p className="text-[10px] opacity-70">{slot.remaining} {T("left")}</p>
                             )}
                             {!slot.available && !slot.past && (
-                              <p className="text-[10px]">Full</p>
+                              <p className="text-[10px]">{T("full")}</p>
                             )}
                           </button>
                         ))}
@@ -668,7 +668,7 @@ export default function GuestPage() {
                   {selectedSlot && (
                     <>
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Number of Guests</p>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">{T("numberOfGuests")}</p>
                         <div className="flex items-center gap-4">
                           <button onClick={() => setGuestCount(n => Math.max(1, n - 1))} disabled={guestCount <= 1}
                             className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
@@ -682,7 +682,7 @@ export default function GuestPage() {
                               text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors disabled:opacity-30">
                             <Plus className="h-4 w-4" />
                           </button>
-                          <span className="text-xs text-stone-400">{selectedSlot.remaining} available</span>
+                          <span className="text-xs text-stone-400">{selectedSlot.remaining} {T("available")}</span>
                         </div>
                       </div>
 
@@ -703,15 +703,15 @@ export default function GuestPage() {
 
                       <div className="bg-brand-50 border border-brand-200 rounded px-4 py-3">
                         <p className="text-sm font-semibold text-stone-800">
-                          {selectedItem.name} · {slotDate === todayStr ? "Today" : "Tomorrow"} at {selectedSlot.time}
+                          {selectedItem.name} · {slotDate === todayStr ? T("today") : T("tomorrow")} {T("at")} {selectedSlot.time}
                         </p>
-                        <p className="text-xs text-stone-500 mt-0.5">{guestCount} guest{guestCount !== 1 ? "s" : ""}</p>
+                        <p className="text-xs text-stone-500 mt-0.5">{guestCount} {guestCount !== 1 ? T("guests") : T("guest")}</p>
                       </div>
 
                       <button onClick={bookSlot} disabled={booking}
                         className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
                           hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-                        {booking ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Confirm Booking</>}
+                        {booking ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{T("confirmBooking")}</>}
                       </button>
                     </>
                   )}
