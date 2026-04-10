@@ -166,6 +166,10 @@ export default function GuestPage() {
 
   // ── Load room + restore tracked requests ────────────────────────────────
   useEffect(() => {
+    // Clear any staff hotel theme immediately — the correct hotel theme will
+    // be applied once we know which hotel this QR code belongs to.
+    applyHotelTheme(null);
+
     fetch(`/api/guest/room/${token}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((data: RoomInfo) => {
@@ -175,6 +179,10 @@ export default function GuestPage() {
       })
       .catch(() => setError(T("invalidQr")))
       .finally(() => setLoading(false));
+
+    // When guest page unmounts restore nothing — staff pages re-apply their
+    // own theme via AuthProvider on mount.
+    return () => applyHotelTheme(null);
   }, [token]);
 
   // ── Poll statuses every 15 s if there are non-DONE requests ─────────────

@@ -28,6 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Never apply staff hotel theme on guest or TV pages — they manage their own theme.
+    const isGuestRoute = window.location.pathname.startsWith("/r/") || window.location.pathname.startsWith("/tv/");
+
     const token = localStorage.getItem(TOKEN_KEY);
     const saved = localStorage.getItem(USER_KEY);
     if (token && saved) {
@@ -35,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         const u = { ...parsed, token };
         setUser(u);
-        applyHotelTheme(u.primaryColor);
+        if (!isGuestRoute) applyHotelTheme(u.primaryColor);
         fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
           .then(r => { if (r.status === 401) { localStorage.clear(); setUser(null); applyHotelTheme(null); } })
           .catch(() => {})
