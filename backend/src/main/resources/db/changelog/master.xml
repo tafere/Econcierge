@@ -16,5 +16,6 @@
     <include file="classpath:db/changelog/009-widen-role.xml"/>
     <include file="classpath:db/changelog/010-super-admin.xml"/>
     <include file="classpath:db/changelog/011-scheduling.xml"/>
+    <include file="classpath:db/changelog/012-item-name-am.xml"/>
 
 </databaseChangeLog>
