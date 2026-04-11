@@ -64,12 +64,13 @@ public class GuestController {
                         return m;
                     }).toList();
 
-            return Map.<String, Object>of(
-                    "id",    cat.getId(),
-                    "name",  cat.getName(),
-                    "icon",  cat.getIcon() != null ? cat.getIcon() : "",
-                    "items", items
-            );
+            Map<String, Object> catMap = new HashMap<>();
+            catMap.put("id",     cat.getId());
+            catMap.put("name",   cat.getName());
+            catMap.put("nameAm", cat.getNameAm() != null ? cat.getNameAm() : "");
+            catMap.put("icon",   cat.getIcon() != null ? cat.getIcon() : "");
+            catMap.put("items",  items);
+            return catMap;
         }).toList();
 
         Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);

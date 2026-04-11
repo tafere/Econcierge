@@ -23,6 +23,7 @@ interface MenuItem {
 interface MenuCategory {
   id: number;
   name: string;
+  nameAm?: string;
   icon: string;
   items: MenuItem[];
 }
@@ -592,7 +593,7 @@ export default function GuestPage() {
                         hover:border-brand-700 hover:shadow-md transition-all"
                     >
                       <p className="text-2xl mb-2">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
-                      <p className="font-semibold text-stone-800 text-sm">{cat.name}</p>
+                      <p className="font-semibold text-stone-800 text-sm">{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</p>
                       <p className="text-xs text-stone-400 mt-0.5">{cat.items.length} {T("options")}</p>
                     </button>
                   ))}
@@ -609,7 +610,7 @@ export default function GuestPage() {
                 >
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
-                <h2 className="font-bold text-stone-900">{selectedCat.name}</h2>
+                <h2 className="font-bold text-stone-900">{lang === "am" && selectedCat.nameAm ? selectedCat.nameAm : selectedCat.name}</h2>
                 <div className="space-y-2">
                   {selectedCat.items.map(item => (
                     <button
@@ -646,7 +647,7 @@ export default function GuestPage() {
 
                 <div className="glass rounded p-5 space-y-4">
                   <div>
-                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
+                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{lang === "am" && selectedCat!.nameAm ? selectedCat!.nameAm : selectedCat!.name}</p>
                     <h2 className="font-bold text-stone-900 text-lg">{lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name}</h2>
                     <p className="text-xs text-stone-400 mt-0.5">{lang === "am" ? `በእያንዳንዱ ${selectedItem.slotIntervalMins} ደቂቃ · ${T("upTo")} ${selectedItem.capacity} ${T("guests")}` : `Every ${selectedItem.slotIntervalMins} min · up to ${selectedItem.capacity} people per slot`}</p>
                   </div>
@@ -760,7 +761,7 @@ export default function GuestPage() {
 
                 <div className="glass rounded p-5 space-y-5">
                   <div>
-                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
+                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{lang === "am" && selectedCat!.nameAm ? selectedCat!.nameAm : selectedCat!.name}</p>
                     <h2 className="font-bold text-stone-900 text-lg">{lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name}</h2>
                   </div>
 

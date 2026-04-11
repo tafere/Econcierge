@@ -54,6 +54,7 @@ public class CategoryController {
                     Map<String, Object> m = new HashMap<>();
                     m.put("id",        cat.getId());
                     m.put("name",      cat.getName());
+                    m.put("nameAm",    cat.getNameAm() != null ? cat.getNameAm() : "");
                     m.put("icon",      cat.getIcon() != null ? cat.getIcon() : "");
                     m.put("sortOrder", cat.getSortOrder());
                     m.put("items",     items);

@@ -21,6 +21,7 @@ interface CatItem {
 interface Category {
   id: number;
   name: string;
+  nameAm?: string;
   icon: string;
   sortOrder: number;
   items: CatItem[];
@@ -44,7 +45,7 @@ const ICONS = [
 const iconEmoji = (v: string) => ICONS.find(i => i.value === v)?.emoji ?? "📋";
 
 export default function CategoriesPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [cats, setCats]         = useState<Category[]>([]);
   const [loading, setLoading]   = useState(true);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -262,7 +263,7 @@ export default function CategoriesPage() {
                       onKeyDown={e => { if (e.key === "Enter") saveEditCat(cat.id); if (e.key === "Escape") setEditCatId(null); }} />
                   ) : (
                     <button onClick={() => toggleExpand(cat.id)}
-                      className="flex-1 text-left font-semibold text-stone-900 text-sm">{cat.name}</button>
+                      className="flex-1 text-left font-semibold text-stone-900 text-sm">{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</button>
                   )}
 
                   <span className="text-xs text-stone-400 shrink-0">{cat.items.length} {t("itemsCount")}</span>
