@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import {
   Plus, Loader2, Trash2, Pencil,
   ToggleLeft, ToggleRight, ChevronDown, ChevronRight, X, Check, CalendarClock,
@@ -24,48 +25,44 @@ interface Category {
   items: CatItem[];
 }
 
-// Icon picker options — name maps to emoji shown in guest page
 const ICONS = [
-  { value: "broom",           emoji: "🧹", label: "Housekeeping" },
-  { value: "sparkles",        emoji: "✨", label: "Amenities" },
-  { value: "soap",            emoji: "🧴", label: "Toiletries" },
-  { value: "utensils",        emoji: "🍽️", label: "Food & Beverage" },
-  { value: "wrench",          emoji: "🔧", label: "Maintenance" },
-  { value: "concierge-bell",  emoji: "🛎️", label: "Concierge" },
-  { value: "car",             emoji: "🚗", label: "Transport" },
-  { value: "coffee",          emoji: "☕", label: "Cafe & Bar" },
-  { value: "flower",          emoji: "🌸", label: "Spa" },
-  { value: "dumbbell",        emoji: "💪", label: "Gym" },
-  { value: "briefcase",       emoji: "💼", label: "Meeting" },
-  { value: "star",            emoji: "⭐", label: "General" },
+  { value: "broom",           emoji: "🧹", labelKey: "iconHousekeeping" },
+  { value: "sparkles",        emoji: "✨", labelKey: "iconAmenities" },
+  { value: "soap",            emoji: "🧴", labelKey: "iconToiletries" },
+  { value: "utensils",        emoji: "🍽️", labelKey: "iconFoodBeverage" },
+  { value: "wrench",          emoji: "🔧", labelKey: "iconMaintenance" },
+  { value: "concierge-bell",  emoji: "🛎️", labelKey: "iconConcierge" },
+  { value: "car",             emoji: "🚗", labelKey: "iconTransport" },
+  { value: "coffee",          emoji: "☕", labelKey: "iconCafeBar" },
+  { value: "flower",          emoji: "🌸", labelKey: "iconSpa" },
+  { value: "dumbbell",        emoji: "💪", labelKey: "iconGym" },
+  { value: "briefcase",       emoji: "💼", labelKey: "iconMeeting" },
+  { value: "star",            emoji: "⭐", labelKey: "iconGeneral" },
 ];
 
 const iconEmoji = (v: string) => ICONS.find(i => i.value === v)?.emoji ?? "📋";
 
 export default function CategoriesPage() {
+  const { t } = useLang();
   const [cats, setCats]         = useState<Category[]>([]);
   const [loading, setLoading]   = useState(true);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [showAdd, setShowAdd]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
 
-  // New category form
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("sparkles");
   const [adding, setAdding]   = useState(false);
 
-  // Inline edit state: catId -> draft name
   const [editCatId, setEditCatId]     = useState<number | null>(null);
   const [editCatName, setEditCatName] = useState("");
   const [editCatIcon, setEditCatIcon] = useState("");
 
-  // Add item state: catId -> draft name + maxQty
   const [addItemCatId, setAddItemCatId]   = useState<number | null>(null);
   const [addItemName, setAddItemName]     = useState("");
   const [addItemQty, setAddItemQty]       = useState(1);
   const [addingItem, setAddingItem]       = useState(false);
 
-  // Inline edit item
   const [editItemId, setEditItemId]           = useState<number | null>(null);
   const [editItemName, setEditItemName]       = useState("");
   const [editItemQty, setEditItemQty]         = useState(1);
@@ -86,7 +83,6 @@ export default function CategoriesPage() {
   const toggleExpand = (id: number) =>
     setExpanded(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
 
-  // ── Category actions ───────────────────────────────────────────────────────
   const addCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdding(true); setError(null);
@@ -118,12 +114,11 @@ export default function CategoriesPage() {
   };
 
   const deleteCat = async (id: number, name: string) => {
-    if (!confirm(`Delete "${name}" and all its items? This cannot be undone.`)) return;
+    if (!confirm(t("confirmDeleteCategory").replace("{name}", name))) return;
     const res = await fetch(`/api/dashboard/categories/${id}`, { method: "DELETE", headers: authH() });
     if (res.ok) setCats(prev => prev.filter(c => c.id !== id));
   };
 
-  // ── Item actions ──────────────────────────────────────────────────────────
   const addItem = async (catId: number, e: React.FormEvent) => {
     e.preventDefault();
     setAddingItem(true);
@@ -188,39 +183,39 @@ export default function CategoriesPage() {
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">Categories</h1>
-            <p className="text-sm text-stone-400">Manage what guests can request</p>
+            <h1 className="text-xl font-bold text-stone-900">{t("categoriesTitle")}</h1>
+            <p className="text-sm text-stone-400">{t("categoriesSubtitle")}</p>
           </div>
           <button onClick={() => { setShowAdd(v => !v); setError(null); }}
             className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
               px-4 py-2 rounded hover:bg-brand-800 transition-colors">
-            <Plus className="h-4 w-4" /> Add Category
+            <Plus className="h-4 w-4" /> {t("addCategory")}
           </button>
         </div>
 
         {/* Add category form */}
         {showAdd && (
           <form onSubmit={addCategory} className="glass rounded p-4 space-y-3">
-            <p className="text-sm font-semibold text-stone-700">New Category</p>
+            <p className="text-sm font-semibold text-stone-700">{t("newCategory")}</p>
             <div className="flex gap-2">
               <input value={newName} onChange={e => setNewName(e.target.value)}
-                required placeholder="Category name" className={`${inputCls} flex-1`} />
+                required placeholder={t("categoryName")} className={`${inputCls} flex-1`} />
               <button type="submit" disabled={adding}
                 className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded
                   hover:bg-brand-800 transition-colors flex items-center gap-1.5 disabled:opacity-50 shrink-0">
-                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
+                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} {t("addBtn")}
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
                 className="text-stone-400 hover:text-stone-700 px-2"><X className="h-4 w-4" /></button>
             </div>
             <div>
-              <p className="text-xs text-stone-400 mb-2">Pick an icon:</p>
+              <p className="text-xs text-stone-400 mb-2">{t("pickIcon")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {ICONS.map(ic => (
                   <button key={ic.value} type="button" onClick={() => setNewIcon(ic.value)}
                     className={`text-lg px-2 py-1 rounded border transition-colors
                       ${newIcon === ic.value ? "border-brand-700 bg-brand-50" : "border-stone-200 hover:border-brand-400"}`}
-                    title={ic.label}>{ic.emoji}</button>
+                    title={t(ic.labelKey)}>{ic.emoji}</button>
                 ))}
               </div>
             </div>
@@ -232,7 +227,7 @@ export default function CategoriesPage() {
           <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-brand-700" /></div>
         ) : cats.length === 0 ? (
           <div className="text-center py-16 glass rounded">
-            <p className="text-stone-400 text-sm">No categories yet. Add one above.</p>
+            <p className="text-stone-400 text-sm">{t("noCategoriesYet")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -240,27 +235,24 @@ export default function CategoriesPage() {
               <div key={cat.id} className="glass rounded overflow-hidden">
                 {/* Category header */}
                 <div className="px-4 py-3 flex items-center gap-3">
-                  {/* Expand toggle */}
                   <button onClick={() => toggleExpand(cat.id)}
                     className="text-stone-400 hover:text-stone-700 transition-colors shrink-0">
                     {expanded.has(cat.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </button>
 
-                  {/* Icon */}
                   {editCatId === cat.id ? (
                     <div className="flex flex-wrap gap-1 flex-1">
                       {ICONS.map(ic => (
                         <button key={ic.value} type="button" onClick={() => setEditCatIcon(ic.value)}
                           className={`text-base px-1.5 py-0.5 rounded border transition-colors
                             ${editCatIcon === ic.value ? "border-brand-700 bg-brand-50" : "border-stone-200 hover:border-stone-400"}`}
-                          title={ic.label}>{ic.emoji}</button>
+                          title={t(ic.labelKey)}>{ic.emoji}</button>
                       ))}
                     </div>
                   ) : (
                     <span className="text-xl shrink-0">{iconEmoji(cat.icon)}</span>
                   )}
 
-                  {/* Name — edit or display */}
                   {editCatId === cat.id ? (
                     <input value={editCatName} onChange={e => setEditCatName(e.target.value)}
                       className={`${inputCls} flex-1 min-w-0`} autoFocus
@@ -270,9 +262,8 @@ export default function CategoriesPage() {
                       className="flex-1 text-left font-semibold text-stone-900 text-sm">{cat.name}</button>
                   )}
 
-                  <span className="text-xs text-stone-400 shrink-0">{cat.items.length} items</span>
+                  <span className="text-xs text-stone-400 shrink-0">{cat.items.length} {t("itemsCount")}</span>
 
-                  {/* Actions */}
                   {editCatId === cat.id ? (
                     <div className="flex gap-1 shrink-0">
                       <button onClick={() => saveEditCat(cat.id)}
@@ -302,9 +293,7 @@ export default function CategoriesPage() {
                         className={`px-4 py-2.5 flex items-center gap-3 border-b border-stone-50 last:border-0
                           ${!item.enabled ? "opacity-50" : ""}`}>
 
-                        {/* Toggle */}
                         <button onClick={() => toggleItem(cat.id, item.id, item.enabled)}
-                          title={item.enabled ? "Hide from guests" : "Show to guests"}
                           className="shrink-0 text-stone-400 hover:text-stone-700 transition-colors">
                           {item.enabled
                             ? <ToggleRight className="h-4.5 w-4.5 text-green-600" />
@@ -318,7 +307,7 @@ export default function CategoriesPage() {
                                 className={`${inputCls} flex-1 min-w-0`} autoFocus
                                 onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
                               <div className="flex items-center gap-1 shrink-0">
-                                <span className="text-xs text-stone-400">Max</span>
+                                <span className="text-xs text-stone-400">{t("maxLabel")}</span>
                                 <input type="number" min={1} max={99} value={editItemQty}
                                   onChange={e => setEditItemQty(Number(e.target.value))}
                                   className="w-14 h-9 border border-stone-200 bg-white rounded px-2 text-sm
@@ -331,31 +320,30 @@ export default function CategoriesPage() {
                                 className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
                                 <X className="h-3.5 w-3.5" /></button>
                             </div>
-                            {/* Scheduling settings */}
                             <div className="flex items-center gap-3 pl-1 flex-wrap">
                               <label className="flex items-center gap-1.5 cursor-pointer">
                                 <input type="checkbox" checked={editSchedulable}
                                   onChange={e => setEditSchedulable(e.target.checked)}
                                   className="accent-brand-700" />
-                                <span className="text-xs font-semibold text-stone-600">Enable scheduling</span>
+                                <span className="text-xs font-semibold text-stone-600">{t("enableScheduling")}</span>
                               </label>
                               {editSchedulable && (
                                 <>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-stone-400">Every</span>
+                                    <span className="text-xs text-stone-400">{t("everyLabel")}</span>
                                     <input type="number" min={5} max={240} step={5} value={editInterval}
                                       onChange={e => setEditInterval(Number(e.target.value))}
                                       className="w-16 h-7 border border-stone-200 bg-white rounded px-2 text-xs
                                         text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
-                                    <span className="text-xs text-stone-400">min</span>
+                                    <span className="text-xs text-stone-400">{t("minLabel")}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-stone-400">Capacity</span>
+                                    <span className="text-xs text-stone-400">{t("capacityLabel")}</span>
                                     <input type="number" min={1} max={500} value={editCapacity}
                                       onChange={e => setEditCapacity(Number(e.target.value))}
                                       className="w-16 h-7 border border-stone-200 bg-white rounded px-2 text-xs
                                         text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
-                                    <span className="text-xs text-stone-400">people</span>
+                                    <span className="text-xs text-stone-400">{t("peopleLabel")}</span>
                                   </div>
                                 </>
                               )}
@@ -369,15 +357,15 @@ export default function CategoriesPage() {
                                 <span className="ml-2 text-[10px] font-semibold text-brand-700 bg-brand-50
                                   border border-brand-200 rounded px-1.5 py-0.5 inline-flex items-center gap-0.5">
                                   <CalendarClock className="h-2.5 w-2.5" />
-                                  {item.slotIntervalMins}min · {item.capacity} ppl
+                                  {item.slotIntervalMins}{t("minLabel")} · {item.capacity} ppl
                                 </span>
                               )}
                             </div>
                             {!item.schedulable && (
-                              <span className="text-xs text-stone-400 shrink-0">max {item.maxQuantity}</span>
+                              <span className="text-xs text-stone-400 shrink-0">{t("maxLabel")} {item.maxQuantity}</span>
                             )}
                             <button onClick={() => toggleSchedulable(cat.id, item.id, item.schedulable)}
-                              title={item.schedulable ? "Disable scheduling" : "Enable scheduling"}
+                              title={item.schedulable ? t("enableScheduling") : t("enableScheduling")}
                               className={`p-1.5 rounded transition-colors shrink-0
                                 ${item.schedulable ? "text-brand-700 bg-brand-50 hover:bg-brand-100" : "text-stone-300 hover:text-stone-500 hover:bg-stone-100"}`}>
                               <CalendarClock className="h-3.5 w-3.5" /></button>
@@ -401,10 +389,10 @@ export default function CategoriesPage() {
                       <form onSubmit={e => addItem(cat.id, e)}
                         className="px-4 py-2.5 flex items-center gap-2 bg-stone-50">
                         <input value={addItemName} onChange={e => setAddItemName(e.target.value)}
-                          required placeholder="Item name" autoFocus
+                          required placeholder={t("itemNamePlaceholder")} autoFocus
                           className={`${inputCls} flex-1 min-w-0`} />
                         <div className="flex items-center gap-1 shrink-0">
-                          <span className="text-xs text-stone-400">Max</span>
+                          <span className="text-xs text-stone-400">{t("maxLabel")}</span>
                           <input type="number" min={1} max={99} value={addItemQty}
                             onChange={e => setAddItemQty(Number(e.target.value))}
                             className="w-14 h-9 border border-stone-200 bg-white rounded px-2 text-sm
@@ -422,7 +410,7 @@ export default function CategoriesPage() {
                       <button onClick={() => { setAddItemCatId(cat.id); setAddItemName(""); setAddItemQty(1); }}
                         className="w-full px-4 py-2 text-xs text-brand-700 hover:bg-brand-50 flex items-center gap-1.5
                           transition-colors font-medium">
-                        <Plus className="h-3.5 w-3.5" /> Add item
+                        <Plus className="h-3.5 w-3.5" /> {t("addItem")}
                       </button>
                     )}
                   </div>

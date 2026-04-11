@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import NavBar from "@/components/NavBar";
 import { Loader2 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, CartesianGrid,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell,
 } from "recharts";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -24,7 +25,6 @@ const tooltipStyle = {
   itemStyle:    { color: "#44403c" },
 };
 
-// Distinct palette for pie slices
 const PIE_COLORS = [
   "#92400e","#b45309","#d97706","#f59e0b",
   "#059669","#0891b2","#7c3aed","#db2777",
@@ -34,7 +34,7 @@ function Card({ children }: { children: React.ReactNode }) {
   return <div className="glass rounded p-5">{children}</div>;
 }
 
-// ─── Toggled chart: Volume vs Category ─────────────────────────────────────
+// ─── Toggled chart ────────────────────────────────────────────────────────────
 
 type ChartTab = "volume" | "category";
 
@@ -42,6 +42,7 @@ function RequestsChart({ byDay, byCategory }: {
   byDay: Analytics["byDay"];
   byCategory: Analytics["byCategory"];
 }) {
+  const { t } = useLang();
   const [view, setView] = useState<ChartTab>("volume");
 
   const btn = (v: ChartTab, label: string) =>
@@ -52,11 +53,11 @@ function RequestsChart({ byDay, byCategory }: {
     <Card>
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">
-          {view === "volume" ? "Request Volume — last 7 days" : "Requests by Category — last 7 days"}
+          {view === "volume" ? t("requestVolume") : t("requestsByCategory")}
         </p>
         <div className="flex gap-1 bg-stone-100 rounded p-0.5">
-          <button className={btn("volume",   "Volume")}   onClick={() => setView("volume")}>Volume</button>
-          <button className={btn("category", "Category")} onClick={() => setView("category")}>Category</button>
+          <button className={btn("volume",   t("volumeLabel"))}   onClick={() => setView("volume")}>{t("volumeLabel")}</button>
+          <button className={btn("category", t("categoryLabel"))} onClick={() => setView("category")}>{t("categoryLabel")}</button>
         </div>
       </div>
 
@@ -67,14 +68,14 @@ function RequestsChart({ byDay, byCategory }: {
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
             <Tooltip {...tooltipStyle} />
-            <Bar dataKey="count" name="Requests" fill="rgb(var(--brand-700))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="count" name={t("requestCol")} fill="rgb(var(--brand-700))" radius={[4, 4, 0, 0]} />
           </BarChart>
         ) : (
           <BarChart data={byCategory} layout="vertical" margin={{ left: 8, right: 24 }}>
             <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
             <YAxis type="category" dataKey="category" tick={{ fontSize: 11 }} width={115} />
             <Tooltip {...tooltipStyle} />
-            <Bar dataKey="count" name="Requests" fill="rgb(var(--brand-700))" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" name={t("requestCol")} fill="rgb(var(--brand-700))" radius={[0, 4, 4, 0]} />
           </BarChart>
         )}
       </ResponsiveContainer>
@@ -85,6 +86,7 @@ function RequestsChart({ byDay, byCategory }: {
 // ─── Top items donut ────────────────────────────────────────────────────────
 
 function TopItemsChart({ items }: { items: Analytics["topItems"] }) {
+  const { t } = useLang();
   const total = items.reduce((s, i) => s + i.count, 0);
 
   const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {
@@ -107,10 +109,10 @@ function TopItemsChart({ items }: { items: Analytics["topItems"] }) {
   return (
     <Card>
       <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">
-        Top Requested Items — last 30 days
+        {t("topItems")}
       </p>
       {items.length === 0 ? (
-        <p className="text-sm text-stone-400">No requests yet.</p>
+        <p className="text-sm text-stone-400">{t("noRequestsYet")}</p>
       ) : (
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <ResponsiveContainer width={220} height={220}>
@@ -130,7 +132,6 @@ function TopItemsChart({ items }: { items: Analytics["topItems"] }) {
             </PieChart>
           </ResponsiveContainer>
 
-          {/* Legend list */}
           <div className="flex-1 space-y-1.5 w-full">
             {items.map((item, i) => (
               <div key={item.item} className="flex items-center gap-2">
@@ -150,6 +151,7 @@ function TopItemsChart({ items }: { items: Analytics["topItems"] }) {
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
+  const { t } = useLang();
   const [data, setData]       = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -166,8 +168,8 @@ export default function ReportsPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
         <div>
-          <h1 className="text-lg font-bold text-stone-900">Reports &amp; Analytics</h1>
-          <p className="text-xs text-stone-400">Live snapshot of your hotel's service performance</p>
+          <h1 className="text-lg font-bold text-stone-900">{t("reportsTitle")}</h1>
+          <p className="text-xs text-stone-400">{t("reportsSubtitle")}</p>
         </div>
 
         {loading ? (
@@ -175,21 +177,21 @@ export default function ReportsPage() {
             <Loader2 className="h-6 w-6 animate-spin text-brand-700" />
           </div>
         ) : !data ? (
-          <p className="text-center text-stone-400 py-24">Could not load analytics.</p>
+          <p className="text-center text-stone-400 py-24">{t("couldNotLoad")}</p>
         ) : (
           <>
             {/* ── KPI Cards ────────────────────────────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Requests Today",    value: data.kpi.todayCount,            sub: "last 24 h" },
-                { label: "Open Now",          value: data.kpi.openCount,             sub: "pending + in progress" },
-                { label: "Completion Rate",   value: `${data.kpi.completionRate}%`,  sub: "done vs closed · 7 days" },
-                { label: "Avg Response Time", value: `${data.kpi.avgResponseMins}m`, sub: "time to accept · 7 days" },
-              ].map(({ label, value, sub }) => (
-                <div key={label} className="glass rounded px-4 py-4">
-                  <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">{label}</p>
+                { labelKey: "requestsToday",   value: data.kpi.todayCount,            subKey: "last24h" },
+                { labelKey: "openNow",          value: data.kpi.openCount,             subKey: "pendingInProgress" },
+                { labelKey: "completionRate",   value: `${data.kpi.completionRate}%`,  subKey: "doneVsClosed" },
+                { labelKey: "avgResponseTime",  value: `${data.kpi.avgResponseMins}m`, subKey: "timeToAccept" },
+              ].map(({ labelKey, value, subKey }) => (
+                <div key={labelKey} className="glass rounded px-4 py-4">
+                  <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">{t(labelKey)}</p>
                   <p className="text-3xl font-extrabold text-stone-900 mt-1">{value}</p>
-                  <p className="text-[10px] text-stone-400 mt-1">{sub}</p>
+                  <p className="text-[10px] text-stone-400 mt-1">{t(subKey)}</p>
                 </div>
               ))}
             </div>
@@ -200,7 +202,7 @@ export default function ReportsPage() {
 
               <Card>
                 <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">
-                  Requests by Hour — today
+                  {t("requestsByHour")}
                 </p>
                 <ResponsiveContainer width="100%" height={240}>
                   <LineChart data={data.byHour} margin={{ left: 0, right: 16 }}>
@@ -208,7 +210,7 @@ export default function ReportsPage() {
                     <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={3} />
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                     <Tooltip {...tooltipStyle} />
-                    <Line type="monotone" dataKey="count" name="Requests"
+                    <Line type="monotone" dataKey="count" name={t("requestCol")}
                       stroke="rgb(var(--brand-700))" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -219,18 +221,18 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">
-                  Staff Leaderboard — last 30 days
+                  {t("staffLeaderboard")}
                 </p>
                 {data.leaderboard.length === 0 ? (
-                  <p className="text-sm text-stone-400">No completed requests yet.</p>
+                  <p className="text-sm text-stone-400">{t("noCompletedYet")}</p>
                 ) : (
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-stone-100">
                         <th className="text-left py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">#</th>
-                        <th className="text-left py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">Staff</th>
-                        <th className="text-right py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">Handled</th>
-                        <th className="text-right py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">Avg Time</th>
+                        <th className="text-left py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">{t("navStaff")}</th>
+                        <th className="text-right py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">{t("handledCol")}</th>
+                        <th className="text-right py-2 text-xs font-semibold text-stone-400 uppercase tracking-wider">{t("avgTimeCol")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-50">
@@ -241,7 +243,7 @@ export default function ReportsPage() {
                           <td className="py-2.5 text-right">
                             <span className="text-xs font-bold text-white bg-brand-700 rounded px-2 py-0.5">{s.handled}</span>
                           </td>
-                          <td className="py-2.5 text-right text-xs text-stone-400">{s.avgMins} min</td>
+                          <td className="py-2.5 text-right text-xs text-stone-400">{s.avgMins} {t("minLabel")}</td>
                         </tr>
                       ))}
                     </tbody>

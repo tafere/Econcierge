@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import { Loader2, ConciergeBell, LogIn, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { lang, t, toggleLang } = useLang();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd]   = useState(false);
@@ -26,6 +28,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
 
+      {/* Language toggle */}
+      <div className="absolute top-4 right-4">
+        <button onClick={toggleLang}
+          className="text-xs font-bold text-stone-400 hover:text-brand-700 border border-stone-200
+            rounded px-3 py-1.5 transition-colors">
+          {lang === "en" ? "አማርኛ" : "EN"}
+        </button>
+      </div>
+
       {/* Icon + title */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center h-16 w-16 bg-brand-600 rounded mb-5
@@ -33,10 +44,10 @@ export default function LoginPage() {
           <ConciergeBell className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-3xl font-black text-slate-900 leading-tight">
-          Digital Concierge
+          {t("loginTitle")}
         </h1>
-        <p className="text-2xl font-black text-brand-600 leading-tight">Management System</p>
-        <p className="text-slate-400 text-sm mt-2 tracking-wide">Staff Management Portal</p>
+        <p className="text-2xl font-black text-brand-600 leading-tight">{t("loginSubtitle")}</p>
+        <p className="text-slate-400 text-sm mt-2 tracking-wide">{t("staffPortal")}</p>
       </div>
 
       {/* Card */}
@@ -44,8 +55,8 @@ export default function LoginPage() {
 
         {/* Card header */}
         <div className="px-8 pt-8 pb-6 border-b border-slate-100">
-          <h2 className="text-xl font-bold text-slate-900">Sign In</h2>
-          <p className="text-slate-400 text-sm mt-1">Enter your credentials to access the portal</p>
+          <h2 className="text-xl font-bold text-slate-900">{t("signIn")}</h2>
+          <p className="text-slate-400 text-sm mt-1">{t("enterCredentials")}</p>
         </div>
 
         {/* Form */}
@@ -53,7 +64,7 @@ export default function LoginPage() {
 
           <div>
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-2">
-              Username
+              {t("usernameLabel")}
             </label>
             <input
               type="text"
@@ -61,7 +72,7 @@ export default function LoginPage() {
               onChange={e => setUsername(e.target.value)}
               required
               autoComplete="username"
-              placeholder="Enter your username"
+              placeholder={t("enterUsername")}
               className="w-full h-12 bg-white border border-slate-200 rounded px-4 text-sm text-slate-900
                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
                 focus:border-brand-500 transition-colors"
@@ -70,7 +81,7 @@ export default function LoginPage() {
 
           <div>
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-2">
-              Password
+              {t("passwordLabel")}
             </label>
             <div className="relative">
               <input
@@ -109,13 +120,13 @@ export default function LoginPage() {
               disabled:opacity-50 shadow-md shadow-brand-200 mt-2 py-3.5"
           >
             {loading
-              ? <><Loader2 className="h-5 w-5 animate-spin" /> Signing in…</>
-              : <><LogIn className="h-5 w-5" /> Sign In</>}
+              ? <><Loader2 className="h-5 w-5 animate-spin" /> {t("signingIn")}</>
+              : <><LogIn className="h-5 w-5" /> {t("signIn")}</>}
           </button>
         </form>
       </div>
 
-      <p className="text-xs text-slate-400 mt-3">Econcierge · Staff access only</p>
+      <p className="text-xs text-slate-400 mt-3">{t("staffAccessOnly")}</p>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import { Download, Plus, BedDouble, Loader2, Tv2, QrCode } from "lucide-react";
 import QRCode from "qrcode";
 import NavBar from "@/components/NavBar";
@@ -16,6 +17,7 @@ interface Room {
 
 export default function RoomsPage() {
   const { user } = useAuth();
+  const { t } = useLang();
   const [rooms, setRooms]   = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -84,8 +86,8 @@ export default function RoomsPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">Rooms & QR Codes</h1>
-            <p className="text-sm text-stone-400">{rooms.length} rooms configured</p>
+            <h1 className="text-xl font-bold text-stone-900">{t("roomsTitle")}</h1>
+            <p className="text-sm text-stone-400">{rooms.length} {t("roomsConfigured")}</p>
           </div>
           {user?.role === "ADMIN" && (
             <button
@@ -93,7 +95,7 @@ export default function RoomsPage() {
               className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
                 px-4 py-2 rounded hover:bg-brand-800 transition-colors"
             >
-              <Plus className="h-4 w-4" /> Add Room
+              <Plus className="h-4 w-4" /> {t("addRoom")}
             </button>
           )}
         </div>
@@ -101,10 +103,10 @@ export default function RoomsPage() {
         {/* Add room form */}
         {showAdd && (
           <form onSubmit={addRoom} className="glass rounded p-5 space-y-4">
-            <h3 className="font-semibold text-stone-800">New Room</h3>
+            <h3 className="font-semibold text-stone-800">{t("newRoom")}</h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Room Number *</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("roomNumber")}</label>
                 <input
                   value={newRoom.roomNumber}
                   onChange={e => setNewRoom(r => ({ ...r, roomNumber: e.target.value }))}
@@ -113,7 +115,7 @@ export default function RoomsPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Floor</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("floorField")}</label>
                 <input
                   value={newRoom.floor}
                   onChange={e => setNewRoom(r => ({ ...r, floor: e.target.value }))}
@@ -121,11 +123,11 @@ export default function RoomsPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Type</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("typeField")}</label>
                 <input
                   value={newRoom.roomType}
                   onChange={e => setNewRoom(r => ({ ...r, roomType: e.target.value }))}
-                  placeholder="Standard, Suite…"
+                  placeholder={t("roomTypePlaceholder")}
                   className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
@@ -135,11 +137,11 @@ export default function RoomsPage() {
               <button type="submit" disabled={adding}
                 className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded
                   hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50">
-                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Add Room
+                {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t("addRoom")}
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
                 className="text-sm text-stone-500 px-4 py-2 rounded hover:bg-stone-100 transition-colors">
-                Cancel
+                {t("cancelBtn")}
               </button>
             </div>
           </form>
@@ -156,10 +158,10 @@ export default function RoomsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <BedDouble className="h-4 w-4 text-brand-700" />
-                      <span className="font-bold text-stone-900">Room {room.roomNumber}</span>
+                      <span className="font-bold text-stone-900">{t("roomCol")} {room.roomNumber}</span>
                     </div>
                     <div className="text-xs text-stone-400 mt-0.5 space-x-2">
-                      {room.floor && <span>Floor {room.floor}</span>}
+                      {room.floor && <span>{t("floorLabel")} {room.floor}</span>}
                       {room.roomType && <span>· {room.roomType}</span>}
                     </div>
                   </div>
@@ -174,14 +176,14 @@ export default function RoomsPage() {
                         : "text-brand-700 border-brand-700 hover:bg-brand-50"}`}
                   >
                     <QrCode className="h-3.5 w-3.5" />
-                    {qrPreviews[room.id] ? "Hide QR" : "Show QR"}
+                    {qrPreviews[room.id] ? t("hideQr") : t("showQr")}
                   </button>
                   <button
                     onClick={() => downloadQR(room)}
                     className="flex items-center justify-center gap-1 text-xs font-semibold
                       text-stone-500 border border-stone-200 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
-                    title="Download QR as PNG"
+                    title={t("downloadQr")}
                   >
                     <Download className="h-3.5 w-3.5" />
                   </button>
@@ -192,7 +194,7 @@ export default function RoomsPage() {
                     className="flex items-center justify-center gap-1.5 text-xs font-semibold
                       text-stone-500 border border-stone-200 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
-                    title="Open TV display"
+                    title={t("openTv")}
                   >
                     <Tv2 className="h-3.5 w-3.5" />
                   </a>
@@ -203,7 +205,7 @@ export default function RoomsPage() {
                   <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 rounded p-4 border border-amber-100">
                     <img src={qrPreviews[room.id]} alt={`QR Room ${room.roomNumber}`} className="w-40 h-40" />
                     <p className="text-[11px] text-stone-400 text-center">
-                      Scan with your phone camera
+                      {t("scanPhone")}
                     </p>
                   </div>
                 )}

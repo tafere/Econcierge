@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import { Save, Loader2, Building2, Link, Phone, Mail, MapPin, Tag } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
@@ -14,6 +15,7 @@ interface HotelSettings {
 }
 
 export default function HotelSettingsPage() {
+  const { t } = useLang();
   const [form, setForm]       = useState<HotelSettings>({ name: "", tagline: "", logoUrl: "", website: "", address: "", phone: "", email: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
@@ -51,14 +53,14 @@ export default function HotelSettingsPage() {
 
   const field = (
     key: keyof HotelSettings,
-    label: string,
+    labelKey: string,
     icon: React.ReactNode,
     placeholder: string,
-    hint?: string,
+    hintKey?: string,
   ) => (
     <div>
       <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
-        {label}
+        {t(labelKey)}
       </label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">{icon}</span>
@@ -70,7 +72,7 @@ export default function HotelSettingsPage() {
             focus:outline-none focus:ring-2 focus:ring-brand-700"
         />
       </div>
-      {hint && <p className="text-xs text-stone-400 mt-1">{hint}</p>}
+      {hintKey && <p className="text-xs text-stone-400 mt-1">{t(hintKey)}</p>}
     </div>
   );
 
@@ -84,7 +86,6 @@ export default function HotelSettingsPage() {
         ) : (
           <form onSubmit={save} className="space-y-6">
 
-            {/* Logo preview */}
             {form.logoUrl && (
               <div className="flex items-center gap-4 glass rounded p-4">
                 <img src={form.logoUrl} alt="Logo preview" className="h-16 w-16 rounded object-cover border border-stone-200" />
@@ -97,22 +98,21 @@ export default function HotelSettingsPage() {
 
             <div className="glass rounded p-6 space-y-5">
               <h2 className="font-bold text-stone-800 flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-brand-700" /> Identity
+                <Building2 className="h-4 w-4 text-brand-700" /> {t("identitySection")}
               </h2>
-              {field("name",    "Hotel Name",  <Building2 className="h-4 w-4" />, "e.g. Ethiopian Skylight Hotel")}
-              {field("tagline", "Tagline",     <Tag       className="h-4 w-4" />, "e.g. Where the Sky is the Limit")}
-              {field("logoUrl", "Logo URL",    <Link      className="h-4 w-4" />, "https://…/logo.png",
-                "Paste a public URL to your hotel logo image (PNG or JPG, square recommended)")}
-              {field("website", "Website",     <Link      className="h-4 w-4" />, "https://www.yourhotel.com")}
+              {field("name",    "hotelNameField", <Building2 className="h-4 w-4" />, "e.g. Ethiopian Skylight Hotel")}
+              {field("tagline", "taglineField",   <Tag       className="h-4 w-4" />, "e.g. Where the Sky is the Limit")}
+              {field("logoUrl", "logoUrlField",   <Link      className="h-4 w-4" />, "https://…/logo.png", "logoUrlHint")}
+              {field("website", "websiteField",   <Link      className="h-4 w-4" />, "https://www.yourhotel.com")}
             </div>
 
             <div className="glass rounded p-6 space-y-5">
               <h2 className="font-bold text-stone-800 flex items-center gap-2">
-                <Phone className="h-4 w-4 text-brand-700" /> Contact
+                <Phone className="h-4 w-4 text-brand-700" /> {t("contactSection")}
               </h2>
-              {field("address", "Address", <MapPin className="h-4 w-4" />, "City, Country")}
-              {field("phone",   "Phone",   <Phone  className="h-4 w-4" />, "+251 …")}
-              {field("email",   "Email",   <Mail   className="h-4 w-4" />, "info@yourhotel.com")}
+              {field("address", "addressField", <MapPin className="h-4 w-4" />, "City, Country")}
+              {field("phone",   "phoneField",   <Phone  className="h-4 w-4" />, "+251 …")}
+              {field("email",   "emailField",   <Mail   className="h-4 w-4" />, "info@yourhotel.com")}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -121,10 +121,10 @@ export default function HotelSettingsPage() {
               className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
                 hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
               {saving
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("savingBtn")}</>
                 : saved
-                  ? <><Save className="h-4 w-4" /> Saved!</>
-                  : <><Save className="h-4 w-4" /> Save Settings</>}
+                  ? <><Save className="h-4 w-4" /> {t("savedBtn")}</>
+                  : <><Save className="h-4 w-4" /> {t("saveSettings")}</>}
             </button>
           </form>
         )}

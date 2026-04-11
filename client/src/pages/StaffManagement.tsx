@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import {
   Plus, Loader2, Users,
   ShieldCheck, ToggleLeft, ToggleRight, Trash2, Eye, EyeOff, ChevronDown,
@@ -15,20 +16,19 @@ interface StaffMember {
 }
 
 const ROLES = [
-  { value: "STAFF",              label: "General Staff",        color: "bg-stone-100 text-stone-600 border-stone-200" },
-  { value: "HOUSEKEEPING",       label: "Housekeeping",         color: "bg-green-100 text-green-700 border-green-200" },
-  { value: "MAINTENANCE",        label: "Maintenance",          color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { value: "TRANSPORT",          label: "Transport",            color: "bg-purple-100 text-purple-700 border-purple-200" },
-  { value: "RESTAURANT",         label: "Restaurant",           color: "bg-orange-100 text-orange-700 border-orange-200" },
-  { value: "CAFE_BAR",           label: "Cafe & Bar",           color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { value: "SPA",                label: "Spa",                  color: "bg-pink-100 text-pink-700 border-pink-200" },
-  { value: "GYM",                label: "Gym",                  color: "bg-red-100 text-red-700 border-red-200" },
-  { value: "MEETING_CONFERENCE", label: "Meeting & Conference", color: "bg-indigo-100 text-indigo-700 border-indigo-200" },
+  { value: "STAFF",              color: "bg-stone-100 text-stone-600 border-stone-200",  labelKey: "roleGeneralStaff" },
+  { value: "HOUSEKEEPING",       color: "bg-green-100 text-green-700 border-green-200",  labelKey: "roleHousekeeping" },
+  { value: "MAINTENANCE",        color: "bg-blue-100 text-blue-700 border-blue-200",     labelKey: "roleMaintenance" },
+  { value: "TRANSPORT",          color: "bg-purple-100 text-purple-700 border-purple-200", labelKey: "roleTransport" },
+  { value: "RESTAURANT",         color: "bg-orange-100 text-orange-700 border-orange-200", labelKey: "roleRestaurant" },
+  { value: "CAFE_BAR",           color: "bg-amber-100 text-amber-700 border-amber-200",  labelKey: "roleCafeBar" },
+  { value: "SPA",                color: "bg-pink-100 text-pink-700 border-pink-200",     labelKey: "roleSpa" },
+  { value: "GYM",                color: "bg-red-100 text-red-700 border-red-200",        labelKey: "roleGym" },
+  { value: "MEETING_CONFERENCE", color: "bg-indigo-100 text-indigo-700 border-indigo-200", labelKey: "roleMeetingConference" },
 ];
 
-const roleInfo = (value: string) => ROLES.find(r => r.value === value) ?? { value, label: value, color: "bg-stone-100 text-stone-600 border-stone-200" };
-
 export default function StaffManagementPage() {
+  const { t } = useLang();
   const [staff, setStaff]           = useState<StaffMember[]>([]);
   const [loading, setLoading]       = useState(true);
   const [showAdd, setShowAdd]       = useState(false);
@@ -40,6 +40,9 @@ export default function StaffManagementPage() {
   const [form, setForm] = useState({ fullName: "", username: "", password: "", role: "HOUSEKEEPING" });
 
   const authHeaders = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
+
+  const roleInfo = (value: string) =>
+    ROLES.find(r => r.value === value) ?? { value, color: "bg-stone-100 text-stone-600 border-stone-200", labelKey: value };
 
   const fetchStaff = async () => {
     const res = await fetch("/api/dashboard/staff-mgmt", { headers: { Authorization: `Bearer ${getToken()}` } });
@@ -92,7 +95,7 @@ export default function StaffManagementPage() {
   };
 
   const remove = async (id: number, name: string) => {
-    if (!confirm(`Remove ${name}? This cannot be undone.`)) return;
+    if (!confirm(t("confirmRemove").replace("{name}", name))) return;
     const res = await fetch(`/api/dashboard/staff-mgmt/${id}`, {
       method: "DELETE", headers: authHeaders(),
     });
@@ -108,15 +111,15 @@ export default function StaffManagementPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">Staff Members</h1>
-            <p className="text-sm text-stone-400">{staff.length} staff configured</p>
+            <h1 className="text-xl font-bold text-stone-900">{t("staffMembers")}</h1>
+            <p className="text-sm text-stone-400">{staff.length} {t("staffConfigured")}</p>
           </div>
           <button
             onClick={() => { setShowAdd(v => !v); setError(null); }}
             className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
               px-4 py-2 rounded hover:bg-brand-800 transition-colors"
           >
-            <Plus className="h-4 w-4" /> Add Staff
+            <Plus className="h-4 w-4" /> {t("addStaff")}
           </button>
         </div>
 
@@ -124,25 +127,25 @@ export default function StaffManagementPage() {
         {showAdd && (
           <form onSubmit={addStaff} className="glass rounded p-5 space-y-4">
             <h3 className="font-semibold text-stone-800 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-brand-700" /> New Staff Member
+              <ShieldCheck className="h-4 w-4 text-brand-700" /> {t("newStaffMember")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Full Name *</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("fullNameField")}</label>
                 <input value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))}
                   required placeholder="e.g. John Doe" className={inputCls} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Username *</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("usernameField")}</label>
                 <input value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
                   required placeholder="e.g. johndoe" className={inputCls} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Password *</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("passwordField")}</label>
                 <div className="relative">
                   <input type={showPwd ? "text" : "password"}
                     value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    required minLength={6} placeholder="Min. 6 characters"
+                    required minLength={6} placeholder={t("minChars")}
                     className={`${inputCls} pr-10`} />
                   <button type="button" onClick={() => setShowPwd(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600">
@@ -151,7 +154,7 @@ export default function StaffManagementPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">Role *</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("roleField")}</label>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {ROLES.map(r => (
                     <button key={r.value} type="button"
@@ -160,7 +163,7 @@ export default function StaffManagementPage() {
                         ${form.role === r.value
                           ? "bg-brand-700 text-white border-brand-700"
                           : "bg-white text-stone-600 border-stone-200 hover:border-brand-400"}`}>
-                      {r.label}
+                      {t(r.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -172,11 +175,11 @@ export default function StaffManagementPage() {
                 className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded
                   hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50">
                 {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Add Staff
+                {t("addStaff")}
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
                 className="text-sm text-stone-500 px-4 py-2 rounded hover:bg-stone-100 transition-colors">
-                Cancel
+                {t("cancelBtn")}
               </button>
             </div>
           </form>
@@ -188,7 +191,7 @@ export default function StaffManagementPage() {
         ) : staff.length === 0 ? (
           <div className="text-center py-16">
             <Users className="h-12 w-12 text-stone-200 mx-auto mb-3" />
-            <p className="text-stone-400 text-sm">No staff members yet. Add one above.</p>
+            <p className="text-stone-400 text-sm">{t("noStaffYet")}</p>
           </div>
         ) : (
           <div className="glass rounded overflow-hidden">
@@ -199,41 +202,35 @@ export default function StaffManagementPage() {
                 return (
                   <div key={s.id} className={`px-5 py-4 transition-colors ${!s.enabled ? "opacity-50" : ""}`}>
                     <div className="flex items-center gap-4">
-                      {/* Avatar */}
                       <div className="h-9 w-9 rounded bg-brand-100 flex items-center justify-center shrink-0">
                         <span className="text-brand-700 font-bold text-sm uppercase">{s.fullName.charAt(0)}</span>
                       </div>
-                      {/* Name / username */}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-stone-900 text-sm truncate">{s.fullName}</p>
                         <p className="text-xs text-stone-400">@{s.username}</p>
                       </div>
-                      {/* Role badge — click to edit */}
                       <button
                         onClick={() => setChangingRoleId(isEditingRole ? null : s.id)}
                         className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded border
                           transition-colors shrink-0 ${ri.color}
                           ${isEditingRole ? "ring-2 ring-brand-400" : "hover:opacity-80"}`}
-                        title="Click to change role"
                       >
-                        {ri.label} <ChevronDown className="h-3 w-3 opacity-60" />
+                        {t(ri.labelKey)} <ChevronDown className="h-3 w-3 opacity-60" />
                       </button>
-                      {/* Toggle / Delete */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => toggle(s.id)} title={s.enabled ? "Disable" : "Enable"}
+                        <button onClick={() => toggle(s.id)} title={s.enabled ? t("disableStaff") : t("enableStaff")}
                           className="p-1.5 rounded hover:bg-stone-100 transition-colors">
                           {s.enabled
                             ? <ToggleRight className="h-5 w-5 text-green-600" />
                             : <ToggleLeft  className="h-5 w-5 text-stone-400" />}
                         </button>
-                        <button onClick={() => remove(s.id, s.fullName)} title="Remove"
+                        <button onClick={() => remove(s.id, s.fullName)} title={t("removeStaff")}
                           className="p-1.5 rounded hover:bg-red-50 text-stone-300 hover:text-red-500 transition-colors">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
 
-                    {/* Inline role picker */}
                     {isEditingRole && (
                       <div className="mt-3 ml-13 flex flex-wrap gap-2">
                         {ROLES.map(r => (
@@ -243,7 +240,7 @@ export default function StaffManagementPage() {
                               ${s.role === r.value
                                 ? "bg-brand-700 text-white border-brand-700"
                                 : `${r.color} hover:opacity-80`}`}>
-                            {r.label}
+                            {t(r.labelKey)}
                           </button>
                         ))}
                       </div>

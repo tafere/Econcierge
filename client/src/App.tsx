@@ -1,6 +1,7 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { LangProvider } from "@/lib/lang";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import RoomsPage from "@/pages/Rooms";
@@ -47,6 +48,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <LangProvider>
         <Switch>
           {/* Public routes — no auth */}
           <Route path="/r/:token"  component={GuestPage} />
@@ -54,6 +56,7 @@ export default function App() {
           {/* Staff routes */}
           <Route component={StaffRouter} />
         </Switch>
+        </LangProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

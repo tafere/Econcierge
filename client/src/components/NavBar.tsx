@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useLang } from "@/lib/lang";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
   Users, Settings, LogOut, Menu, X, Bell, BarChart2,
@@ -13,6 +14,7 @@ interface NavBarProps {
 
 export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
   const { user, logout } = useAuth();
+  const { lang, t, toggleLang } = useLang();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -21,14 +23,12 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
 
   const active = (path: string) => location === path;
 
-  // Desktop link style
   const desktopLink = (path: string) =>
     `flex items-center gap-1.5 text-xs font-semibold transition-colors px-2 py-1 rounded
     ${active(path)
       ? "text-white bg-white/20"
       : "text-amber-200 hover:text-white hover:bg-white/10"}`;
 
-  // Drawer link style
   const drawerLink = (path: string) =>
     `w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left
     ${active(path)
@@ -60,40 +60,46 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
               <button onClick={onNewCountClick}
                 className="flex items-center gap-1.5 text-xs bg-amber-400 text-amber-900
                   rounded px-3 py-1 font-bold animate-pulse shrink-0">
-                <Bell className="h-3.5 w-3.5" /> {newCount} new
+                <Bell className="h-3.5 w-3.5" /> {newCount} {t("newBadge")}
               </button>
             )}
 
             {/* Desktop links */}
             <div className="hidden sm:flex items-center gap-1">
               <button onClick={() => go("/")} className={desktopLink("/")}>
-                <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
+                <LayoutDashboard className="h-3.5 w-3.5" /> {t("dashboard")}
               </button>
               {canSeeRooms && (
                 <button onClick={() => go("/rooms")} className={desktopLink("/rooms")}>
-                  <BedDouble className="h-3.5 w-3.5" /> Rooms
+                  <BedDouble className="h-3.5 w-3.5" /> {t("navRooms")}
                 </button>
               )}
               {isAdmin && (
                 <>
                   <button onClick={() => go("/categories")} className={desktopLink("/categories")}>
-                    <LayoutList className="h-3.5 w-3.5" /> Categories
+                    <LayoutList className="h-3.5 w-3.5" /> {t("navCategories")}
                   </button>
                   <button onClick={() => go("/reports")} className={desktopLink("/reports")}>
-                    <BarChart2 className="h-3.5 w-3.5" /> Reports
+                    <BarChart2 className="h-3.5 w-3.5" /> {t("navReports")}
                   </button>
                   <button onClick={() => go("/staff")} className={desktopLink("/staff")}>
-                    <Users className="h-3.5 w-3.5" /> Staff
+                    <Users className="h-3.5 w-3.5" /> {t("navStaff")}
                   </button>
                   <button onClick={() => go("/settings")} className={desktopLink("/settings")}>
-                    <Settings className="h-3.5 w-3.5" /> Settings
+                    <Settings className="h-3.5 w-3.5" /> {t("navSettings")}
                   </button>
                 </>
               )}
+              {/* Language toggle */}
+              <button onClick={toggleLang}
+                className="text-xs font-bold text-amber-200 hover:text-white hover:bg-white/10
+                  transition-colors px-2 py-1 rounded border border-amber-300/40">
+                {lang === "en" ? "አማርኛ" : "EN"}
+              </button>
               <button onClick={logout}
                 className="flex items-center gap-1.5 text-xs font-semibold text-amber-200
                   hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded">
-                <LogOut className="h-3.5 w-3.5" /> Sign out
+                <LogOut className="h-3.5 w-3.5" /> {t("signOut")}
               </button>
             </div>
 
@@ -116,7 +122,7 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl"
             style={{ background: "hsl(220 20% 96%)" }}>
-            {/* Drawer header — same height as top nav */}
+            {/* Drawer header */}
             <div className="bg-brand-700 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-7 w-7 rounded bg-brand-600 flex items-center justify-center shrink-0">
@@ -137,29 +143,35 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
             {/* Drawer links */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
               <button onClick={() => go("/")} className={drawerLink("/")}>
-                <LayoutDashboard className="h-5 w-5" /> Dashboard
+                <LayoutDashboard className="h-5 w-5" /> {t("dashboard")}
               </button>
               {canSeeRooms && (
                 <button onClick={() => go("/rooms")} className={drawerLink("/rooms")}>
-                  <BedDouble className="h-5 w-5" /> Rooms
+                  <BedDouble className="h-5 w-5" /> {t("navRooms")}
                 </button>
               )}
               {isAdmin && (
                 <>
                   <button onClick={() => go("/categories")} className={drawerLink("/categories")}>
-                    <LayoutList className="h-5 w-5" /> Categories
+                    <LayoutList className="h-5 w-5" /> {t("navCategories")}
                   </button>
                   <button onClick={() => go("/reports")} className={drawerLink("/reports")}>
-                    <BarChart2 className="h-5 w-5" /> Reports
+                    <BarChart2 className="h-5 w-5" /> {t("navReports")}
                   </button>
                   <button onClick={() => go("/staff")} className={drawerLink("/staff")}>
-                    <Users className="h-5 w-5" /> Staff
+                    <Users className="h-5 w-5" /> {t("navStaff")}
                   </button>
                   <button onClick={() => go("/settings")} className={drawerLink("/settings")}>
-                    <Settings className="h-5 w-5" /> Settings
+                    <Settings className="h-5 w-5" /> {t("navSettings")}
                   </button>
                 </>
               )}
+              {/* Language toggle */}
+              <button onClick={toggleLang}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
+                  text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left">
+                {lang === "en" ? "🇪🇹 አማርኛ" : "🇬🇧 English"}
+              </button>
             </nav>
 
             {/* Sign out */}
@@ -167,7 +179,7 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
               <button onClick={() => { logout(); setDrawerOpen(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
                   text-stone-500 hover:bg-red-50 hover:text-red-600 transition-colors text-left">
-                <LogOut className="h-5 w-5" /> Sign out
+                <LogOut className="h-5 w-5" /> {t("signOut")}
               </button>
             </div>
           </div>
