@@ -6,20 +6,77 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="014-fix-housekeeping-items" author="econcierge">
-        <!-- Remove items that don't belong in Housekeeping (they belong in Amenities/Toiletries categories) -->
-        <sql>
-            DELETE FROM request_items
-            WHERE name IN ('Extra Towels', 'Extra Pillows', 'Extra Blanket', 'Toiletries')
-            AND category_id IN (
-                SELECT id FROM request_categories WHERE name = 'Housekeeping'
-            );
-        </sql>
+        <!--
+            Extra Towels / Extra Pillows / Extra Blanket were accidentally seeded under
+            Housekeeping and also under Amenities (correct location). We cannot delete
+            the Housekeeping copies because service_requests may reference them.
 
-        <!-- Back-fill Amharic name for manually-created Transport category -->
-        <sql>
-            UPDATE request_categories
-            SET name_am = 'ትራንስፖርት'
-            WHERE name = 'Transport' AND (name_am IS NULL OR name_am = '');
+            Strategy:
+              1. For each misplaced item, if a correct copy exists in Amenities:
+                 - Reassign any service_requests to the Amenities copy
+                 - Then delete the Housekeeping copy
+              2. If no Amenities copy exists yet, just move (update category_id).
+              3. The "Toiletries" item under Housekeeping shadows the Toiletries category.
+                 Reassign its service_requests to item id in Toiletries category, then delete.
+                 If no target exists, just disable it.
+
+            All handled inside a PL/pgSQL block so we can branch on whether a duplicate exists.
+        -->
+        <sql splitStatements="false">
+DO $$
+DECLARE
+    hk_id          bigint;
+    am_id          bigint;
+    tl_cat_id      bigint;
+    hk_item_id     bigint;
+    target_item_id bigint;
+    v_name         text;
+BEGIN
+    SELECT id INTO hk_id   FROM request_categories WHERE name = 'Housekeeping' LIMIT 1;
+    SELECT id INTO am_id   FROM request_categories WHERE name = 'Amenities'    LIMIT 1;
+    SELECT id INTO tl_cat_id FROM request_categories WHERE name = 'Toiletries' LIMIT 1;
+
+    IF hk_id IS NULL THEN RETURN; END IF;
+
+    -- Fix Extra Towels, Extra Pillows, Extra Blanket
+    FOREACH v_name IN ARRAY ARRAY['Extra Towels', 'Extra Pillows', 'Extra Blanket']
+    LOOP
+        SELECT id INTO hk_item_id     FROM request_items WHERE name = v_name AND category_id = hk_id  LIMIT 1;
+        IF hk_item_id IS NULL THEN CONTINUE; END IF;
+
+        IF am_id IS NOT NULL THEN
+            SELECT id INTO target_item_id FROM request_items WHERE name = v_name AND category_id = am_id LIMIT 1;
+        END IF;
+
+        IF target_item_id IS NOT NULL THEN
+            -- Duplicate exists in Amenities: redirect old requests, then delete orphan
+            UPDATE service_requests SET item_id = target_item_id WHERE item_id = hk_item_id;
+            DELETE FROM request_items WHERE id = hk_item_id;
+        ELSIF am_id IS NOT NULL THEN
+            -- No duplicate yet: just move it to Amenities
+            UPDATE request_items SET category_id = am_id WHERE id = hk_item_id;
+        END IF;
+
+        target_item_id := NULL;
+    END LOOP;
+
+    -- Fix "Toiletries" item under Housekeeping (it conflicts with the Toiletries category)
+    SELECT id INTO hk_item_id FROM request_items WHERE name = 'Toiletries' AND category_id = hk_id LIMIT 1;
+    IF hk_item_id IS NOT NULL THEN
+        IF tl_cat_id IS NOT NULL THEN
+            -- Move it into the real Toiletries category
+            UPDATE request_items SET category_id = tl_cat_id WHERE id = hk_item_id;
+        ELSE
+            -- No Toiletries category yet; just disable so it's hidden from guests
+            UPDATE request_items SET enabled = false WHERE id = hk_item_id;
+        END IF;
+    END IF;
+
+    -- Back-fill Amharic name for manually-created Transport category
+    UPDATE request_categories
+    SET name_am = 'ትራንስፖርት'
+    WHERE name = 'Transport' AND (name_am IS NULL OR name_am = '');
+END $$;
         </sql>
     </changeSet>
 
