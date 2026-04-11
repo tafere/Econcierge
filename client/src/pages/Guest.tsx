@@ -97,6 +97,24 @@ function saveTracked(qrToken: string, reqs: TrackedRequest[]) {
   localStorage.setItem(storageKey(qrToken), JSON.stringify(pruned));
 }
 
+function bookingsKey(qrToken: string) {
+  return `eco_bookings_${qrToken}`;
+}
+
+function loadBookings(qrToken: string): TrackedBooking[] {
+  try {
+    const all: TrackedBooking[] = JSON.parse(localStorage.getItem(bookingsKey(qrToken)) ?? "[]");
+    const cutoff = Date.now() - SEVEN_DAYS_MS;
+    return all.filter(b => new Date(b.slotTime).getTime() >= cutoff);
+  } catch { return []; }
+}
+
+function saveBookings(qrToken: string, bookings: TrackedBooking[]) {
+  const cutoff = Date.now() - SEVEN_DAYS_MS;
+  const pruned = bookings.filter(b => new Date(b.slotTime).getTime() >= cutoff);
+  localStorage.setItem(bookingsKey(qrToken), JSON.stringify(pruned));
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -181,6 +199,7 @@ export default function GuestPage() {
         setRoom(data);
         applyHotelTheme(data.primaryColor);
         setTracked(loadTracked(token));
+        setBookings(loadBookings(token));
       })
       .catch(() => setError(T("invalidQr")))
       .finally(() => setLoading(false));
@@ -320,7 +339,11 @@ export default function GuestPage() {
         slotTime: `${slotDate} ${selectedSlot.time}`,
         guestCount, status: "PENDING",
       };
-      setBookings(prev => [nb, ...prev]);
+      setBookings(prev => {
+        const next = [nb, ...prev];
+        saveBookings(token, next);
+        return next;
+      });
       setSelectedItem(null); setSelectedCat(null);
       setSelectedSlot(null); setSlots([]); setGuestCount(1); setNotes(""); setShowNotes(false);
     }
