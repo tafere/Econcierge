@@ -16,6 +16,7 @@ interface ServiceRequest {
   roomNumber: string;
   floor: string;
   itemName: string;
+  itemNameAm?: string;
   categoryName: string;
   categoryIcon: string;
   quantity: number;
@@ -37,6 +38,7 @@ interface Booking {
   guestCount: number;
   notes: string;
   itemName: string;
+  itemNameAm?: string;
   roomNumber: string;
   floor: string;
 }
@@ -203,7 +205,7 @@ function RequestTable({
   overdueIds?:   Set<number>;
   escalatedIds?: Set<number>;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   if (requests.length === 0) return null;
 
   const hasActions = requests.some(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
@@ -248,7 +250,7 @@ function RequestTable({
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
-                    <span className="font-semibold text-stone-900">{req.itemName}</span>
+                    <span className="font-semibold text-stone-900">{lang === "am" && req.itemNameAm ? req.itemNameAm : req.itemName}</span>
                     {req.quantity > 1 && (
                       <span className="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200
                         rounded px-1.5 py-0.5">×{req.quantity}</span>
@@ -331,16 +333,19 @@ const BOOKING_STATUS_PILL: Record<string, string> = {
 
 function BookingSection({
   itemName,
+  itemNameAm,
   bookings,
   updatingId,
   onUpdateStatus,
 }: {
   itemName: string;
+  itemNameAm?: string;
   bookings: Booking[];
   updatingId: number | null;
   onUpdateStatus: (id: number, status: string, booking: Booking) => void;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const displayName = lang === "am" && itemNameAm ? itemNameAm : itemName;
   const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap";
   const totalGuests = bookings.filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.guestCount, 0);
   const hasNotes   = bookings.some(b => b.notes);
@@ -350,7 +355,7 @@ function BookingSection({
     <div className="glass rounded overflow-hidden">
       <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
         <CalendarClock className="h-4 w-4 text-stone-400 shrink-0" />
-        <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">{itemName}</p>
+        <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">{displayName}</p>
         <div className="flex items-center gap-1 text-xs text-stone-400 ml-auto">
           <Users className="h-3.5 w-3.5" /> {totalGuests} {totalGuests !== 1 ? t("guestPlural") : t("guestSingular")}
         </div>
@@ -666,6 +671,7 @@ export default function DashboardPage() {
                     <BookingSection
                       key={itemName}
                       itemName={itemName}
+                      itemNameAm={itemBookings[0]?.itemNameAm}
                       bookings={itemBookings}
                       updatingId={updatingBookingId}
                       onUpdateStatus={(id, status, booking) => {

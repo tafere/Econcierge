@@ -62,6 +62,7 @@ public class BookingController {
                     m.put("guestCount", b.getGuestCount());
                     m.put("notes",      b.getNotes() != null ? b.getNotes() : "");
                     m.put("itemName",   item != null ? item.getName() : "");
+                    m.put("itemNameAm", item != null && item.getNameAm() != null ? item.getNameAm() : "");
                     m.put("roomNumber", room != null ? room.getRoomNumber() : "");
                     m.put("floor",      room != null && room.getFloor() != null ? room.getFloor() : "");
                     return m;
@@ -100,6 +101,7 @@ public class BookingController {
                     m.put("guestCount",  b.getGuestCount());
                     m.put("notes",       b.getNotes() != null ? b.getNotes() : "");
                     m.put("itemName",    item != null ? item.getName() : "");
+                    m.put("itemNameAm",  item != null && item.getNameAm() != null ? item.getNameAm() : "");
                     m.put("roomNumber",  room != null ? room.getRoomNumber() : "");
                     m.put("floor",       room != null && room.getFloor() != null ? room.getFloor() : "");
                     return m;

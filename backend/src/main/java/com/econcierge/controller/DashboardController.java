@@ -314,7 +314,8 @@ public class DashboardController {
         m.put("id",           r.getId());
         m.put("roomNumber",   room != null ? room.getRoomNumber() : "");
         m.put("floor",        room != null && room.getFloor() != null ? room.getFloor() : "");
-        m.put("itemName",     item != null ? item.getName() : "");
+        m.put("itemName",     item != null ? item.getName()   : "");
+        m.put("itemNameAm",   item != null && item.getNameAm() != null ? item.getNameAm() : "");
         m.put("categoryName", cat  != null ? cat.getName()  : "");
         m.put("categoryIcon", cat  != null && cat.getIcon() != null ? cat.getIcon() : "");
         m.put("quantity",     r.getQuantity());
