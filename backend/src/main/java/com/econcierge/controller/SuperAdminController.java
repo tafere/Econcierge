@@ -211,28 +211,49 @@ public class SuperAdminController {
     }
 
     private void seedDefaultCategories(Long hotelId) {
+        // Format: {name, nameAm, maxQty}
         seedCat(hotelId, "Housekeeping", "broom", 1, new String[][]{
-            {"Room Cleaning","1"}, {"Turn-Down Service","1"}, {"Make Up Room","1"}
+            {"Room Cleaning","ክፍል ማፅዳት","1"},
+            {"Turn-Down Service","አልጋ ማስተካከል","1"},
+            {"Make Up Room","ክፍል ማሰናዳት","1"}
         });
         seedCat(hotelId, "Amenities", "sparkles", 2, new String[][]{
-            {"Extra Towels","3"}, {"Extra Pillows","3"}, {"Extra Blanket","2"},
-            {"Bathrobe","2"}, {"Extra Hangers","5"}
+            {"Extra Towels","ተጨማሪ ፎጣዎች","3"},
+            {"Extra Pillows","ተጨማሪ ትራሶች","3"},
+            {"Extra Blanket","ተጨማሪ ብርድ ልብስ","2"},
+            {"Bathrobe","የገላ መታጠቢያ ልብስ","2"},
+            {"Extra Hangers","ተጨማሪ የመስቀያ መንጠቆዎች","5"}
         });
         seedCat(hotelId, "Toiletries", "soap", 3, new String[][]{
-            {"Toothbrush","2"}, {"Toothpaste","2"}, {"Shampoo","2"}, {"Conditioner","2"},
-            {"Body Lotion","2"}, {"Razor","2"}, {"Shower Cap","2"}, {"Cotton Swabs","2"}
+            {"Toothbrush","የጥርስ ብሩሽ","2"},
+            {"Toothpaste","የጥርስ ሳሙና","2"},
+            {"Shampoo","ሻምፑ","2"},
+            {"Conditioner","ኮንዲሽነር","2"},
+            {"Body Lotion","የሰውነት ቅባት","2"},
+            {"Razor","ምላጭ","2"},
+            {"Shower Cap","የሻወር ኮፍያ","2"},
+            {"Cotton Swabs","የጆሮ መጥረጊያ ኩኪ","2"}
         });
         seedCat(hotelId, "Food & Beverage", "utensils", 4, new String[][]{
-            {"Room Service Menu","1"}, {"Extra Water Bottles","4"},
-            {"Coffee / Tea","4"}, {"Ice Bucket","1"}, {"Minibar Restock","1"}
+            {"Room Service Menu","የክፍል አገልግሎት ምግብ ዝርዝር","1"},
+            {"Extra Water Bottles","ተጨማሪ የታሸጉ ውሃዎች","4"},
+            {"Coffee / Tea","ቡና / ሻይ","4"},
+            {"Ice Bucket","የበረዶ ባልዲ","1"},
+            {"Minibar Restock","ሚኒባር መሙላት","1"}
         });
         seedCat(hotelId, "Maintenance", "wrench", 5, new String[][]{
-            {"AC / Heating Issue","1"}, {"TV Not Working","1"}, {"Plumbing Issue","1"},
-            {"Lighting Issue","1"}, {"Safe / Lock Issue","1"}
+            {"AC / Heating Issue","የኤሲ / የማሞቂያ ችግር","1"},
+            {"TV Not Working","ቲቪ አይሰራም","1"},
+            {"Plumbing Issue","የቧንቧ ችግር","1"},
+            {"Lighting Issue","የመብራት ችግር","1"},
+            {"Safe / Lock Issue","የካዝና / የቁልፍ ችግር","1"}
         });
         seedCat(hotelId, "Concierge", "concierge-bell", 6, new String[][]{
-            {"Taxi / Transport","1"}, {"Tour Information","1"}, {"Wake-Up Call","1"},
-            {"Luggage Assistance","1"}, {"Airport Shuttle","1"}
+            {"Taxi / Transport","ታክሲ / ትራንስፖርት","1"},
+            {"Tour Information","የቱሪስት መረጃ","1"},
+            {"Wake-Up Call","የቀስቃሽ ጥሪ","1"},
+            {"Luggage Assistance","የሻንጣ እርዳታ","1"},
+            {"Airport Shuttle","የኤርፖርት ትራንስፖርት","1"}
         });
     }
 
@@ -246,12 +267,16 @@ public class SuperAdminController {
             return categoryRepository.save(c);
         });
         for (int i = 0; i < items.length; i++) {
-            if (!itemRepository.existsByCategoryIdAndName(cat.getId(), items[i][0])) {
+            String itemName  = items[i][0];
+            String itemNameAm = items[i].length > 2 ? items[i][1] : null;
+            int    maxQty    = Integer.parseInt(items[i][items[i].length - 1]);
+            if (!itemRepository.existsByCategoryIdAndName(cat.getId(), itemName)) {
                 RequestItem item = new RequestItem();
                 item.setCategoryId(cat.getId());
-                item.setName(items[i][0]);
+                item.setName(itemName);
+                item.setNameAm(itemNameAm);
                 item.setSortOrder(i);
-                item.setMaxQuantity(Integer.parseInt(items[i][1]));
+                item.setMaxQuantity(maxQty);
                 itemRepository.save(item);
             }
         }

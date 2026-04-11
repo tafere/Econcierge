@@ -12,6 +12,7 @@ import { tr, getLang, setLang, type Lang } from "@/lib/i18n";
 interface MenuItem {
   id: number;
   name: string;
+  nameAm?: string;
   description: string;
   maxQuantity: number;
   schedulable: boolean;
@@ -237,7 +238,7 @@ export default function GuestPage() {
     if (!selectedItem || !selectedCat) return;
     setCart(prev => [...prev, {
       itemId:       selectedItem.id,
-      itemName:     selectedItem.name,
+      itemName:     lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name,
       categoryName: selectedCat.name,
       categoryIcon: selectedCat.icon,
       quantity,
@@ -335,7 +336,7 @@ export default function GuestPage() {
     if (res.ok) {
       const d = await res.json();
       const nb: TrackedBooking = {
-        id: d.id, itemName: selectedItem.name,
+        id: d.id, itemName: lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name,
         slotTime: `${slotDate} ${selectedSlot.time}`,
         guestCount, status: "PENDING",
       };
@@ -618,7 +619,7 @@ export default function GuestPage() {
                         hover:border-brand-700 hover:shadow-md transition-all flex items-center justify-between"
                     >
                       <div>
-                        <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
+                        <p className="font-semibold text-stone-800 text-sm">{lang === "am" && item.nameAm ? item.nameAm : item.name}</p>
                         {item.description && (
                           <p className="text-xs text-stone-400 mt-0.5">{item.description}</p>
                         )}
@@ -646,7 +647,7 @@ export default function GuestPage() {
                 <div className="glass rounded p-5 space-y-4">
                   <div>
                     <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
-                    <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
+                    <h2 className="font-bold text-stone-900 text-lg">{lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name}</h2>
                     <p className="text-xs text-stone-400 mt-0.5">{lang === "am" ? `በእያንዳንዱ ${selectedItem.slotIntervalMins} ደቂቃ · ${T("upTo")} ${selectedItem.capacity} ${T("guests")}` : `Every ${selectedItem.slotIntervalMins} min · up to ${selectedItem.capacity} people per slot`}</p>
                   </div>
 
@@ -760,7 +761,7 @@ export default function GuestPage() {
                 <div className="glass rounded p-5 space-y-5">
                   <div>
                     <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{selectedCat!.name}</p>
-                    <h2 className="font-bold text-stone-900 text-lg">{selectedItem.name}</h2>
+                    <h2 className="font-bold text-stone-900 text-lg">{lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name}</h2>
                   </div>
 
                   {/* Quantity stepper */}

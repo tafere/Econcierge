@@ -10,6 +10,7 @@ import NavBar from "@/components/NavBar";
 interface CatItem {
   id: number;
   name: string;
+  nameAm?: string;
   enabled: boolean;
   maxQuantity: number;
   schedulable: boolean;
@@ -60,11 +61,13 @@ export default function CategoriesPage() {
 
   const [addItemCatId, setAddItemCatId]   = useState<number | null>(null);
   const [addItemName, setAddItemName]     = useState("");
+  const [addItemNameAm, setAddItemNameAm] = useState("");
   const [addItemQty, setAddItemQty]       = useState(1);
   const [addingItem, setAddingItem]       = useState(false);
 
   const [editItemId, setEditItemId]           = useState<number | null>(null);
   const [editItemName, setEditItemName]       = useState("");
+  const [editItemNameAm, setEditItemNameAm]   = useState("");
   const [editItemQty, setEditItemQty]         = useState(1);
   const [editSchedulable, setEditSchedulable] = useState(false);
   const [editInterval, setEditInterval]       = useState(30);
@@ -124,12 +127,12 @@ export default function CategoriesPage() {
     setAddingItem(true);
     const res = await fetch(`/api/dashboard/categories/${catId}/items`, {
       method: "POST", headers: authH(),
-      body: JSON.stringify({ name: addItemName, maxQuantity: addItemQty }),
+      body: JSON.stringify({ name: addItemName, nameAm: addItemNameAm || null, maxQuantity: addItemQty }),
     });
     if (res.ok) {
       const item = await res.json();
       setCats(prev => prev.map(c => c.id === catId ? { ...c, items: [...c.items, item] } : c));
-      setAddItemCatId(null); setAddItemName(""); setAddItemQty(1);
+      setAddItemCatId(null); setAddItemName(""); setAddItemNameAm(""); setAddItemQty(1);
     }
     setAddingItem(false);
   };
@@ -147,7 +150,7 @@ export default function CategoriesPage() {
     const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
       method: "PATCH", headers: authH(),
       body: JSON.stringify({
-        name: editItemName, maxQuantity: editItemQty,
+        name: editItemName, nameAm: editItemNameAm || null, maxQuantity: editItemQty,
         schedulable: editSchedulable, slotIntervalMins: editInterval, capacity: editCapacity,
       }),
     });
@@ -304,7 +307,10 @@ export default function CategoriesPage() {
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
                               <input value={editItemName} onChange={e => setEditItemName(e.target.value)}
-                                className={`${inputCls} flex-1 min-w-0`} autoFocus
+                                className={`${inputCls} flex-1 min-w-0`} autoFocus placeholder={t("itemNamePlaceholder")}
+                                onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
+                              <input value={editItemNameAm} onChange={e => setEditItemNameAm(e.target.value)}
+                                className={`${inputCls} flex-1 min-w-0`} placeholder="አማርኛ ስም"
                                 onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
                               <div className="flex items-center gap-1 shrink-0">
                                 <span className="text-xs text-stone-400">{t("maxLabel")}</span>
@@ -371,6 +377,7 @@ export default function CategoriesPage() {
                               <CalendarClock className="h-3.5 w-3.5" /></button>
                             <button onClick={() => {
                               setEditItemId(item.id); setEditItemName(item.name);
+                              setEditItemNameAm(item.nameAm ?? "");
                               setEditItemQty(item.maxQuantity); setEditSchedulable(item.schedulable);
                               setEditInterval(item.slotIntervalMins); setEditCapacity(item.capacity);
                             }}
@@ -390,6 +397,9 @@ export default function CategoriesPage() {
                         className="px-4 py-2.5 flex items-center gap-2 bg-stone-50">
                         <input value={addItemName} onChange={e => setAddItemName(e.target.value)}
                           required placeholder={t("itemNamePlaceholder")} autoFocus
+                          className={`${inputCls} flex-1 min-w-0`} />
+                        <input value={addItemNameAm} onChange={e => setAddItemNameAm(e.target.value)}
+                          placeholder="አማርኛ ስም"
                           className={`${inputCls} flex-1 min-w-0`} />
                         <div className="flex items-center gap-1 shrink-0">
                           <span className="text-xs text-stone-400">{t("maxLabel")}</span>

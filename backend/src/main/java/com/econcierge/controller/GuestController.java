@@ -55,6 +55,7 @@ public class GuestController {
                         Map<String, Object> m = new HashMap<>();
                         m.put("id",               item.getId());
                         m.put("name",             item.getName());
+                        m.put("nameAm",           item.getNameAm() != null ? item.getNameAm() : "");
                         m.put("description",      item.getDescription() != null ? item.getDescription() : "");
                         m.put("maxQuantity",      item.getMaxQuantity());
                         m.put("schedulable",      item.isSchedulable());

@@ -73,52 +73,52 @@ public class DataSeeder implements CommandLineRunner {
 
         // Idempotent category seeding — adds missing categories/items only
         ensureCategory(hotel.getId(), "Housekeeping", "broom", 1, List.of(
-            item("Room Cleaning",     null, 1),
-            item("Turn-Down Service", null, 1),
-            item("Make Up Room",      null, 1)
+            item("Room Cleaning",     "ክፍል ማፅዳት",     null, 1),
+            item("Turn-Down Service", "አልጋ ማስተካከል",   null, 1),
+            item("Make Up Room",      "ክፍል ማሰናዳት",    null, 1)
         ));
 
         ensureCategory(hotel.getId(), "Amenities", "sparkles", 2, List.of(
-            item("Extra Towels",   null, 3),
-            item("Extra Pillows",  null, 3),
-            item("Extra Blanket",  null, 2),
-            item("Bathrobe",       null, 2),
-            item("Extra Hangers",  null, 5)
+            item("Extra Towels",   "ተጨማሪ ፎጣዎች",              null, 3),
+            item("Extra Pillows",  "ተጨማሪ ትራሶች",              null, 3),
+            item("Extra Blanket",  "ተጨማሪ ብርድ ልብስ",            null, 2),
+            item("Bathrobe",       "የገላ መታጠቢያ ልብስ",           null, 2),
+            item("Extra Hangers",  "ተጨማሪ የመስቀያ መንጠቆዎች",       null, 5)
         ));
 
         ensureCategory(hotel.getId(), "Toiletries", "soap", 3, List.of(
-            item("Toothbrush",    null, 2),
-            item("Toothpaste",    null, 2),
-            item("Shampoo",       null, 2),
-            item("Conditioner",   null, 2),
-            item("Body Lotion",   null, 2),
-            item("Razor",         null, 2),
-            item("Shower Cap",    null, 2),
-            item("Cotton Swabs",  null, 2)
+            item("Toothbrush",    "የጥርስ ብሩሽ",    null, 2),
+            item("Toothpaste",    "የጥርስ ሳሙና",    null, 2),
+            item("Shampoo",       "ሻምፑ",          null, 2),
+            item("Conditioner",   "ኮንዲሽነር",       null, 2),
+            item("Body Lotion",   "የሰውነት ቅባት",   null, 2),
+            item("Razor",         "ምላጭ",          null, 2),
+            item("Shower Cap",    "የሻወር ኮፍያ",    null, 2),
+            item("Cotton Swabs",  "የጆሮ መጥረጊያ ኩኪ", null, 2)
         ));
 
         ensureCategory(hotel.getId(), "Food & Beverage", "utensils", 4, List.of(
-            item("Room Service Menu",   null, 1),
-            item("Extra Water Bottles", null, 4),
-            item("Coffee / Tea",        null, 4),
-            item("Ice Bucket",          null, 1),
-            item("Minibar Restock",     null, 1)
+            item("Room Service Menu",   "የክፍል አገልግሎት ምግብ ዝርዝር", null, 1),
+            item("Extra Water Bottles", "ተጨማሪ የታሸጉ ውሃዎች",       null, 4),
+            item("Coffee / Tea",        "ቡና / ሻይ",                null, 4),
+            item("Ice Bucket",          "የበረዶ ባልዲ",               null, 1),
+            item("Minibar Restock",     "ሚኒባር መሙላት",              null, 1)
         ));
 
         ensureCategory(hotel.getId(), "Maintenance", "wrench", 5, List.of(
-            item("AC / Heating Issue", null, 1),
-            item("TV Not Working",     null, 1),
-            item("Plumbing Issue",     null, 1),
-            item("Lighting Issue",     null, 1),
-            item("Safe / Lock Issue",  null, 1)
+            item("AC / Heating Issue", "የኤሲ / የማሞቂያ ችግር",  null, 1),
+            item("TV Not Working",     "ቲቪ አይሰራም",         null, 1),
+            item("Plumbing Issue",     "የቧንቧ ችግር",          null, 1),
+            item("Lighting Issue",     "የመብራት ችግር",         null, 1),
+            item("Safe / Lock Issue",  "የካዝና / የቁልፍ ችግር",  null, 1)
         ));
 
         ensureCategory(hotel.getId(), "Concierge", "concierge-bell", 6, List.of(
-            item("Taxi / Transport",    null, 1),
-            item("Tour Information",    null, 1),
-            item("Wake-Up Call",        null, 1),
-            item("Luggage Assistance",  null, 1),
-            item("Airport Shuttle",     null, 1)
+            item("Taxi / Transport",    "ታክሲ / ትራንስፖርት",  null, 1),
+            item("Tour Information",    "የቱሪስት መረጃ",        null, 1),
+            item("Wake-Up Call",        "የቀስቃሽ ጥሪ",         null, 1),
+            item("Luggage Assistance",  "የሻንጣ እርዳታ",        null, 1),
+            item("Airport Shuttle",     "የኤርፖርት ትራንስፖርት",  null, 1)
         ));
 
         if (staffRepository.findByUsername("housekeeping").isEmpty()) {
@@ -157,10 +157,10 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Econcierge: demo hotel seeded — login: admin / admin123");
     }
 
-    private record ItemDef(String name, String description, int maxQuantity) {}
+    private record ItemDef(String name, String nameAm, String description, int maxQuantity) {}
 
-    private ItemDef item(String name, String description, int maxQuantity) {
-        return new ItemDef(name, description, maxQuantity);
+    private ItemDef item(String name, String nameAm, String description, int maxQuantity) {
+        return new ItemDef(name, nameAm, description, maxQuantity);
     }
 
     private void ensureCategory(Long hotelId, String name, String icon, int order, List<ItemDef> items) {
@@ -177,14 +177,22 @@ public class DataSeeder implements CommandLineRunner {
 
         for (int i = 0; i < items.size(); i++) {
             ItemDef def = items.get(i);
-            if (!itemRepository.existsByCategoryIdAndName(cat.getId(), def.name())) {
+            boolean exists = itemRepository.existsByCategoryIdAndName(cat.getId(), def.name());
+            if (!exists) {
                 RequestItem item = new RequestItem();
                 item.setCategoryId(cat.getId());
                 item.setName(def.name());
+                item.setNameAm(def.nameAm());
                 item.setDescription(def.description());
                 item.setSortOrder(i);
                 item.setMaxQuantity(def.maxQuantity());
                 itemRepository.save(item);
+            } else if (def.nameAm() != null) {
+                // Back-fill nameAm for existing items that were seeded before this field existed
+                itemRepository.findByCategoryIdOrderBySortOrder(cat.getId()).stream()
+                        .filter(it -> it.getName().equals(def.name()) && it.getNameAm() == null)
+                        .findFirst()
+                        .ifPresent(it -> { it.setNameAm(def.nameAm()); itemRepository.save(it); });
             }
         }
     }

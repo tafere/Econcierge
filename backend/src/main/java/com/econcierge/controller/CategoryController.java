@@ -43,6 +43,7 @@ public class CategoryController {
                                 Map<String, Object> m = new HashMap<>();
                                 m.put("id",               item.getId());
                                 m.put("name",             item.getName());
+                                m.put("nameAm",           item.getNameAm());
                                 m.put("enabled",          item.isEnabled());
                                 m.put("maxQuantity",      item.getMaxQuantity());
                                 m.put("schedulable",      item.isSchedulable());
@@ -126,13 +127,17 @@ public class CategoryController {
         int maxOrder = itemRepository.findByCategoryIdOrderBySortOrder(id)
                 .stream().mapToInt(RequestItem::getSortOrder).max().orElse(0);
 
+        String nameAm = body.get("nameAm") != null ? body.get("nameAm").toString().trim() : null;
+
         RequestItem item = new RequestItem();
         item.setCategoryId(id);
         item.setName(name);
+        if (nameAm != null && !nameAm.isBlank()) item.setNameAm(nameAm);
         item.setMaxQuantity(Math.max(1, maxQty));
         item.setSortOrder(maxOrder + 1);
         itemRepository.save(item);
         return ResponseEntity.ok(Map.of("id", item.getId(), "name", item.getName(),
+                "nameAm", item.getNameAm() != null ? item.getNameAm() : "",
                 "enabled", item.isEnabled(), "maxQuantity", item.getMaxQuantity()));
     }
 
@@ -150,6 +155,8 @@ public class CategoryController {
 
         if (body.containsKey("name") && !body.get("name").toString().isBlank())
             item.setName(body.get("name").toString().trim());
+        if (body.containsKey("nameAm"))
+            item.setNameAm(body.get("nameAm") != null ? body.get("nameAm").toString().trim() : null);
         if (body.containsKey("enabled"))
             item.setEnabled(Boolean.parseBoolean(body.get("enabled").toString()));
         if (body.containsKey("maxQuantity"))
@@ -164,6 +171,7 @@ public class CategoryController {
         Map<String, Object> resp = new HashMap<>();
         resp.put("id",               item.getId());
         resp.put("name",             item.getName());
+        resp.put("nameAm",           item.getNameAm() != null ? item.getNameAm() : "");
         resp.put("enabled",          item.isEnabled());
         resp.put("maxQuantity",      item.getMaxQuantity());
         resp.put("schedulable",      item.isSchedulable());

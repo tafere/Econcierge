@@ -15,6 +15,9 @@ public class RequestItem {
     @Column(nullable = false, length = 200)
     private String name;
 
+    @Column(name = "name_am", length = 200)
+    private String nameAm;
+
     @Column(length = 500)
     private String description;
 
@@ -41,6 +44,8 @@ public class RequestItem {
     public void setCategoryId(Long v)        { this.categoryId = v; }
     public String getName()                  { return name; }
     public void setName(String v)            { this.name = v; }
+    public String getNameAm()               { return nameAm; }
+    public void setNameAm(String v)         { this.nameAm = v; }
     public String getDescription()           { return description; }
     public void setDescription(String v)     { this.description = v; }
     public int getSortOrder()                { return sortOrder; }
