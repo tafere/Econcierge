@@ -76,20 +76,25 @@ interface TrackedBooking {
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
 
-const today = () => new Date().toISOString().slice(0, 10);
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 function storageKey(qrToken: string) {
-  return `eco_req_${qrToken}_${today()}`;
+  return `eco_req_${qrToken}`;
 }
 
 function loadTracked(qrToken: string): TrackedRequest[] {
   try {
-    return JSON.parse(localStorage.getItem(storageKey(qrToken)) ?? "[]");
+    const all: TrackedRequest[] = JSON.parse(localStorage.getItem(storageKey(qrToken)) ?? "[]");
+    // Drop requests older than 7 days
+    const cutoff = Date.now() - SEVEN_DAYS_MS;
+    return all.filter(r => new Date(r.submittedAt).getTime() >= cutoff);
   } catch { return []; }
 }
 
 function saveTracked(qrToken: string, reqs: TrackedRequest[]) {
-  localStorage.setItem(storageKey(qrToken), JSON.stringify(reqs));
+  const cutoff = Date.now() - SEVEN_DAYS_MS;
+  const pruned = reqs.filter(r => new Date(r.submittedAt).getTime() >= cutoff);
+  localStorage.setItem(storageKey(qrToken), JSON.stringify(pruned));
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
