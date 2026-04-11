@@ -212,19 +212,19 @@ public class SuperAdminController {
 
     private void seedDefaultCategories(Long hotelId) {
         // Format: {name, nameAm, maxQty}
-        seedCat(hotelId, "Housekeeping", "broom", 1, new String[][]{
+        seedCat(hotelId, "Housekeeping", "የቤት አያያዝ", "broom", 1, new String[][]{
             {"Room Cleaning","ክፍል ማፅዳት","1"},
             {"Turn-Down Service","አልጋ ማስተካከል","1"},
             {"Make Up Room","ክፍል ማሰናዳት","1"}
         });
-        seedCat(hotelId, "Amenities", "sparkles", 2, new String[][]{
+        seedCat(hotelId, "Amenities", "አቅርቦቶች", "sparkles", 2, new String[][]{
             {"Extra Towels","ተጨማሪ ፎጣዎች","3"},
             {"Extra Pillows","ተጨማሪ ትራሶች","3"},
             {"Extra Blanket","ተጨማሪ ብርድ ልብስ","2"},
             {"Bathrobe","የገላ መታጠቢያ ልብስ","2"},
             {"Extra Hangers","ተጨማሪ የመስቀያ መንጠቆዎች","5"}
         });
-        seedCat(hotelId, "Toiletries", "soap", 3, new String[][]{
+        seedCat(hotelId, "Toiletries", "የፀዳት እቃዎች", "soap", 3, new String[][]{
             {"Toothbrush","የጥርስ ብሩሽ","2"},
             {"Toothpaste","የጥርስ ሳሙና","2"},
             {"Shampoo","ሻምፑ","2"},
@@ -234,21 +234,21 @@ public class SuperAdminController {
             {"Shower Cap","የሻወር ኮፍያ","2"},
             {"Cotton Swabs","የጆሮ መጥረጊያ ኩኪ","2"}
         });
-        seedCat(hotelId, "Food & Beverage", "utensils", 4, new String[][]{
+        seedCat(hotelId, "Food & Beverage", "ምግብ እና መጠጥ", "utensils", 4, new String[][]{
             {"Room Service Menu","የክፍል አገልግሎት ምግብ ዝርዝር","1"},
             {"Extra Water Bottles","ተጨማሪ የታሸጉ ውሃዎች","4"},
             {"Coffee / Tea","ቡና / ሻይ","4"},
             {"Ice Bucket","የበረዶ ባልዲ","1"},
             {"Minibar Restock","ሚኒባር መሙላት","1"}
         });
-        seedCat(hotelId, "Maintenance", "wrench", 5, new String[][]{
+        seedCat(hotelId, "Maintenance", "ጥገና", "wrench", 5, new String[][]{
             {"AC / Heating Issue","የኤሲ / የማሞቂያ ችግር","1"},
             {"TV Not Working","ቲቪ አይሰራም","1"},
             {"Plumbing Issue","የቧንቧ ችግር","1"},
             {"Lighting Issue","የመብራት ችግር","1"},
             {"Safe / Lock Issue","የካዝና / የቁልፍ ችግር","1"}
         });
-        seedCat(hotelId, "Concierge", "concierge-bell", 6, new String[][]{
+        seedCat(hotelId, "Concierge", "ኮንሲዬርጅ", "concierge-bell", 6, new String[][]{
             {"Taxi / Transport","ታክሲ / ትራንስፖርት","1"},
             {"Tour Information","የቱሪስት መረጃ","1"},
             {"Wake-Up Call","የቀስቃሽ ጥሪ","1"},
@@ -257,11 +257,12 @@ public class SuperAdminController {
         });
     }
 
-    private void seedCat(Long hotelId, String name, String icon, int order, String[][] items) {
+    private void seedCat(Long hotelId, String name, String nameAm, String icon, int order, String[][] items) {
         RequestCategory cat = categoryRepository.findByHotelIdAndName(hotelId, name).orElseGet(() -> {
             RequestCategory c = new RequestCategory();
             c.setHotelId(hotelId);
             c.setName(name);
+            c.setNameAm(nameAm);
             c.setIcon(icon);
             c.setSortOrder(order);
             return categoryRepository.save(c);

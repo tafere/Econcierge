@@ -18,6 +18,7 @@ interface ServiceRequest {
   itemName: string;
   itemNameAm?: string;
   categoryName: string;
+  categoryNameAm?: string;
   categoryIcon: string;
   quantity: number;
   notes: string;
@@ -256,7 +257,7 @@ function RequestTable({
                         rounded px-1.5 py-0.5">×{req.quantity}</span>
                     )}
                   </div>
-                  <p className="text-xs text-stone-400 mt-0.5">{req.categoryName}</p>
+                  <p className="text-xs text-stone-400 mt-0.5">{lang === "am" && req.categoryNameAm ? req.categoryNameAm : req.categoryName}</p>
                 </td>
                 {hasNotes && (
                   <td className="px-4 py-3 max-w-[180px]">

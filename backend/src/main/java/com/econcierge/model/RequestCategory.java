@@ -15,6 +15,9 @@ public class RequestCategory {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(name = "name_am", length = 100)
+    private String nameAm;
+
     @Column(length = 50)
     private String icon;
 
@@ -26,6 +29,8 @@ public class RequestCategory {
     public void setHotelId(Long v)       { this.hotelId = v; }
     public String getName()              { return name; }
     public void setName(String v)        { this.name = v; }
+    public String getNameAm()            { return nameAm; }
+    public void setNameAm(String v)      { this.nameAm = v; }
     public String getIcon()              { return icon; }
     public void setIcon(String v)        { this.icon = v; }
     public int getSortOrder()            { return sortOrder; }

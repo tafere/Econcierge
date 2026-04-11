@@ -72,13 +72,13 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         // Idempotent category seeding — adds missing categories/items only
-        ensureCategory(hotel.getId(), "Housekeeping", "broom", 1, List.of(
+        ensureCategory(hotel.getId(), "Housekeeping", "የቤት አያያዝ", "broom", 1, List.of(
             item("Room Cleaning",     "ክፍል ማፅዳት",     null, 1),
             item("Turn-Down Service", "አልጋ ማስተካከል",   null, 1),
             item("Make Up Room",      "ክፍል ማሰናዳት",    null, 1)
         ));
 
-        ensureCategory(hotel.getId(), "Amenities", "sparkles", 2, List.of(
+        ensureCategory(hotel.getId(), "Amenities", "አቅርቦቶች", "sparkles", 2, List.of(
             item("Extra Towels",   "ተጨማሪ ፎጣዎች",              null, 3),
             item("Extra Pillows",  "ተጨማሪ ትራሶች",              null, 3),
             item("Extra Blanket",  "ተጨማሪ ብርድ ልብስ",            null, 2),
@@ -86,7 +86,7 @@ public class DataSeeder implements CommandLineRunner {
             item("Extra Hangers",  "ተጨማሪ የመስቀያ መንጠቆዎች",       null, 5)
         ));
 
-        ensureCategory(hotel.getId(), "Toiletries", "soap", 3, List.of(
+        ensureCategory(hotel.getId(), "Toiletries", "የፀዳት እቃዎች", "soap", 3, List.of(
             item("Toothbrush",    "የጥርስ ብሩሽ",    null, 2),
             item("Toothpaste",    "የጥርስ ሳሙና",    null, 2),
             item("Shampoo",       "ሻምፑ",          null, 2),
@@ -97,7 +97,7 @@ public class DataSeeder implements CommandLineRunner {
             item("Cotton Swabs",  "የጆሮ መጥረጊያ ኩኪ", null, 2)
         ));
 
-        ensureCategory(hotel.getId(), "Food & Beverage", "utensils", 4, List.of(
+        ensureCategory(hotel.getId(), "Food & Beverage", "ምግብ እና መጠጥ", "utensils", 4, List.of(
             item("Room Service Menu",   "የክፍል አገልግሎት ምግብ ዝርዝር", null, 1),
             item("Extra Water Bottles", "ተጨማሪ የታሸጉ ውሃዎች",       null, 4),
             item("Coffee / Tea",        "ቡና / ሻይ",                null, 4),
@@ -105,7 +105,7 @@ public class DataSeeder implements CommandLineRunner {
             item("Minibar Restock",     "ሚኒባር መሙላት",              null, 1)
         ));
 
-        ensureCategory(hotel.getId(), "Maintenance", "wrench", 5, List.of(
+        ensureCategory(hotel.getId(), "Maintenance", "ጥገና", "wrench", 5, List.of(
             item("AC / Heating Issue", "የኤሲ / የማሞቂያ ችግር",  null, 1),
             item("TV Not Working",     "ቲቪ አይሰራም",         null, 1),
             item("Plumbing Issue",     "የቧንቧ ችግር",          null, 1),
@@ -113,7 +113,7 @@ public class DataSeeder implements CommandLineRunner {
             item("Safe / Lock Issue",  "የካዝና / የቁልፍ ችግር",  null, 1)
         ));
 
-        ensureCategory(hotel.getId(), "Concierge", "concierge-bell", 6, List.of(
+        ensureCategory(hotel.getId(), "Concierge", "ኮንሲዬርጅ", "concierge-bell", 6, List.of(
             item("Taxi / Transport",    "ታክሲ / ትራንስፖርት",  null, 1),
             item("Tour Information",    "የቱሪስት መረጃ",        null, 1),
             item("Wake-Up Call",        "የቀስቃሽ ጥሪ",         null, 1),
@@ -163,17 +163,23 @@ public class DataSeeder implements CommandLineRunner {
         return new ItemDef(name, nameAm, description, maxQuantity);
     }
 
-    private void ensureCategory(Long hotelId, String name, String icon, int order, List<ItemDef> items) {
+    private void ensureCategory(Long hotelId, String name, String nameAm, String icon, int order, List<ItemDef> items) {
         RequestCategory cat = categoryRepository
                 .findByHotelIdAndName(hotelId, name)
                 .orElseGet(() -> {
                     RequestCategory c = new RequestCategory();
                     c.setHotelId(hotelId);
                     c.setName(name);
+                    c.setNameAm(nameAm);
                     c.setIcon(icon);
                     c.setSortOrder(order);
                     return categoryRepository.save(c);
                 });
+        // Back-fill nameAm on existing categories
+        if (cat.getNameAm() == null && nameAm != null) {
+            cat.setNameAm(nameAm);
+            categoryRepository.save(cat);
+        }
 
         for (int i = 0; i < items.size(); i++) {
             ItemDef def = items.get(i);
