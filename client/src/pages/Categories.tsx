@@ -359,7 +359,7 @@ export default function CategoriesPage() {
                         ) : (
                           <>
                             <div className="flex-1 min-w-0">
-                              <span className="text-sm text-stone-800">{item.name}</span>
+                              <span className="text-sm text-stone-800">{lang === "am" && item.nameAm ? item.nameAm : item.name}</span>
                               {item.schedulable && (
                                 <span className="ml-2 text-[10px] font-semibold text-brand-700 bg-brand-50
                                   border border-brand-200 rounded px-1.5 py-0.5 inline-flex items-center gap-0.5">
