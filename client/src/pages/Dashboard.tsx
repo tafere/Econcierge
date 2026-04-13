@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth, getToken } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
@@ -7,10 +7,7 @@ import {
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
-import {
-  loadNotifications, addNotification, dismissNotification, clearRequestNotifications,
-  type AppNotification,
-} from "@/lib/notifications";
+import { loadDismissed, saveDismissed, type AppNotification } from "@/lib/notifications";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -534,7 +531,31 @@ export default function DashboardPage() {
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [loading, setLoading]     = useState(true);
   const hotelId = user?.hotelId ?? 0;
-  const [notifications, setNotifications] = useState<AppNotification[]>(() => loadNotifications(user?.hotelId ?? 0));
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+
+  // Load dismissed IDs once hotelId is known
+  useEffect(() => { if (hotelId) setDismissed(loadDismissed(hotelId)); }, [hotelId]);
+
+  // Derive notifications from live request data — same result on every device
+  const notifications = useMemo<AppNotification[]>(() => {
+    const result: AppNotification[] = [];
+    for (const r of requests) {
+      if (r.status === "PENDING" && ageMinutes(r.createdAt) <= 120) {
+        const id = `new_${r.id}`;
+        if (!dismissed.has(id))
+          result.push({ id, type: "new_request", requestId: r.id, roomNumber: r.roomNumber, itemName: r.itemName, createdAt: r.createdAt });
+      }
+      const isPastDue =
+        (r.status === "PENDING" && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS) ||
+        (r.status === "IN_PROGRESS" && r.acceptedAt && r.etaMinutes != null && ageMinutes(r.acceptedAt) > r.etaMinutes);
+      if (isPastDue) {
+        const id = `pd_${r.id}`;
+        if (!dismissed.has(id))
+          result.push({ id, type: "past_due", requestId: r.id, roomNumber: r.roomNumber, itemName: r.itemName, createdAt: r.acceptedAt || r.createdAt });
+      }
+    }
+    return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }, [requests, dismissed]);
   const [updatingId, setUpdatingId]             = useState<number | null>(null);
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
@@ -577,31 +598,12 @@ export default function DashboardPage() {
         const data = JSON.parse(e.data ?? "{}");
         const room = data.roomNumber ?? "";
         const item = data.itemName   ?? "New request";
-        setNotifications(addNotification(hotelId, { type: "new_request", requestId: data.id ?? 0, roomNumber: room, itemName: item }));
         showNotification(`New Request — Room ${room}`, item);
       } catch { showNotification("New Request", "A guest has made a new request"); }
     });
     return () => es.close();
   }, [soundOn]);
 
-  // Past-due notification timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const active = requests.filter(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
-      let updated = loadNotifications(hotelId);
-      for (const r of active) {
-        const isPastDue =
-          (r.status === "PENDING" && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS) ||
-          (r.status === "IN_PROGRESS" && r.acceptedAt && r.etaMinutes != null &&
-            ageMinutes(r.acceptedAt) > r.etaMinutes);
-        if (isPastDue) {
-          updated = addNotification(hotelId, { type: "past_due", requestId: r.id, roomNumber: r.roomNumber, itemName: r.itemName });
-        }
-      }
-      setNotifications(updated);
-    }, 60_000);
-    return () => clearInterval(timer);
-  }, [requests]);
 
   const updateStatus = async (id: number, status: string, comment?: string, etaMinutes?: number) => {
     setUpdatingId(id);
@@ -614,9 +616,6 @@ export default function DashboardPage() {
     if (res.ok) {
       const updated = await res.json();
       setRequests(prev => prev.map(r => r.id === id ? updated : r));
-      if (status === "DONE" || status === "CANCELLED" || status === "DECLINED") {
-        setNotifications(clearRequestNotifications(hotelId, id));
-      }
     }
     setUpdatingId(null);
   };
@@ -710,7 +709,11 @@ export default function DashboardPage() {
 
       <NavBar
         notifications={notifications}
-        onNotificationDismiss={id => setNotifications(dismissNotification(hotelId, id))}
+        onNotificationDismiss={id => setDismissed(prev => {
+          const next = new Set(prev); next.add(id);
+          saveDismissed(hotelId, next);
+          return next;
+        })}
         onNotificationClick={() => { setTab("ACTIVE"); fetchRequests(); }}
       />
 
