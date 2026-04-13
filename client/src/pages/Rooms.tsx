@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
-import { Download, Plus, BedDouble, Loader2, Tv2, QrCode, Printer } from "lucide-react";
+import { Download, Plus, BedDouble, Loader2, Tv2, QrCode, Printer, PrinterCheck } from "lucide-react";
 import QRCode from "qrcode";
 import NavBar from "@/components/NavBar";
 
@@ -112,6 +112,62 @@ export default function RoomsPage() {
     win.document.close();
   };
 
+  const printAllQRCards = async () => {
+    const hotelName = user?.hotelName ?? "Hotel";
+    const cards = await Promise.all(rooms.map(async room => {
+      const url = `${window.location.origin}/r/${room.qrToken}`;
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 400, margin: 2,
+        color: { dark: "#451a03", light: "#fffbf5" },
+        errorCorrectionLevel: "H",
+      });
+      return { room, dataUrl };
+    }));
+
+    const cardHtml = cards.map(({ room, dataUrl }) => `
+      <div class="card">
+        <div class="header">
+          <div class="hotel">${hotelName}</div>
+          <div class="tagline">Econcierge</div>
+        </div>
+        <div class="body">
+          <div class="room-label">Room</div>
+          <div class="room-number">${room.roomNumber}</div>
+          ${room.floor ? `<div class="floor">Floor ${room.floor}</div>` : ""}
+          <img src="${dataUrl}" alt="QR Code" />
+          <div class="cta">Scan to request services</div>
+        </div>
+        <div class="footer">Scan with your phone camera</div>
+      </div>
+    `).join("");
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(`<!DOCTYPE html><html><head><title>QR Cards - ${hotelName}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Inter, sans-serif; background: #fff; padding: 20px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; }
+  .card { width: 240px; border: 2px solid #92400e; border-radius: 12px; overflow: hidden; text-align: center; page-break-inside: avoid; }
+  .header { background: #92400e; color: #fff; padding: 14px 12px 10px; }
+  .hotel { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; }
+  .tagline { font-size: 8px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #fcd34d; margin-top: 2px; }
+  .body { padding: 16px 16px 12px; background: #fffbf5; }
+  .room-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #92400e; margin-bottom: 2px; }
+  .room-number { font-size: 28px; font-weight: 800; color: #1c1917; line-height: 1; }
+  .floor { font-size: 10px; color: #78716c; margin-top: 2px; }
+  img { width: 150px; height: 150px; margin: 12px auto 0; display: block; }
+  .cta { font-size: 10px; font-weight: 600; color: #57534e; margin-top: 10px; }
+  .footer { background: #fef3c7; padding: 7px; font-size: 8px; color: #92400e; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  @media print { body { padding: 10px; } }
+</style></head><body>
+<div class="grid">${cardHtml}</div>
+<script>window.onload = () => window.print();</script>
+</body></html>`);
+    win.document.close();
+  };
+
   const toggleQrPreview = async (room: Room) => {
     if (qrPreviews[room.id]) {
       setQrPreviews(prev => { const n = { ...prev }; delete n[room.id]; return n; });
@@ -136,15 +192,26 @@ export default function RoomsPage() {
             <h1 className="text-xl font-bold text-stone-900">{t("roomsTitle")}</h1>
             <p className="text-sm text-stone-400">{rooms.length} {t("roomsConfigured")}</p>
           </div>
-          {user?.role === "ADMIN" && (
-            <button
-              onClick={() => setShowAdd(true)}
-              className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
-                px-4 py-2 rounded hover:bg-brand-800 transition-colors"
-            >
-              <Plus className="h-4 w-4" /> {t("addRoom")}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {rooms.length > 0 && (
+              <button
+                onClick={printAllQRCards}
+                className="flex items-center gap-1.5 bg-white border border-brand-700 text-brand-700
+                  text-sm font-semibold px-4 py-2 rounded hover:bg-brand-50 transition-colors"
+              >
+                <PrinterCheck className="h-4 w-4" /> Print All QR Cards
+              </button>
+            )}
+            {user?.role === "ADMIN" && (
+              <button
+                onClick={() => setShowAdd(true)}
+                className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
+                  px-4 py-2 rounded hover:bg-brand-800 transition-colors"
+              >
+                <Plus className="h-4 w-4" /> {t("addRoom")}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Add room form */}
