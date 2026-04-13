@@ -73,6 +73,19 @@ public class DashboardController {
         if (newStatus == ServiceRequest.Status.IN_PROGRESS) {
             staffRepository.findByUsername(username).ifPresent(s -> req.setAssignedTo(s.getId()));
             req.setAcceptedAt(LocalDateTime.now());
+            // Resolve ETA: body override → category ETA → hotel ETA
+            if (body.containsKey("etaMinutes") && body.get("etaMinutes") != null && !body.get("etaMinutes").isBlank()) {
+                try { req.setEtaMinutes(Integer.parseInt(body.get("etaMinutes"))); } catch (NumberFormatException ignored) {}
+            } else {
+                RequestItem etaItem = itemRepository.findById(req.getItemId()).orElse(null);
+                RequestCategory etaCat = etaItem != null ? categoryRepository.findById(etaItem.getCategoryId()).orElse(null) : null;
+                if (etaCat != null && etaCat.getEtaMinutes() != null) {
+                    req.setEtaMinutes(etaCat.getEtaMinutes());
+                } else {
+                    Hotel etaHotel = hotelRepository.findById(hotelId).orElse(null);
+                    if (etaHotel != null) req.setEtaMinutes(etaHotel.getEtaMinutes());
+                }
+            }
         }
         if (newStatus == ServiceRequest.Status.DONE) {
             req.setCompletedAt(LocalDateTime.now());
@@ -140,26 +153,30 @@ public class DashboardController {
         res.put("tagline", hotel.getTagline()  != null ? hotel.getTagline()  : "");
         res.put("logoUrl", hotel.getLogoUrl()  != null ? hotel.getLogoUrl()  : "");
         res.put("website", hotel.getWebsite()  != null ? hotel.getWebsite()  : "");
-        res.put("address", hotel.getAddress()  != null ? hotel.getAddress()  : "");
-        res.put("phone",   hotel.getPhone()    != null ? hotel.getPhone()    : "");
-        res.put("email",   hotel.getEmail()    != null ? hotel.getEmail()    : "");
+        res.put("address",    hotel.getAddress()  != null ? hotel.getAddress()  : "");
+        res.put("phone",      hotel.getPhone()    != null ? hotel.getPhone()    : "");
+        res.put("email",      hotel.getEmail()    != null ? hotel.getEmail()    : "");
+        res.put("etaMinutes", hotel.getEtaMinutes());
         return ResponseEntity.ok(res);
     }
 
     @PutMapping("/hotel")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateHotel(@RequestHeader("Authorization") String header,
-                                         @RequestBody Map<String, String> body) {
+                                         @RequestBody Map<String, Object> body) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
         if (hotel == null) return ResponseEntity.notFound().build();
-        if (body.containsKey("name")    && !body.get("name").isBlank())  hotel.setName(body.get("name"));
-        if (body.containsKey("tagline")) hotel.setTagline(body.get("tagline"));
-        if (body.containsKey("logoUrl")) hotel.setLogoUrl(body.get("logoUrl"));
-        if (body.containsKey("website")) hotel.setWebsite(body.get("website"));
-        if (body.containsKey("address")) hotel.setAddress(body.get("address"));
-        if (body.containsKey("phone"))   hotel.setPhone(body.get("phone"));
-        if (body.containsKey("email"))   hotel.setEmail(body.get("email"));
+        if (body.containsKey("name")    && body.get("name") != null && !body.get("name").toString().isBlank())  hotel.setName(body.get("name").toString());
+        if (body.containsKey("tagline") && body.get("tagline") != null) hotel.setTagline(body.get("tagline").toString());
+        if (body.containsKey("logoUrl") && body.get("logoUrl") != null) hotel.setLogoUrl(body.get("logoUrl").toString());
+        if (body.containsKey("website") && body.get("website") != null) hotel.setWebsite(body.get("website").toString());
+        if (body.containsKey("address") && body.get("address") != null) hotel.setAddress(body.get("address").toString());
+        if (body.containsKey("phone")   && body.get("phone")   != null) hotel.setPhone(body.get("phone").toString());
+        if (body.containsKey("email")   && body.get("email")   != null) hotel.setEmail(body.get("email").toString());
+        if (body.containsKey("etaMinutes") && body.get("etaMinutes") != null) {
+            try { hotel.setEtaMinutes(Integer.parseInt(body.get("etaMinutes").toString())); } catch (NumberFormatException ignored) {}
+        }
         hotelRepository.save(hotel);
         return ResponseEntity.ok(Map.of("message", "Hotel settings updated"));
     }
@@ -324,6 +341,7 @@ public class DashboardController {
         m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
         m.put("status",       r.getStatus().name());
         m.put("assignedTo",   assignedName);
+        m.put("etaMinutes",   r.getEtaMinutes());
         m.put("createdAt",    r.getCreatedAt().toString() + "Z");
         m.put("updatedAt",    r.getUpdatedAt()   != null ? r.getUpdatedAt().toString()   + "Z" : "");
         m.put("acceptedAt",   r.getAcceptedAt()  != null ? r.getAcceptedAt().toString()  + "Z" : "");

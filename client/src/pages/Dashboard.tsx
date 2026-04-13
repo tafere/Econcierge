@@ -3,9 +3,10 @@ import { useAuth, getToken } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   ConciergeBell, Loader2, RefreshCw,
-  X, Check, CheckCheck, Users, CalendarClock,
+  X, Check, CheckCheck, Users, CalendarClock, Clock, Bell, BellOff,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
+import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ interface ServiceRequest {
   staffComment: string;
   status: Status;
   assignedTo: string;
+  etaMinutes?: number | null;
   createdAt: string;
   acceptedAt: string;
   completedAt: string;
@@ -187,6 +189,70 @@ function DeclineModal({
   );
 }
 
+// ─── Accept modal (ETA) ───────────────────────────────────────────────────────
+
+function AcceptModal({
+  req,
+  defaultEta,
+  onConfirm,
+  onCancel,
+}: {
+  req: ServiceRequest;
+  defaultEta: number;
+  onConfirm: (etaMinutes: number) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useLang();
+  const [eta, setEta] = useState(defaultEta);
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="glass rounded shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="font-bold text-stone-900">{t("accept")} — {t("roomCol")} {req.roomNumber}</h3>
+            <p className="text-xs text-stone-400 mt-0.5">{req.itemName}</p>
+          </div>
+          <button onClick={onCancel} className="text-stone-300 hover:text-stone-500">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+            ETA (minutes)
+          </label>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-stone-400 shrink-0" />
+            <input
+              type="number"
+              min={1}
+              max={480}
+              value={eta}
+              onChange={e => setEta(Number(e.target.value))}
+              className="flex-1 h-10 border border-stone-200 bg-white rounded px-3 text-sm
+                focus:outline-none focus:ring-2 focus:ring-brand-700"
+              autoFocus
+            />
+            <span className="text-sm text-stone-400 shrink-0">min</span>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={onCancel}
+            className="flex-1 h-10 bg-white border border-stone-200 rounded text-sm font-semibold
+              text-stone-600 hover:bg-stone-50 transition-all shadow-sm">
+            {t("goBack")}
+          </button>
+          <button onClick={() => onConfirm(eta)}
+            className="flex-1 h-10 bg-brand-700 text-white rounded text-sm font-semibold shadow-sm
+              hover:bg-brand-800 transition-all">
+            {t("accept")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Request table ────────────────────────────────────────────────────────────
 
 function RequestTable({
@@ -200,7 +266,7 @@ function RequestTable({
 }: {
   requests: ServiceRequest[];
   updatingId: number | null;
-  onAccept:  (id: number) => void;
+  onAccept:  (req: ServiceRequest) => void;
   onDone:    (id: number) => void;
   onDecline: (req: ServiceRequest) => void;
   overdueIds?:   Set<number>;
@@ -281,6 +347,12 @@ function RequestTable({
                   {req.completedAt && (
                     <p className="text-[11px] text-green-600 mt-0.5">✓ {fmtDateTime(req.completedAt)}</p>
                   )}
+                  {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
+                    <span className="inline-flex items-center gap-0.5 mt-0.5 text-[10px] font-semibold
+                      text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
+                      <Clock className="h-2.5 w-2.5" />~{req.etaMinutes} min
+                    </span>
+                  )}
                 </td>
                 {hasBy && (
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -295,7 +367,7 @@ function RequestTable({
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
                     ) : req.status === "PENDING" ? (
                       <div className="inline-flex items-center gap-1.5">
-                        <button onClick={() => onAccept(req.id)}
+                        <button onClick={() => onAccept(req)}
                           className="inline-flex items-center gap-1 text-xs font-bold text-white
                             bg-brand-700 hover:bg-brand-800 rounded px-3 py-1.5 transition-colors">
                           <Check className="h-3.5 w-3.5" /> {t("accept")}
@@ -461,8 +533,11 @@ export default function DashboardPage() {
   const [updatingId, setUpdatingId]             = useState<number | null>(null);
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
-  const [declining, setDeclining] = useState<ServiceRequest | null>(null);
+  const [declining, setDeclining]   = useState<ServiceRequest | null>(null);
   const [confirming, setConfirming] = useState<Confirming | null>(null);
+  const [accepting, setAccepting]   = useState<ServiceRequest | null>(null);
+  const [hotelEta, setHotelEta]     = useState(20);
+  const [soundOn, setSoundOn]       = useState(() => localStorage.getItem("eco_sound") !== "off");
 
   const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
 
@@ -480,21 +555,35 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchRequests();
     if (user?.role === "ADMIN") fetchBookings();
+    requestNotifyPermission();
+    // Fetch hotel ETA default
+    fetch("/api/dashboard/hotel", { headers: authH() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.etaMinutes) setHotelEta(d.etaMinutes); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     const es = new EventSource(`/api/dashboard/stream?token=${getToken()}`);
-    es.addEventListener("request", () => {
+    es.addEventListener("request", (e: MessageEvent) => {
       setNewCount(n => n + 1);
       fetchRequests();
+      if (soundOn) playAlertSound();
+      try {
+        const data = JSON.parse(e.data ?? "{}");
+        const room = data.roomNumber ?? "";
+        const item = data.itemName   ?? "New request";
+        showNotification(`New Request — Room ${room}`, item);
+      } catch { showNotification("New Request", "A guest has made a new request"); }
     });
     return () => es.close();
-  }, []);
+  }, [soundOn]);
 
-  const updateStatus = async (id: number, status: string, comment?: string) => {
+  const updateStatus = async (id: number, status: string, comment?: string, etaMinutes?: number) => {
     setUpdatingId(id);
-    const body: Record<string, string> = { status };
+    const body: Record<string, string | number> = { status };
     if (comment) body.comment = comment;
+    if (etaMinutes != null) body.etaMinutes = etaMinutes;
     const res = await fetch(`/api/dashboard/requests/${id}/status`, {
       method: "PATCH", headers: authH(), body: JSON.stringify(body),
     });
@@ -602,10 +691,21 @@ export default function DashboardPage() {
             <h1 className="text-lg font-bold text-stone-900">{t("serviceRequests")}</h1>
             <p className="text-xs text-stone-400">{user?.fullName}</p>
           </div>
-          <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
-            className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
-            <RefreshCw className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={() => {
+              const next = !soundOn;
+              setSoundOn(next);
+              localStorage.setItem("eco_sound", next ? "on" : "off");
+            }}
+              className="p-2 text-stone-400 hover:text-brand-700 transition-colors"
+              title={soundOn ? "Mute sound alerts" : "Enable sound alerts"}>
+              {soundOn ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+            </button>
+            <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
+              className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
+              <RefreshCw className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -653,7 +753,7 @@ export default function DashboardPage() {
                       <RequestTable
                         requests={dayReqs}
                         updatingId={updatingId}
-                        onAccept={id => updateStatus(id, "IN_PROGRESS")}
+                        onAccept={req => setAccepting(req)}
                         onDone={id => confirm({
                           title: t("markAsDone"),
                           message: t("markDoneMessage"),
@@ -709,6 +809,19 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Accept modal (ETA) */}
+      {accepting && (
+        <AcceptModal
+          req={accepting}
+          defaultEta={hotelEta}
+          onConfirm={eta => {
+            updateStatus(accepting.id, "IN_PROGRESS", undefined, eta);
+            setAccepting(null);
+          }}
+          onCancel={() => setAccepting(null)}
+        />
+      )}
 
       {/* Decline modal */}
       {declining && (

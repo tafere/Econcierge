@@ -105,6 +105,8 @@ public class GuestController {
                         m.put("id",           r.getId());
                         m.put("status",       r.getStatus().name());
                         m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
+                        m.put("etaMinutes",   r.getEtaMinutes());
+                        m.put("acceptedAt",   r.getAcceptedAt() != null ? r.getAcceptedAt().toString() + "Z" : null);
                         return m;
                     }).toList();
 
@@ -170,6 +172,8 @@ public class GuestController {
                     m.put("notes",        r.getNotes() != null ? r.getNotes() : "");
                     m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
                     m.put("submittedAt",  r.getCreatedAt().toString());
+                    m.put("etaMinutes",   r.getEtaMinutes());
+                    m.put("acceptedAt",   r.getAcceptedAt() != null ? r.getAcceptedAt().toString() + "Z" : null);
 
                     var item = itemRepository.findById(r.getItemId()).orElse(null);
                     m.put("itemName",   item != null ? item.getName() : "");

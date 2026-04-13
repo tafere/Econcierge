@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="017-eta" author="econcierge">
+        <!-- Hotel-level default ETA in minutes -->
+        <addColumn tableName="hotels">
+            <column name="eta_minutes" type="INT" defaultValue="20"/>
+        </addColumn>
+        <!-- Category-level ETA override (null = use hotel default) -->
+        <addColumn tableName="request_categories">
+            <column name="eta_minutes" type="INT"/>
+        </addColumn>
+        <!-- Staff-set ETA override on a specific accepted request (null = use category/hotel default) -->
+        <addColumn tableName="service_requests">
+            <column name="eta_minutes" type="INT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

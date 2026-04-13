@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
-import { Save, Loader2, Building2, Link, Phone, Mail, MapPin, Tag } from "lucide-react";
+import { Save, Loader2, Building2, Link, Phone, Mail, MapPin, Tag, Clock } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
 interface HotelSettings {
-  name:    string;
-  tagline: string;
-  logoUrl: string;
-  website: string;
-  address: string;
-  phone:   string;
-  email:   string;
+  name:       string;
+  tagline:    string;
+  logoUrl:    string;
+  website:    string;
+  address:    string;
+  phone:      string;
+  email:      string;
+  etaMinutes: number;
 }
 
 export default function HotelSettingsPage() {
   const { t } = useLang();
-  const [form, setForm]       = useState<HotelSettings>({ name: "", tagline: "", logoUrl: "", website: "", address: "", phone: "", email: "" });
+  const [form, setForm]       = useState<HotelSettings>({ name: "", tagline: "", logoUrl: "", website: "", address: "", phone: "", email: "", etaMinutes: 20 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -26,13 +27,14 @@ export default function HotelSettingsPage() {
     fetch("/api/dashboard/hotel", { headers: { Authorization: `Bearer ${getToken()}` } })
       .then(r => r.json())
       .then(data => setForm({
-        name:    data.name    ?? "",
-        tagline: data.tagline ?? "",
-        logoUrl: data.logoUrl ?? "",
-        website: data.website ?? "",
-        address: data.address ?? "",
-        phone:   data.phone   ?? "",
-        email:   data.email   ?? "",
+        name:       data.name       ?? "",
+        tagline:    data.tagline    ?? "",
+        logoUrl:    data.logoUrl    ?? "",
+        website:    data.website    ?? "",
+        address:    data.address    ?? "",
+        phone:      data.phone      ?? "",
+        email:      data.email      ?? "",
+        etaMinutes: data.etaMinutes ?? 20,
       }))
       .finally(() => setLoading(false));
   }, []);
@@ -104,6 +106,24 @@ export default function HotelSettingsPage() {
               {field("tagline", "taglineField",   <Tag       className="h-4 w-4" />, "e.g. Where the Sky is the Limit")}
               {field("logoUrl", "logoUrlField",   <Link      className="h-4 w-4" />, "https://…/logo.png", "logoUrlHint")}
               {field("website", "websiteField",   <Link      className="h-4 w-4" />, "https://www.yourhotel.com")}
+              <div>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+                  Default Response Time (minutes)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"><Clock className="h-4 w-4" /></span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={480}
+                    value={form.etaMinutes}
+                    onChange={e => setForm(f => ({ ...f, etaMinutes: Number(e.target.value) }))}
+                    className="w-full h-10 border border-stone-200 bg-white rounded pl-9 pr-3 text-sm
+                      focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  />
+                </div>
+                <p className="text-xs text-stone-400 mt-1">Used when no category-specific time is set</p>
+              </div>
             </div>
 
             <div className="glass rounded p-6 space-y-5">

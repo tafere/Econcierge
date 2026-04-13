@@ -46,6 +46,9 @@ public class ServiceRequest {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "eta_minutes")
+    private Integer etaMinutes;
+
     @Column(name = "accepted_at")
     private LocalDateTime acceptedAt;
 
@@ -79,8 +82,10 @@ public class ServiceRequest {
     public void setDeviceId(String v)           { this.deviceId = v; }
     public LocalDateTime getCreatedAt()         { return createdAt; }
     public LocalDateTime getUpdatedAt()         { return updatedAt; }
-    public LocalDateTime getAcceptedAt()        { return acceptedAt; }
-    public void setAcceptedAt(LocalDateTime v)  { this.acceptedAt = v; }
+    public Integer getEtaMinutes()               { return etaMinutes; }
+    public void setEtaMinutes(Integer v)         { this.etaMinutes = v; }
+    public LocalDateTime getAcceptedAt()         { return acceptedAt; }
+    public void setAcceptedAt(LocalDateTime v)   { this.acceptedAt = v; }
     public LocalDateTime getCompletedAt()       { return completedAt; }
     public void setCompletedAt(LocalDateTime v) { this.completedAt = v; }
 }

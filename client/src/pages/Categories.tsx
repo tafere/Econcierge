@@ -24,6 +24,7 @@ interface Category {
   nameAm?: string;
   icon: string;
   sortOrder: number;
+  etaMinutes?: number | null;
   items: CatItem[];
 }
 
@@ -56,9 +57,10 @@ export default function CategoriesPage() {
   const [newIcon, setNewIcon] = useState("sparkles");
   const [adding, setAdding]   = useState(false);
 
-  const [editCatId, setEditCatId]     = useState<number | null>(null);
-  const [editCatName, setEditCatName] = useState("");
-  const [editCatIcon, setEditCatIcon] = useState("");
+  const [editCatId, setEditCatId]         = useState<number | null>(null);
+  const [editCatName, setEditCatName]     = useState("");
+  const [editCatIcon, setEditCatIcon]     = useState("");
+  const [editCatEta, setEditCatEta]       = useState<string>("");
 
   const [addItemCatId, setAddItemCatId]   = useState<number | null>(null);
   const [addItemName, setAddItemName]     = useState("");
@@ -107,12 +109,13 @@ export default function CategoriesPage() {
   };
 
   const saveEditCat = async (id: number) => {
+    const etaVal = editCatEta === "" ? null : Number(editCatEta);
     const res = await fetch(`/api/dashboard/categories/${id}`, {
       method: "PATCH", headers: authH(),
-      body: JSON.stringify({ name: editCatName, icon: editCatIcon }),
+      body: JSON.stringify({ name: editCatName, icon: editCatIcon, etaMinutes: etaVal }),
     });
     if (res.ok) {
-      setCats(prev => prev.map(c => c.id === id ? { ...c, name: editCatName, icon: editCatIcon } : c));
+      setCats(prev => prev.map(c => c.id === id ? { ...c, name: editCatName, icon: editCatIcon, etaMinutes: etaVal } : c));
       setEditCatId(null);
     }
   };
@@ -258,9 +261,19 @@ export default function CategoriesPage() {
                   )}
 
                   {editCatId === cat.id ? (
-                    <input value={editCatName} onChange={e => setEditCatName(e.target.value)}
-                      className={`${inputCls} flex-1 min-w-0`} autoFocus
-                      onKeyDown={e => { if (e.key === "Enter") saveEditCat(cat.id); if (e.key === "Escape") setEditCatId(null); }} />
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <input value={editCatName} onChange={e => setEditCatName(e.target.value)}
+                        className={`${inputCls} flex-1 min-w-0`} autoFocus
+                        onKeyDown={e => { if (e.key === "Enter") saveEditCat(cat.id); if (e.key === "Escape") setEditCatId(null); }} />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-stone-400">ETA</span>
+                        <input type="number" min={1} max={480} placeholder="min"
+                          value={editCatEta}
+                          onChange={e => setEditCatEta(e.target.value)}
+                          className="w-16 h-9 border border-stone-200 bg-white rounded px-2 text-sm
+                            text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                      </div>
+                    </div>
                   ) : (
                     <button onClick={() => toggleExpand(cat.id)}
                       className="flex-1 text-left font-semibold text-stone-900 text-sm">{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</button>
@@ -279,7 +292,7 @@ export default function CategoriesPage() {
                     </div>
                   ) : (
                     <div className="flex gap-1 shrink-0">
-                      <button onClick={() => { setEditCatId(cat.id); setEditCatName(cat.name); setEditCatIcon(cat.icon); }}
+                      <button onClick={() => { setEditCatId(cat.id); setEditCatName(cat.name); setEditCatIcon(cat.icon); setEditCatEta(cat.etaMinutes != null ? String(cat.etaMinutes) : ""); }}
                         className="p-1.5 rounded hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors">
                         <Pencil className="h-3.5 w-3.5" /></button>
                       <button onClick={() => deleteCat(cat.id, cat.name)}

@@ -37,6 +37,9 @@ public class Hotel {
     @Column(name = "primary_color", length = 7)
     private String primaryColor;
 
+    @Column(name = "eta_minutes")
+    private Integer etaMinutes = 20;
+
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -65,7 +68,9 @@ public class Hotel {
     public void setWebsite(String v)     { this.website = v; }
     public String getPrimaryColor()           { return primaryColor; }
     public void setPrimaryColor(String v)     { this.primaryColor = v; }
-    public boolean isEnabled()           { return enabled; }
-    public void setEnabled(boolean v)    { this.enabled = v; }
-    public LocalDateTime getCreatedAt()  { return createdAt; }
+    public Integer getEtaMinutes()         { return etaMinutes != null ? etaMinutes : 20; }
+    public void setEtaMinutes(Integer v)   { this.etaMinutes = v; }
+    public boolean isEnabled()             { return enabled; }
+    public void setEnabled(boolean v)      { this.enabled = v; }
+    public LocalDateTime getCreatedAt()    { return createdAt; }
 }

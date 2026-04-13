@@ -24,6 +24,9 @@ public class RequestCategory {
     @Column(name = "sort_order")
     private int sortOrder = 0;
 
+    @Column(name = "eta_minutes")
+    private Integer etaMinutes;
+
     public Long getId()                  { return id; }
     public Long getHotelId()             { return hotelId; }
     public void setHotelId(Long v)       { this.hotelId = v; }
@@ -33,6 +36,8 @@ public class RequestCategory {
     public void setNameAm(String v)      { this.nameAm = v; }
     public String getIcon()              { return icon; }
     public void setIcon(String v)        { this.icon = v; }
-    public int getSortOrder()            { return sortOrder; }
-    public void setSortOrder(int v)      { this.sortOrder = v; }
+    public int getSortOrder()              { return sortOrder; }
+    public void setSortOrder(int v)        { this.sortOrder = v; }
+    public Integer getEtaMinutes()         { return etaMinutes; }
+    public void setEtaMinutes(Integer v)   { this.etaMinutes = v; }
 }

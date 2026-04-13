@@ -52,12 +52,13 @@ public class CategoryController {
                                 return m;
                             }).toList();
                     Map<String, Object> m = new HashMap<>();
-                    m.put("id",        cat.getId());
-                    m.put("name",      cat.getName());
-                    m.put("nameAm",    cat.getNameAm() != null ? cat.getNameAm() : "");
-                    m.put("icon",      cat.getIcon() != null ? cat.getIcon() : "");
-                    m.put("sortOrder", cat.getSortOrder());
-                    m.put("items",     items);
+                    m.put("id",         cat.getId());
+                    m.put("name",       cat.getName());
+                    m.put("nameAm",     cat.getNameAm() != null ? cat.getNameAm() : "");
+                    m.put("icon",       cat.getIcon() != null ? cat.getIcon() : "");
+                    m.put("sortOrder",  cat.getSortOrder());
+                    m.put("etaMinutes", cat.getEtaMinutes());
+                    m.put("items",      items);
                     return m;
                 }).toList();
         return ResponseEntity.ok(result);
@@ -86,18 +87,33 @@ public class CategoryController {
                 "icon", cat.getIcon(), "sortOrder", cat.getSortOrder(), "items", List.of()));
     }
 
-    /** Update category name/icon */
+    /** Update category name/icon/etaMinutes */
     @PatchMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
                                     @RequestHeader("Authorization") String header,
-                                    @RequestBody Map<String, String> body) {
+                                    @RequestBody Map<String, Object> body) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         RequestCategory cat = categoryRepository.findById(id).orElse(null);
         if (cat == null || !cat.getHotelId().equals(hotelId)) return ResponseEntity.notFound().build();
-        if (body.containsKey("name") && !body.get("name").isBlank()) cat.setName(body.get("name").trim());
-        if (body.containsKey("icon")) cat.setIcon(body.get("icon"));
+        if (body.containsKey("name") && body.get("name") != null && !body.get("name").toString().isBlank())
+            cat.setName(body.get("name").toString().trim());
+        if (body.containsKey("icon") && body.get("icon") != null)
+            cat.setIcon(body.get("icon").toString());
+        if (body.containsKey("etaMinutes")) {
+            if (body.get("etaMinutes") == null) {
+                cat.setEtaMinutes(null);
+            } else {
+                try { cat.setEtaMinutes(Integer.parseInt(body.get("etaMinutes").toString())); }
+                catch (NumberFormatException ignored) {}
+            }
+        }
         categoryRepository.save(cat);
-        return ResponseEntity.ok(Map.of("id", cat.getId(), "name", cat.getName(), "icon", cat.getIcon()));
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id",         cat.getId());
+        resp.put("name",       cat.getName());
+        resp.put("icon",       cat.getIcon());
+        resp.put("etaMinutes", cat.getEtaMinutes());
+        return ResponseEntity.ok(resp);
     }
 
     /** Delete a category and all its items */

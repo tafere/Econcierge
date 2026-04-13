@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { tr, getLang, setLang, LANGUAGES, type Lang } from "@/lib/i18n";
 import { getDeviceId } from "@/lib/device";
+import { requestNotifyPermission, showNotification, playStatusSound } from "@/lib/notify";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,8 @@ interface TrackedRequest {
   submittedAt: string;
   status: "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "DECLINED";
   staffComment?: string;
+  etaMinutes?: number | null;
+  acceptedAt?: string | null;
 }
 
 interface SlotInfo {
@@ -193,6 +196,7 @@ export default function GuestPage() {
 
   // ── Load room + restore tracked requests ────────────────────────────────
   useEffect(() => {
+    requestNotifyPermission();
     // Clear any staff hotel theme immediately — the correct hotel theme will
     // be applied once we know which hotel this QR code belongs to.
     applyHotelTheme(null);
@@ -218,6 +222,7 @@ export default function GuestPage() {
               categoryName: string; categoryIcon: string;
               quantity: number; status: TrackedRequest["status"];
               staffComment: string; submittedAt: string;
+              etaMinutes?: number | null; acceptedAt?: string | null;
             }> = await res.json();
 
             // DB is authoritative for status; also keep older local entries
@@ -231,6 +236,8 @@ export default function GuestPage() {
               submittedAt:  r.submittedAt,
               status:       r.status,
               staffComment: r.staffComment || "",
+              etaMinutes:   r.etaMinutes ?? null,
+              acceptedAt:   r.acceptedAt ?? null,
             }));
 
             // Append local entries not returned by DB (older than today)
@@ -256,17 +263,23 @@ export default function GuestPage() {
 
   // ── Poll statuses every 15 s if there are non-DONE requests ─────────────
   const pollStatuses = useCallback(async () => {
-    const pending = tracked.filter(r => r.status !== "DONE");
+    const pending = tracked.filter(r => r.status !== "DONE" && r.status !== "CANCELLED" && r.status !== "DECLINED");
     if (pending.length === 0) return;
     const ids = pending.map(r => r.id).join(",");
     const res = await fetch(`/api/guest/requests/status?ids=${ids}`);
     if (!res.ok) return;
-    const updates: { id: number; status: TrackedRequest["status"]; staffComment?: string }[] = await res.json();
+    const updates: { id: number; status: TrackedRequest["status"]; staffComment?: string; etaMinutes?: number | null; acceptedAt?: string | null }[] = await res.json();
     setTracked(prev => {
       const map = Object.fromEntries(updates.map(u => [u.id, u]));
-      const next = prev.map(r => map[r.id]
-        ? { ...r, status: map[r.id].status, staffComment: map[r.id].staffComment || r.staffComment }
-        : r);
+      const next = prev.map(r => {
+        if (!map[r.id]) return r;
+        const u = map[r.id];
+        if (u.status !== r.status) {
+          playStatusSound();
+          showNotification("Request Update", `Your ${r.itemName} request is now ${u.status.replace("_", " ")}`);
+        }
+        return { ...r, status: u.status, staffComment: u.staffComment || r.staffComment, etaMinutes: u.etaMinutes ?? r.etaMinutes, acceptedAt: u.acceptedAt ?? r.acceptedAt };
+      });
       saveTracked(token, next);
       return next;
     });
@@ -587,6 +600,18 @@ export default function GuestPage() {
                             {T("no")}
                           </button>
                         </div>
+                      )}
+                      {/* ETA display */}
+                      {(req.status === "IN_PROGRESS" || req.status === "PENDING") && req.etaMinutes != null && (
+                        <p className="mt-1 text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {req.acceptedAt
+                            ? (() => {
+                                const eta = new Date(new Date(req.acceptedAt).getTime() + req.etaMinutes! * 60000);
+                                return `Expected by ${eta.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                              })()
+                            : `~${req.etaMinutes} min estimated`}
+                        </p>
                       )}
                       {/* Decline reason */}
                       {req.status === "DECLINED" && req.staffComment && (
