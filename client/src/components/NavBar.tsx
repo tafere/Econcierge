@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
+import { trRole } from "@/lib/i18n";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
   Users, Settings, LogOut, Menu, X, Bell, BarChart2,
@@ -132,7 +133,7 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
                 </div>
                 <div>
                   <p className="font-extrabold text-white text-sm leading-tight">{user?.fullName}</p>
-                  <p className="text-amber-300 text-[10px] uppercase tracking-widest font-semibold">{user?.role}</p>
+                  <p className="text-amber-300 text-[10px] uppercase tracking-widest font-semibold">{user?.role ? trRole(lang, user.role) : ""}</p>
                 </div>
               </div>
               <button onClick={() => setDrawerOpen(false)} className="text-amber-300 hover:text-white transition-colors p-1">

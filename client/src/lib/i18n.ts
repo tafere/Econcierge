@@ -118,6 +118,7 @@ const translations: Record<Lang, Record<string, string>> = {
     confirmRemove:        "Remove {name}? This cannot be undone.",
 
     // Role labels
+    roleAdmin:            "Administrator",
     roleGeneralStaff:     "General Staff",
     roleHousekeeping:     "Housekeeping",
     roleMaintenance:      "Maintenance",
@@ -349,6 +350,7 @@ const translations: Record<Lang, Record<string, string>> = {
     confirmRemove:        "{name}ን ያስወግዱ? ይህ ሊቀለበስ አይችልም።",
 
     // Role labels
+    roleAdmin:            "አስተዳዳሪ",
     roleGeneralStaff:     "አጠቃላይ ሰራተኛ",
     roleHousekeeping:     "የቤት አያያዝ",
     roleMaintenance:      "ጥገና",
@@ -464,6 +466,24 @@ const translations: Record<Lang, Record<string, string>> = {
     minutesAgo:          "ደቂቃ በፊት",
   },
 };
+
+const ROLE_KEY: Record<string, string> = {
+  ADMIN:              "roleAdmin",
+  STAFF:              "roleGeneralStaff",
+  HOUSEKEEPING:       "roleHousekeeping",
+  MAINTENANCE:        "roleMaintenance",
+  TRANSPORT:          "roleTransport",
+  RESTAURANT:         "roleRestaurant",
+  CAFE_BAR:           "roleCafeBar",
+  SPA:                "roleSpa",
+  GYM:                "roleGym",
+  MEETING_CONFERENCE: "roleMeetingConference",
+};
+
+export function trRole(lang: Lang, role: string): string {
+  const key = ROLE_KEY[role];
+  return key ? tr(lang, key) : role;
+}
 
 export function tr(lang: Lang, key: string): string {
   return translations[lang]?.[key] ?? translations.en[key] ?? key;

@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(u);
         if (!isGuestRoute) applyHotelTheme(u.primaryColor);
         fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-          .then(r => { if (r.status === 401) { localStorage.clear(); setUser(null); applyHotelTheme(null); } })
+          .then(r => { if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); setUser(null); applyHotelTheme(null); } })
           .catch(() => {})
           .finally(() => setIsLoading(false));
       } catch {
