@@ -7,6 +7,10 @@ import {
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
+import {
+  loadNotifications, addNotification, dismissNotification, clearRequestNotifications,
+  type AppNotification,
+} from "@/lib/notifications";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -529,7 +533,7 @@ export default function DashboardPage() {
   const [requests, setRequests]   = useState<ServiceRequest[]>([]);
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [newCount, setNewCount]   = useState(0);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => loadNotifications());
   const [updatingId, setUpdatingId]             = useState<number | null>(null);
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
@@ -566,18 +570,37 @@ export default function DashboardPage() {
   useEffect(() => {
     const es = new EventSource(`/api/dashboard/stream?token=${getToken()}`);
     es.addEventListener("request", (e: MessageEvent) => {
-      setNewCount(n => n + 1);
       fetchRequests();
       if (soundOn) playAlertSound();
       try {
         const data = JSON.parse(e.data ?? "{}");
         const room = data.roomNumber ?? "";
         const item = data.itemName   ?? "New request";
+        setNotifications(addNotification({ type: "new_request", requestId: data.id ?? 0, roomNumber: room, itemName: item }));
         showNotification(`New Request — Room ${room}`, item);
       } catch { showNotification("New Request", "A guest has made a new request"); }
     });
     return () => es.close();
   }, [soundOn]);
+
+  // Past-due notification timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const active = requests.filter(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
+      let updated = loadNotifications();
+      for (const r of active) {
+        const isPastDue =
+          (r.status === "PENDING" && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS) ||
+          (r.status === "IN_PROGRESS" && r.acceptedAt && r.etaMinutes != null &&
+            ageMinutes(r.acceptedAt) > r.etaMinutes);
+        if (isPastDue) {
+          updated = addNotification({ type: "past_due", requestId: r.id, roomNumber: r.roomNumber, itemName: r.itemName });
+        }
+      }
+      setNotifications(updated);
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, [requests]);
 
   const updateStatus = async (id: number, status: string, comment?: string, etaMinutes?: number) => {
     setUpdatingId(id);
@@ -590,6 +613,9 @@ export default function DashboardPage() {
     if (res.ok) {
       const updated = await res.json();
       setRequests(prev => prev.map(r => r.id === id ? updated : r));
+      if (status === "DONE" || status === "CANCELLED" || status === "DECLINED") {
+        setNotifications(clearRequestNotifications(id));
+      }
     }
     setUpdatingId(null);
   };
@@ -681,7 +707,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
 
-      <NavBar newCount={newCount} onNewCountClick={() => { setNewCount(0); setTab("ACTIVE"); fetchRequests(); }} />
+      <NavBar
+        notifications={notifications}
+        onNotificationDismiss={id => setNotifications(dismissNotification(id))}
+        onNotificationClick={() => { setTab("ACTIVE"); fetchRequests(); }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
 
