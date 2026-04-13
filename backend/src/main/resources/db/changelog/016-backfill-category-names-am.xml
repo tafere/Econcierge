@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="016-backfill-category-names-am" author="econcierge">
+        <!-- Back-fill Amharic names for all hotels' categories by English name -->
+        <sql>
+            UPDATE request_categories SET name_am = 'የቤት አያያዝ'   WHERE name = 'Housekeeping'    AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'አቅርቦቶች'      WHERE name = 'Amenities'       AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'የፀዳት እቃዎች'  WHERE name = 'Toiletries'      AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ምግብ እና መጠጥ'  WHERE name = 'Food &amp; Beverage' AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ጥገና'           WHERE name = 'Maintenance'     AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ኮንሲዬርጅ'       WHERE name = 'Concierge'       AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ትራንስፖርት'     WHERE name IN ('Transport', 'Transportation') AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ምግብ እና መጠጥ'  WHERE name = 'Restaurant'      AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ካፌ እና ባር'    WHERE name IN ('Cafe &amp; Bar', 'Cafe Bar')  AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ስፓ'            WHERE name = 'Spa'             AND (name_am IS NULL OR name_am = '');
+            UPDATE request_categories SET name_am = 'ጂም'            WHERE name = 'Gym'             AND (name_am IS NULL OR name_am = '');
+        </sql>
+
+        <!-- Back-fill Amharic names for all hotels' items by English name -->
+        <sql>
+            UPDATE request_items SET name_am = 'ክፍል ማፅዳት'              WHERE name = 'Room Cleaning'       AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'አልጋ ማስተካከል'            WHERE name = 'Turn-Down Service'   AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ክፍል ማሰናዳት'             WHERE name = 'Make Up Room'        AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ተጨማሪ ፎጣዎች'             WHERE name = 'Extra Towels'        AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ተጨማሪ ትራሶች'             WHERE name = 'Extra Pillows'       AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ተጨማሪ ብርድ ልብስ'          WHERE name = 'Extra Blanket'       AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የገላ መታጠቢያ ልብስ'         WHERE name = 'Bathrobe'            AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ተጨማሪ የመስቀያ መንጠቆዎች'    WHERE name = 'Extra Hangers'       AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የጥርስ ብሩሽ'              WHERE name = 'Toothbrush'          AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የጥርስ ሳሙና'              WHERE name = 'Toothpaste'          AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ሻምፑ'                    WHERE name = 'Shampoo'             AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ኮንዲሽነር'                 WHERE name = 'Conditioner'         AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የሰውነት ቅባት'             WHERE name = 'Body Lotion'         AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ምላጭ'                    WHERE name = 'Razor'               AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የሻወር ኮፍያ'              WHERE name = 'Shower Cap'          AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የጆሮ መጥረጊያ ኩኪ'         WHERE name = 'Cotton Swabs'        AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የክፍል አገልግሎት ምግብ ዝርዝር' WHERE name = 'Room Service Menu'   AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ተጨማሪ የታሸጉ ውሃዎች'       WHERE name = 'Extra Water Bottles' AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ቡና / ሻይ'               WHERE name = 'Coffee / Tea'        AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የበረዶ ባልዲ'              WHERE name = 'Ice Bucket'          AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ሚኒባር መሙላት'             WHERE name = 'Minibar Restock'     AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የኤሲ / የማሞቂያ ችግር'      WHERE name = 'AC / Heating Issue'  AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ቲቪ አይሰራም'              WHERE name = 'TV Not Working'      AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የቧንቧ ችግር'              WHERE name = 'Plumbing Issue'      AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የመብራት ችግር'             WHERE name = 'Lighting Issue'      AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የካዝና / የቁልፍ ችግር'     WHERE name = 'Safe / Lock Issue'   AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'ታክሲ / ትራንስፖርት'        WHERE name = 'Taxi / Transport'    AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የቱሪስት መረጃ'             WHERE name = 'Tour Information'    AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የቀስቃሽ ጥሪ'             WHERE name = 'Wake-Up Call'        AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የሻንጣ እርዳታ'            WHERE name = 'Luggage Assistance'  AND (name_am IS NULL OR name_am = '');
+            UPDATE request_items SET name_am = 'የኤርፖርት ትራንስፖርት'      WHERE name = 'Airport Shuttle'     AND (name_am IS NULL OR name_am = '');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
