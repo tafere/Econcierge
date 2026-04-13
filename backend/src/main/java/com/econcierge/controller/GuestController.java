@@ -162,7 +162,6 @@ public class GuestController {
         List<Map<String, Object>> result = requestRepository
                 .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), since)
                 .stream()
-                .stream()
                 .map(r -> {
                     Map<String, Object> m = new HashMap<>();
                     m.put("id",           r.getId());
