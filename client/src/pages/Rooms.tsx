@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
-import { Download, Plus, BedDouble, Loader2, Tv2, QrCode } from "lucide-react";
+import { Download, Plus, BedDouble, Loader2, Tv2, QrCode, Printer } from "lucide-react";
 import QRCode from "qrcode";
 import NavBar from "@/components/NavBar";
 
@@ -63,6 +63,53 @@ export default function RoomsPage() {
     a.href = dataUrl;
     a.download = `room-${room.roomNumber}-qr.png`;
     a.click();
+  };
+
+  const printQRCard = async (room: Room) => {
+    const url = `${window.location.origin}/r/${room.qrToken}`;
+    const dataUrl = await QRCode.toDataURL(url, {
+      width: 400, margin: 2,
+      color: { dark: "#451a03", light: "#fffbf5" },
+      errorCorrectionLevel: "H",
+    });
+    const hotelName = user?.hotelName ?? "Hotel";
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(`<!DOCTYPE html><html><head><title>QR Card - Room ${room.roomNumber}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Inter, sans-serif; background: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .card { width: 320px; border: 2px solid #92400e; border-radius: 16px; overflow: hidden; text-align: center; }
+  .header { background: #92400e; color: #fff; padding: 20px 16px 14px; }
+  .hotel { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; }
+  .tagline { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #fcd34d; margin-top: 2px; }
+  .body { padding: 24px 24px 20px; background: #fffbf5; }
+  .room-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #92400e; margin-bottom: 4px; }
+  .room-number { font-size: 36px; font-weight: 800; color: #1c1917; line-height: 1; }
+  .floor { font-size: 12px; color: #78716c; margin-top: 4px; }
+  img { width: 200px; height: 200px; margin: 20px auto 0; display: block; }
+  .cta { font-size: 12px; font-weight: 600; color: #57534e; margin-top: 14px; }
+  .footer { background: #fef3c7; padding: 10px; font-size: 10px; color: #92400e; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  @media print { body { min-height: unset; } }
+</style></head><body>
+<div class="card">
+  <div class="header">
+    <div class="hotel">${hotelName}</div>
+    <div class="tagline">Econcierge</div>
+  </div>
+  <div class="body">
+    <div class="room-label">Room</div>
+    <div class="room-number">${room.roomNumber}</div>
+    ${room.floor ? `<div class="floor">Floor ${room.floor}</div>` : ""}
+    <img src="${dataUrl}" alt="QR Code" />
+    <div class="cta">Scan to request services</div>
+  </div>
+  <div class="footer">Scan with your phone camera</div>
+</div>
+<script>window.onload = () => window.print();</script>
+</body></html>`);
+    win.document.close();
   };
 
   const toggleQrPreview = async (room: Room) => {
@@ -186,6 +233,15 @@ export default function RoomsPage() {
                     title={t("downloadQr")}
                   >
                     <Download className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => printQRCard(room)}
+                    className="flex items-center justify-center gap-1 text-xs font-semibold
+                      text-stone-500 border border-stone-200 rounded px-3 py-2
+                      hover:border-brand-700 hover:text-brand-700 transition-colors"
+                    title="Print QR card"
+                  >
+                    <Printer className="h-3.5 w-3.5" />
                   </button>
                   <a
                     href={`/tv/${room.qrToken}`}
