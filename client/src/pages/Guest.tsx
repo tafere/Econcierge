@@ -6,6 +6,7 @@ import {
   Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send,
 } from "lucide-react";
 import { tr, getLang, setLang, type Lang } from "@/lib/i18n";
+import { getDeviceId } from "@/lib/device";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -206,10 +207,11 @@ export default function GuestPage() {
         const local = loadTracked(token);
         let resolved: TrackedRequest[] = local;
 
-        // Fetch today's requests from DB — works even after fresh QR scan
-        // where localStorage is empty (e.g. mobile camera opens new browser context)
+        // Fetch today's requests from DB — filtered by deviceId so we only
+        // see THIS phone's requests even if multiple guests share a room
+        const deviceId = getDeviceId();
         try {
-          const res = await fetch(`/api/guest/room/${token}/requests`);
+          const res = await fetch(`/api/guest/room/${token}/requests?deviceId=${encodeURIComponent(deviceId)}`);
           if (res.ok) {
             const dbReqs: Array<{
               id: number; itemName: string; itemNameAm: string;
@@ -311,6 +313,7 @@ export default function GuestPage() {
             itemId:   cartItem.itemId,
             quantity: cartItem.quantity,
             notes:    cartItem.notes || null,
+            deviceId: getDeviceId(),
           }),
         });
         if (res.ok) {

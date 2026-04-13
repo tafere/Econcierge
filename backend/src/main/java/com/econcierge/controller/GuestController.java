@@ -129,12 +129,15 @@ public class GuestController {
         if (room == null || !room.isEnabled())
             return ResponseEntity.badRequest().body(Map.of("error", "Room not found"));
 
+        String deviceId = body.get("deviceId") != null ? body.get("deviceId").toString() : null;
+
         ServiceRequest req = new ServiceRequest();
         req.setHotelId(room.getHotelId());
         req.setRoomId(roomId);
         req.setItemId(itemId);
         req.setNotes(notes);
         req.setQuantity(Math.max(1, quantity));
+        req.setDeviceId(deviceId);
         requestRepository.save(req);
 
         sseController.broadcast(room.getHotelId(), req.getId(), room.getRoomNumber(), itemId, req.getQuantity(), notes);
@@ -146,15 +149,20 @@ public class GuestController {
         ));
     }
 
-    /** Today's requests for this room — used to restore tracker after a fresh QR scan */
+    /** Today's requests for this device — used to restore tracker after a fresh QR scan */
     @GetMapping("/room/{token}/requests")
-    public ResponseEntity<?> getTodayRequests(@PathVariable String token) {
+    public ResponseEntity<?> getTodayRequests(@PathVariable String token,
+                                              @RequestParam(required = false) String deviceId) {
         Room room = roomRepository.findByQrToken(token).orElse(null);
         if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
 
-        List<Map<String, Object>> result = requestRepository
-                .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(
-                        room.getId(), LocalDate.now().atStartOfDay())
+        // If deviceId is provided, return only that device's requests (correct person)
+        // Otherwise fall back to all room requests (old behaviour, no deviceId stored yet)
+        var since = LocalDate.now().atStartOfDay();
+        List<Map<String, Object>> result = (deviceId != null && !deviceId.isBlank()
+                ? requestRepository.findByRoomIdAndDeviceIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), deviceId, since)
+                : requestRepository.findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), since)
+        )
                 .stream()
                 .map(r -> {
                     Map<String, Object> m = new HashMap<>();

@@ -19,5 +19,6 @@
     <include file="classpath:db/changelog/012-item-name-am.xml"/>
     <include file="classpath:db/changelog/013-category-name-am.xml"/>
     <include file="classpath:db/changelog/014-fix-housekeeping-items.xml"/>
+    <include file="classpath:db/changelog/015-device-id.xml"/>
 
 </databaseChangeLog>

@@ -37,6 +37,9 @@ public class ServiceRequest {
     @Column(name = "staff_comment", length = 500)
     private String staffComment;
 
+    @Column(name = "device_id", length = 64)
+    private String deviceId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -72,6 +75,8 @@ public class ServiceRequest {
     public void setAssignedTo(Long v)           { this.assignedTo = v; }
     public String getStaffComment()             { return staffComment; }
     public void setStaffComment(String v)       { this.staffComment = v; }
+    public String getDeviceId()                 { return deviceId; }
+    public void setDeviceId(String v)           { this.deviceId = v; }
     public LocalDateTime getCreatedAt()         { return createdAt; }
     public LocalDateTime getUpdatedAt()         { return updatedAt; }
     public LocalDateTime getAcceptedAt()        { return acceptedAt; }
