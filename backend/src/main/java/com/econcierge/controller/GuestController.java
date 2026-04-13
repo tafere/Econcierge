@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -156,11 +156,13 @@ public class GuestController {
         Room room = roomRepository.findByQrToken(token).orElse(null);
         if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
 
-        // If deviceId is provided, return only that device's requests (correct person)
-        // Otherwise fall back to all room requests (old behaviour, no deviceId stored yet)
-        var since = LocalDate.now().atStartOfDay();
+        // 24-hour window — handles cross-midnight sessions and timezone offsets
+        var since = LocalDateTime.now().minusHours(24);
+
+        // If deviceId is provided: show this device's requests + legacy rows with no device_id
+        // If no deviceId: show all room requests (guest cleared data / old session)
         List<Map<String, Object>> result = (deviceId != null && !deviceId.isBlank()
-                ? requestRepository.findByRoomIdAndDeviceIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), deviceId, since)
+                ? requestRepository.findByRoomForDevice(room.getId(), deviceId, since)
                 : requestRepository.findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), since)
         )
                 .stream()
