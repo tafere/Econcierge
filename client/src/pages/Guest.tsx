@@ -207,11 +207,10 @@ export default function GuestPage() {
         const local = loadTracked(token);
         let resolved: TrackedRequest[] = local;
 
-        // Fetch today's requests from DB — filtered by deviceId so we only
-        // see THIS phone's requests even if multiple guests share a room
-        const deviceId = getDeviceId();
+        // Fetch last-24h requests for this room from DB.
+        // QR token is the room's shared secret — all requests here belong to this guest.
         try {
-          const res = await fetch(`/api/guest/room/${token}/requests?deviceId=${encodeURIComponent(deviceId)}`);
+          const res = await fetch(`/api/guest/room/${token}/requests`);
           if (res.ok) {
             const dbReqs: Array<{
               id: number; itemName: string; itemNameAm: string;

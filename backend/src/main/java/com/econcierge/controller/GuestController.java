@@ -149,22 +149,19 @@ public class GuestController {
         ));
     }
 
-    /** Today's requests for this device — used to restore tracker after a fresh QR scan */
+    /** Recent requests for this room — used to restore tracker after a fresh QR scan.
+     *  The QR token is the room's shared secret; all requests for the room belong to the guest. */
     @GetMapping("/room/{token}/requests")
-    public ResponseEntity<?> getTodayRequests(@PathVariable String token,
-                                              @RequestParam(required = false) String deviceId) {
+    public ResponseEntity<?> getRecentRequests(@PathVariable String token) {
         Room room = roomRepository.findByQrToken(token).orElse(null);
         if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
 
-        // 24-hour window — handles cross-midnight sessions and timezone offsets
+        // 24-hour window handles cross-midnight sessions and timezone offsets
         var since = LocalDateTime.now().minusHours(24);
 
-        // If deviceId is provided: show this device's requests + legacy rows with no device_id
-        // If no deviceId: show all room requests (guest cleared data / old session)
-        List<Map<String, Object>> result = (deviceId != null && !deviceId.isBlank()
-                ? requestRepository.findByRoomForDevice(room.getId(), deviceId, since)
-                : requestRepository.findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), since)
-        )
+        List<Map<String, Object>> result = requestRepository
+                .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), since)
+                .stream()
                 .stream()
                 .map(r -> {
                     Map<String, Object> m = new HashMap<>();
