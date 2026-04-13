@@ -264,6 +264,7 @@ function RequestTable({
   onDecline,
   overdueIds = new Set(),
   escalatedIds = new Set(),
+  highlightedId = null,
 }: {
   requests: ServiceRequest[];
   updatingId: number | null;
@@ -272,6 +273,7 @@ function RequestTable({
   onDecline: (req: ServiceRequest) => void;
   overdueIds?:   Set<number>;
   escalatedIds?: Set<number>;
+  highlightedId?: number | null;
 }) {
   const { t, lang } = useLang();
   if (requests.length === 0) return null;
@@ -297,14 +299,17 @@ function RequestTable({
         </thead>
         <tbody className="divide-y divide-stone-100">
           {requests.map(req => {
-            const isOverdue   = overdueIds.has(req.id);
-            const isEscalated = escalatedIds.has(req.id);
-            const dimmed      = req.status === "DONE" || req.status === "CANCELLED" || req.status === "DECLINED";
+            const isOverdue     = overdueIds.has(req.id);
+            const isEscalated   = escalatedIds.has(req.id);
+            const isHighlighted = req.id === highlightedId;
+            const dimmed        = req.status === "DONE" || req.status === "CANCELLED" || req.status === "DECLINED";
 
             return (
               <tr key={req.id}
-                className={`border-l-4 transition-colors
-                  ${isEscalated  ? "border-l-red-400    bg-red-50/30    hover:bg-red-50/50"    :
+                id={`request-${req.id}`}
+                className={`border-l-4 transition-all duration-500
+                  ${isHighlighted ? "ring-2 ring-inset ring-brand-400 bg-amber-50/60" :
+                    isEscalated  ? "border-l-red-400    bg-red-50/30    hover:bg-red-50/50"    :
                     isOverdue    ? "border-l-orange-400 bg-orange-50/30 hover:bg-orange-50/50" :
                     req.status === "PENDING"     ? "border-l-amber-300 bg-amber-50/20 hover:bg-amber-50/40" :
                     req.status === "IN_PROGRESS" ? "border-l-blue-400  bg-blue-50/20  hover:bg-blue-50/40"  :
@@ -564,6 +569,7 @@ export default function DashboardPage() {
   const [accepting, setAccepting]   = useState<ServiceRequest | null>(null);
   const [hotelEta, setHotelEta]     = useState(20);
   const [soundOn, setSoundOn]       = useState(() => localStorage.getItem("eco_sound") !== "off");
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
   const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
 
@@ -714,7 +720,14 @@ export default function DashboardPage() {
           saveDismissed(hotelId, next);
           return next;
         })}
-        onNotificationClick={() => { setTab("ACTIVE"); fetchRequests(); }}
+        onNotificationClick={(requestId) => {
+          setTab("ACTIVE");
+          setHighlightedId(requestId);
+          setTimeout(() => {
+            document.getElementById(`request-${requestId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 150);
+          setTimeout(() => setHighlightedId(null), 3000);
+        }}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
@@ -797,6 +810,7 @@ export default function DashboardPage() {
                         onDecline={setDeclining}
                         overdueIds={dayOverdue}
                         escalatedIds={dayEscalated}
+                        highlightedId={highlightedId}
                       />
                     </div>
                   )}
