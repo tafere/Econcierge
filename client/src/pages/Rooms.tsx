@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
-import { Download, Plus, BedDouble, Loader2, Tv2, QrCode, Printer, PrinterCheck } from "lucide-react";
+import { Download, Plus, BedDouble, Loader2, Tv2, QrCode, Printer } from "lucide-react";
 import QRCode from "qrcode";
 import NavBar from "@/components/NavBar";
 
@@ -199,7 +199,7 @@ export default function RoomsPage() {
                 className="flex items-center gap-1.5 bg-white border border-brand-700 text-brand-700
                   text-sm font-semibold px-4 py-2 rounded hover:bg-brand-50 transition-colors"
               >
-                <PrinterCheck className="h-4 w-4" /> Print All QR Cards
+                <Printer className="h-4 w-4" /> Print All QR Cards
               </button>
             )}
             {user?.role === "ADMIN" && (
