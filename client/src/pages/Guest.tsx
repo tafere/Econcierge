@@ -3,9 +3,9 @@ import { useParams } from "wouter";
 import { applyHotelTheme } from "@/lib/theme";
 import {
   Loader2, ConciergeBell, ChevronRight, ChevronLeft,
-  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send,
+  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages,
 } from "lucide-react";
-import { tr, getLang, setLang, type Lang } from "@/lib/i18n";
+import { tr, getLang, setLang, LANGUAGES, type Lang } from "@/lib/i18n";
 import { getDeviceId } from "@/lib/device";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -183,8 +183,9 @@ export default function GuestPage() {
   const [booking, setBooking]         = useState(false);
 
   // ── Language toggle ──────────────────────────────────────────────────────
-  const toggleLang = () => {
-    const next: Lang = lang === "en" ? "am" : "en";
+  const cycleLanguage = () => {
+    const idx = LANGUAGES.findIndex(l => l.code === lang);
+    const next = LANGUAGES[(idx + 1) % LANGUAGES.length].code;
     setLang(next);
     setLangState(next);
   };
@@ -457,11 +458,12 @@ export default function GuestPage() {
             </div>
           </div>
           <button
-            onClick={toggleLang}
+            onClick={cycleLanguage}
             className="text-xs font-bold bg-brand-800 hover:bg-brand-900 transition-colors
-              rounded px-3 py-1.5 text-amber-100 shrink-0 ml-3"
+              rounded px-3 py-1.5 text-amber-100 shrink-0 ml-3 flex items-center gap-1"
           >
-            {lang === "en" ? "አማርኛ" : "EN"}
+            <Languages className="h-3.5 w-3.5" />
+            {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
           </button>
         </div>
       </div>

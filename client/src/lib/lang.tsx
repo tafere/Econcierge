@@ -4,7 +4,7 @@ import { getLang, setLang, tr, type Lang } from "./i18n";
 interface LangContextType {
   lang: Lang;
   t: (key: string) => string;
-  toggleLang: () => void;
+  setLanguage: (l: Lang) => void;
 }
 
 const LangContext = createContext<LangContextType | null>(null);
@@ -12,15 +12,14 @@ const LangContext = createContext<LangContextType | null>(null);
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(getLang());
 
-  const toggleLang = () => {
-    const next: Lang = lang === "en" ? "am" : "en";
-    setLang(next);
-    setLangState(next);
+  const setLanguage = (l: Lang) => {
+    setLang(l);
+    setLangState(l);
   };
 
   const t = (key: string) => tr(lang, key);
 
-  return <LangContext.Provider value={{ lang, t, toggleLang }}>{children}</LangContext.Provider>;
+  return <LangContext.Provider value={{ lang, t, setLanguage }}>{children}</LangContext.Provider>;
 }
 
 export function useLang() {

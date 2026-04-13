@@ -1,4 +1,11 @@
-export type Lang = "en" | "am";
+export type Lang = "en" | "am"; // add more codes here when translations are ready
+
+/** All supported languages — add a new entry + translation block to extend */
+export const LANGUAGES: { code: Lang; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "am", label: "አማርኛ" },
+  // { code: "fr", label: "Français" },  ← uncomment when French translations are added
+];
 
 const translations: Record<Lang, Record<string, string>> = {
   en: {

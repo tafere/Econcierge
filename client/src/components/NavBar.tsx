@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
-import { trRole } from "@/lib/i18n";
+import { trRole, LANGUAGES, type Lang } from "@/lib/i18n";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
-  Users, Settings, LogOut, Menu, X, Bell, BarChart2,
+  Users, Settings, LogOut, Menu, X, Bell, BarChart2, Languages,
 } from "lucide-react";
 
 interface NavBarProps {
@@ -15,9 +15,19 @@ interface NavBarProps {
 
 export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
   const { user, logout } = useAuth();
-  const { lang, t, toggleLang } = useLang();
+  const { lang, t, setLanguage } = useLang();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const isAdmin = user?.role === "ADMIN";
   const canSeeRooms = user?.role === "ADMIN" || user?.role === "STAFF";
@@ -91,12 +101,26 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
                   </button>
                 </>
               )}
-              {/* Language toggle */}
-              <button onClick={toggleLang}
-                className="text-xs font-bold text-amber-200 hover:text-white hover:bg-white/10
-                  transition-colors px-2 py-1 rounded border border-amber-300/40">
-                {lang === "en" ? "አማርኛ" : "EN"}
-              </button>
+              {/* Language picker */}
+              <div className="relative" ref={langRef}>
+                <button onClick={() => setLangOpen(v => !v)}
+                  className="flex items-center gap-1 text-xs font-bold text-amber-200 hover:text-white
+                    hover:bg-white/10 transition-colors px-2 py-1 rounded border border-amber-300/40">
+                  <Languages className="h-3.5 w-3.5" />
+                  {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
+                </button>
+                {langOpen && (
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded shadow-lg border border-stone-200 z-50 min-w-[120px]">
+                    {LANGUAGES.map(l => (
+                      <button key={l.code} onClick={() => { setLanguage(l.code as Lang); setLangOpen(false); }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors
+                          ${lang === l.code ? "font-bold text-brand-700" : "text-stone-700"}`}>
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button onClick={logout}
                 className="flex items-center gap-1.5 text-xs font-semibold text-amber-200
                   hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded">
@@ -167,12 +191,17 @@ export default function NavBar({ newCount = 0, onNewCountClick }: NavBarProps) {
                   </button>
                 </>
               )}
-              {/* Language toggle */}
-              <button onClick={toggleLang}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                  text-stone-700 hover:bg-brand-100 hover:text-brand-800 transition-colors text-left">
-                {lang === "en" ? "🇪🇹 አማርኛ" : "🇬🇧 English"}
-              </button>
+              {/* Language picker */}
+              <div className="px-1 pt-1">
+                <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider px-3 pb-1">Language</p>
+                {LANGUAGES.map(l => (
+                  <button key={l.code} onClick={() => setLanguage(l.code as Lang)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded text-sm font-semibold transition-colors text-left
+                      ${lang === l.code ? "bg-brand-700 text-white" : "text-stone-700 hover:bg-brand-100 hover:text-brand-800"}`}>
+                    <Languages className="h-4 w-4 shrink-0" /> {l.label}
+                  </button>
+                ))}
+              </div>
             </nav>
 
             {/* Sign out */}
