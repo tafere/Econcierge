@@ -6,6 +6,7 @@ import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -143,6 +144,43 @@ public class GuestController {
                 "status",  req.getStatus().name(),
                 "message", "Your request has been received. Our team will assist you shortly."
         ));
+    }
+
+    /** Today's requests for this room — used to restore tracker after a fresh QR scan */
+    @GetMapping("/room/{token}/requests")
+    public ResponseEntity<?> getTodayRequests(@PathVariable String token) {
+        Room room = roomRepository.findByQrToken(token).orElse(null);
+        if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
+
+        List<Map<String, Object>> result = requestRepository
+                .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(
+                        room.getId(), LocalDate.now().atStartOfDay())
+                .stream()
+                .map(r -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id",           r.getId());
+                    m.put("status",       r.getStatus().name());
+                    m.put("quantity",     r.getQuantity());
+                    m.put("notes",        r.getNotes() != null ? r.getNotes() : "");
+                    m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
+                    m.put("submittedAt",  r.getCreatedAt().toString());
+
+                    var item = itemRepository.findById(r.getItemId()).orElse(null);
+                    m.put("itemName",   item != null ? item.getName() : "");
+                    m.put("itemNameAm", item != null && item.getNameAm() != null ? item.getNameAm() : "");
+
+                    if (item != null) {
+                        var cat = categoryRepository.findById(item.getCategoryId()).orElse(null);
+                        m.put("categoryName", cat != null ? cat.getName() : "");
+                        m.put("categoryIcon", cat != null && cat.getIcon() != null ? cat.getIcon() : "star");
+                    } else {
+                        m.put("categoryName", "");
+                        m.put("categoryIcon", "star");
+                    }
+                    return m;
+                }).toList();
+
+        return ResponseEntity.ok(result);
     }
 
     /**

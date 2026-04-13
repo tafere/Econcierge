@@ -197,11 +197,52 @@ export default function GuestPage() {
 
     fetch(`/api/guest/room/${token}`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then((data: RoomInfo) => {
+      .then(async (data: RoomInfo) => {
         setRoom(data);
         applyHotelTheme(data.primaryColor);
-        setTracked(loadTracked(token));
         setBookings(loadBookings(token));
+
+        // Load from localStorage first (has cached status updates)
+        const local = loadTracked(token);
+        let resolved: TrackedRequest[] = local;
+
+        // Fetch today's requests from DB — works even after fresh QR scan
+        // where localStorage is empty (e.g. mobile camera opens new browser context)
+        try {
+          const res = await fetch(`/api/guest/room/${token}/requests`);
+          if (res.ok) {
+            const dbReqs: Array<{
+              id: number; itemName: string; itemNameAm: string;
+              categoryName: string; categoryIcon: string;
+              quantity: number; status: TrackedRequest["status"];
+              staffComment: string; submittedAt: string;
+            }> = await res.json();
+
+            // DB is authoritative for status; also keep older local entries
+            const dbMap = new Map(dbReqs.map(r => [r.id, r]));
+
+            const merged: TrackedRequest[] = dbReqs.map(r => ({
+              id:           r.id,
+              itemName:     r.itemName,
+              categoryName: r.categoryName,
+              quantity:     r.quantity,
+              submittedAt:  r.submittedAt,
+              status:       r.status,
+              staffComment: r.staffComment || "",
+            }));
+
+            // Append local entries not returned by DB (older than today)
+            local.forEach(r => { if (!dbMap.has(r.id)) merged.push(r); });
+
+            merged.sort((a, b) =>
+              new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+
+            saveTracked(token, merged);
+            resolved = merged;
+          }
+        } catch { /* network error — use localStorage only */ }
+
+        setTracked(resolved);
       })
       .catch(() => setError(T("invalidQr")))
       .finally(() => setLoading(false));
