@@ -95,8 +95,8 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                 )}
               </button>
               {panelOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl
-                  border border-stone-200 z-50 overflow-hidden">
+                <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto top-16 sm:top-full sm:mt-2
+                  sm:right-0 sm:w-80 bg-white rounded-lg shadow-xl border border-stone-200 z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
                     <p className="text-sm font-bold text-stone-800">Notifications</p>
                     {unreadCount > 0 && (

@@ -1,5 +1,3 @@
-const KEY = "eco_notifications";
-
 export type NotificationType = "new_request" | "past_due";
 
 export interface AppNotification {
@@ -12,21 +10,22 @@ export interface AppNotification {
   read: boolean;
 }
 
-export function loadNotifications(): AppNotification[] {
+const key = (hotelId: number) => `eco_notifications_${hotelId}`;
+
+export function loadNotifications(hotelId: number): AppNotification[] {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    return JSON.parse(localStorage.getItem(key(hotelId)) ?? "[]");
   } catch {
     return [];
   }
 }
 
-function save(list: AppNotification[]) {
-  localStorage.setItem(KEY, JSON.stringify(list.slice(0, 100)));
+function save(hotelId: number, list: AppNotification[]) {
+  localStorage.setItem(key(hotelId), JSON.stringify(list.slice(0, 100)));
 }
 
-export function addNotification(n: Omit<AppNotification, "id" | "read" | "createdAt">): AppNotification[] {
-  const list = loadNotifications();
-  // Avoid duplicate past_due for the same request
+export function addNotification(hotelId: number, n: Omit<AppNotification, "id" | "read" | "createdAt">): AppNotification[] {
+  const list = loadNotifications(hotelId);
   if (n.type === "past_due" && list.some(x => x.type === "past_due" && x.requestId === n.requestId)) {
     return list;
   }
@@ -37,18 +36,18 @@ export function addNotification(n: Omit<AppNotification, "id" | "read" | "create
     read: false,
   };
   const updated = [entry, ...list];
-  save(updated);
+  save(hotelId, updated);
   return updated;
 }
 
-export function dismissNotification(id: string): AppNotification[] {
-  const updated = loadNotifications().filter(n => n.id !== id);
-  save(updated);
+export function dismissNotification(hotelId: number, id: string): AppNotification[] {
+  const updated = loadNotifications(hotelId).filter(n => n.id !== id);
+  save(hotelId, updated);
   return updated;
 }
 
-export function clearRequestNotifications(requestId: number): AppNotification[] {
-  const updated = loadNotifications().filter(n => n.requestId !== requestId);
-  save(updated);
+export function clearRequestNotifications(hotelId: number, requestId: number): AppNotification[] {
+  const updated = loadNotifications(hotelId).filter(n => n.requestId !== requestId);
+  save(hotelId, updated);
   return updated;
 }
