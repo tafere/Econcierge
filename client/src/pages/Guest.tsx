@@ -464,7 +464,7 @@ export default function GuestPage() {
         <div className="fixed inset-0 -z-10">
           <img src={room!.heroImageUrl} alt="" className="w-full h-full object-cover object-center" />
           {/* Gradient: darker at top for header readability, opens up in middle to show the hotel */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/20 to-black/65" />
         </div>
       )}
 
@@ -673,7 +673,7 @@ export default function GuestPage() {
                       onClick={() => setSelectedCat(cat)}
                       className={`rounded p-3.5 text-left transition-all
                         ${hasHero
-                          ? "bg-black/40 border border-white/10 hover:bg-black/30 hover:shadow-lg"
+                          ? "bg-black/50 border border-white/10 hover:bg-black/40 hover:shadow-lg"
                           : "glass hover:border-brand-700 hover:shadow-md"}`}
                     >
                       <p className="text-xl mb-1.5">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
