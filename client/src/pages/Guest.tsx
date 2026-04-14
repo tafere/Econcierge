@@ -462,8 +462,9 @@ export default function GuestPage() {
       {/* Full-screen hotel background image */}
       {hasHero && (
         <div className="fixed inset-0 -z-10">
-          <img src={room!.heroImageUrl} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/55" />
+          <img src={room!.heroImageUrl} alt="" className="w-full h-full object-cover object-center" />
+          {/* Gradient: darker at top for header readability, opens up in middle to show the hotel */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/60" />
         </div>
       )}
 
