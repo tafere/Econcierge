@@ -603,15 +603,17 @@ function BookingSection({
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
                     </div>
                   ) : b.status === "PENDING" ? (
-                    <div className="grid grid-cols-2 divide-x divide-stone-200/50 dark:divide-zinc-700/40">
+                    <div className="flex gap-2 p-2">
                       <button onClick={() => onUpdateStatus(b.id, "CONFIRMED", b)}
-                        className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                          text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
+                          text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600 rounded
+                          hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                         <Check className="h-3.5 w-3.5" /> {t("confirmBtn")}
                       </button>
                       <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
-                        className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                          text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
+                          text-red-500 border border-red-200 dark:border-red-800 rounded
+                          hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         <X className="h-3.5 w-3.5" /> {t("cancelBtn")}
                       </button>
                     </div>
