@@ -66,3 +66,22 @@
 ::-webkit-scrollbar-track      { background: transparent; }
 ::-webkit-scrollbar-thumb      { background: hsl(215 20% 80%); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover{ background: hsl(215 20% 65%); }
+
+/* ── Dark mode tokens ───────────────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+  --glass-bg: rgba(30, 30, 35, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+html.dark body {
+  background-color: hsl(220 15% 9%);
+  background-image:
+    radial-gradient(ellipse 110% 70% at 0% 0%,   hsl(30 40% 12% / 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 80%  60% at 100% 100%, hsl(25 30% 10% / 0.4) 0%, transparent 60%);
+  color: rgb(226 232 240);
+}
+
+html.dark ::-webkit-scrollbar-thumb { background: hsl(215 20% 30%); }
+html.dark ::-webkit-scrollbar-thumb:hover { background: hsl(215 20% 40%); }

@@ -31,7 +31,7 @@ export default function LoginPage() {
       {/* Language toggle */}
       <div className="absolute top-4 right-4">
         <button onClick={toggleLang}
-          className="text-xs font-bold text-stone-400 hover:text-brand-700 border border-stone-200
+          className="text-xs font-bold text-stone-400 dark:text-zinc-500 hover:text-brand-700 border border-stone-200 dark:border-zinc-700
             rounded px-3 py-1.5 transition-colors">
           {lang === "en" ? "አማርኛ" : "EN"}
         </button>
@@ -43,27 +43,27 @@ export default function LoginPage() {
           shadow-lg shadow-brand-200">
           <ConciergeBell className="h-8 w-8 text-white" />
         </div>
-        <h1 className="text-3xl font-black text-slate-900 leading-tight">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-zinc-100 leading-tight">
           {t("loginTitle")}
         </h1>
         <p className="text-2xl font-black text-brand-600 leading-tight">{t("loginSubtitle")}</p>
-        <p className="text-slate-400 text-sm mt-2 tracking-wide">{t("staffPortal")}</p>
+        <p className="text-slate-400 dark:text-zinc-500 text-sm mt-2 tracking-wide">{t("staffPortal")}</p>
       </div>
 
       {/* Card */}
       <div className="w-full max-w-lg glass rounded overflow-hidden">
 
         {/* Card header */}
-        <div className="px-8 pt-8 pb-6 border-b border-slate-100">
-          <h2 className="text-xl font-bold text-slate-900">{t("signIn")}</h2>
-          <p className="text-slate-400 text-sm mt-1">{t("enterCredentials")}</p>
+        <div className="px-8 pt-8 pb-6 border-b border-slate-100 dark:border-zinc-700/50">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-zinc-100">{t("signIn")}</h2>
+          <p className="text-slate-400 dark:text-zinc-500 text-sm mt-1">{t("enterCredentials")}</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-8 py-7 space-y-5">
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-2">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400 block mb-2">
               {t("usernameLabel")}
             </label>
             <input
@@ -73,14 +73,14 @@ export default function LoginPage() {
               required
               autoComplete="username"
               placeholder={t("enterUsername")}
-              className="w-full h-12 bg-white border border-slate-200 rounded px-4 text-sm text-slate-900
+              className="w-full h-12 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded px-4 text-sm text-slate-900 dark:text-zinc-100
                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
                 focus:border-brand-500 transition-colors"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-2">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400 block mb-2">
               {t("passwordLabel")}
             </label>
             <div className="relative">
@@ -91,14 +91,14 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className="w-full h-12 bg-white border border-slate-200 rounded px-4 pr-11 text-sm text-slate-900
+                className="w-full h-12 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded px-4 pr-11 text-sm text-slate-900 dark:text-zinc-100
                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
                   focus:border-brand-500 transition-colors"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300
                   transition-colors"
               >
                 {showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -107,7 +107,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-4 py-3">
+            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-md px-4 py-3">
               {error}
             </p>
           )}
@@ -126,7 +126,7 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <p className="text-xs text-slate-400 mt-3">{t("staffAccessOnly")}</p>
+      <p className="text-xs text-slate-400 dark:text-zinc-500 mt-3">{t("staffAccessOnly")}</p>
     </div>
   );
 }

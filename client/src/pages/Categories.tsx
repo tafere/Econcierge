@@ -181,7 +181,7 @@ export default function CategoriesPage() {
       ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c));
   };
 
-  const inputCls = "w-full h-9 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700";
+  const inputCls = "w-full h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700";
 
   return (
     <div className="min-h-screen">
@@ -190,8 +190,8 @@ export default function CategoriesPage() {
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">{t("categoriesTitle")}</h1>
-            <p className="text-sm text-stone-400">{t("categoriesSubtitle")}</p>
+            <h1 className="text-xl font-bold text-stone-900 dark:text-zinc-100">{t("categoriesTitle")}</h1>
+            <p className="text-sm text-stone-400 dark:text-zinc-500">{t("categoriesSubtitle")}</p>
           </div>
           <button onClick={() => { setShowAdd(v => !v); setError(null); }}
             className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
@@ -203,7 +203,7 @@ export default function CategoriesPage() {
         {/* Add category form */}
         {showAdd && (
           <form onSubmit={addCategory} className="glass rounded p-4 space-y-3">
-            <p className="text-sm font-semibold text-stone-700">{t("newCategory")}</p>
+            <p className="text-sm font-semibold text-stone-700 dark:text-zinc-300">{t("newCategory")}</p>
             <div className="flex gap-2">
               <input value={newName} onChange={e => setNewName(e.target.value)}
                 required placeholder={t("categoryName")} className={`${inputCls} flex-1`} />
@@ -216,12 +216,12 @@ export default function CategoriesPage() {
                 className="text-stone-400 hover:text-stone-700 px-2"><X className="h-4 w-4" /></button>
             </div>
             <div>
-              <p className="text-xs text-stone-400 mb-2">{t("pickIcon")}</p>
+              <p className="text-xs text-stone-400 dark:text-zinc-500 mb-2">{t("pickIcon")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {ICONS.map(ic => (
                   <button key={ic.value} type="button" onClick={() => setNewIcon(ic.value)}
                     className={`text-lg px-2 py-1 rounded border transition-colors
-                      ${newIcon === ic.value ? "border-brand-700 bg-brand-50" : "border-stone-200 hover:border-brand-400"}`}
+                      ${newIcon === ic.value ? "border-brand-700 bg-brand-50 dark:bg-amber-900/20" : "border-stone-200 dark:border-zinc-600 hover:border-brand-400"}`}
                     title={t(ic.labelKey)}>{ic.emoji}</button>
                 ))}
               </div>
@@ -252,7 +252,7 @@ export default function CategoriesPage() {
                       {ICONS.map(ic => (
                         <button key={ic.value} type="button" onClick={() => setEditCatIcon(ic.value)}
                           className={`text-base px-1.5 py-0.5 rounded border transition-colors
-                            ${editCatIcon === ic.value ? "border-brand-700 bg-brand-50" : "border-stone-200 hover:border-stone-400"}`}
+                            ${editCatIcon === ic.value ? "border-brand-700 bg-brand-50 dark:bg-amber-900/20" : "border-stone-200 dark:border-zinc-600 hover:border-stone-400"}`}
                           title={t(ic.labelKey)}>{ic.emoji}</button>
                       ))}
                     </div>
@@ -266,20 +266,20 @@ export default function CategoriesPage() {
                         className={`${inputCls} flex-1 min-w-0`} autoFocus
                         onKeyDown={e => { if (e.key === "Enter") saveEditCat(cat.id); if (e.key === "Escape") setEditCatId(null); }} />
                       <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs text-stone-400">ETA</span>
+                        <span className="text-xs text-stone-400 dark:text-zinc-500">ETA</span>
                         <input type="number" min={1} max={480} placeholder="min"
                           value={editCatEta}
                           onChange={e => setEditCatEta(e.target.value)}
-                          className="w-16 h-9 border border-stone-200 bg-white rounded px-2 text-sm
+                          className="w-16 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
                             text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
                       </div>
                     </div>
                   ) : (
                     <button onClick={() => toggleExpand(cat.id)}
-                      className="flex-1 text-left font-semibold text-stone-900 text-sm">{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</button>
+                      className="flex-1 text-left font-semibold text-stone-900 dark:text-zinc-100 text-sm">{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</button>
                   )}
 
-                  <span className="text-xs text-stone-400 shrink-0">{cat.items.length} {t("itemsCount")}</span>
+                  <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{cat.items.length} {t("itemsCount")}</span>
 
                   {editCatId === cat.id ? (
                     <div className="flex gap-1 shrink-0">
@@ -304,10 +304,10 @@ export default function CategoriesPage() {
 
                 {/* Items list */}
                 {expanded.has(cat.id) && (
-                  <div className="border-t border-stone-100">
+                  <div className="border-t border-stone-100 dark:border-zinc-700/50">
                     {cat.items.map(item => (
                       <div key={item.id}
-                        className={`px-4 py-2.5 flex items-center gap-3 border-b border-stone-50 last:border-0
+                        className={`px-4 py-2.5 flex items-center gap-3 border-b border-stone-50 dark:border-zinc-700/30 last:border-0
                           ${!item.enabled ? "opacity-50" : ""}`}>
 
                         <button onClick={() => toggleItem(cat.id, item.id, item.enabled)}
@@ -327,10 +327,10 @@ export default function CategoriesPage() {
                                 className={`${inputCls} flex-1 min-w-0`} placeholder="አማርኛ ስም"
                                 onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
                               <div className="flex items-center gap-1 shrink-0">
-                                <span className="text-xs text-stone-400">{t("maxLabel")}</span>
+                                <span className="text-xs text-stone-400 dark:text-zinc-500">{t("maxLabel")}</span>
                                 <input type="number" min={1} max={99} value={editItemQty}
                                   onChange={e => setEditItemQty(Number(e.target.value))}
-                                  className="w-14 h-9 border border-stone-200 bg-white rounded px-2 text-sm
+                                  className="w-14 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
                                     text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
                               </div>
                               <button onClick={() => saveEditItem(cat.id, item.id)}
@@ -345,25 +345,25 @@ export default function CategoriesPage() {
                                 <input type="checkbox" checked={editSchedulable}
                                   onChange={e => setEditSchedulable(e.target.checked)}
                                   className="accent-brand-700" />
-                                <span className="text-xs font-semibold text-stone-600">{t("enableScheduling")}</span>
+                                <span className="text-xs font-semibold text-stone-600 dark:text-zinc-400">{t("enableScheduling")}</span>
                               </label>
                               {editSchedulable && (
                                 <>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-stone-400">{t("everyLabel")}</span>
+                                    <span className="text-xs text-stone-400 dark:text-zinc-500">{t("everyLabel")}</span>
                                     <input type="number" min={5} max={240} step={5} value={editInterval}
                                       onChange={e => setEditInterval(Number(e.target.value))}
-                                      className="w-16 h-7 border border-stone-200 bg-white rounded px-2 text-xs
+                                      className="w-16 h-7 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-xs
                                         text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
-                                    <span className="text-xs text-stone-400">{t("minLabel")}</span>
+                                    <span className="text-xs text-stone-400 dark:text-zinc-500">{t("minLabel")}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-stone-400">{t("capacityLabel")}</span>
+                                    <span className="text-xs text-stone-400 dark:text-zinc-500">{t("capacityLabel")}</span>
                                     <input type="number" min={1} max={500} value={editCapacity}
                                       onChange={e => setEditCapacity(Number(e.target.value))}
-                                      className="w-16 h-7 border border-stone-200 bg-white rounded px-2 text-xs
+                                      className="w-16 h-7 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-xs
                                         text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
-                                    <span className="text-xs text-stone-400">{t("peopleLabel")}</span>
+                                    <span className="text-xs text-stone-400 dark:text-zinc-500">{t("peopleLabel")}</span>
                                   </div>
                                 </>
                               )}
@@ -372,7 +372,7 @@ export default function CategoriesPage() {
                         ) : (
                           <>
                             <div className="flex-1 min-w-0">
-                              <span className="text-sm text-stone-800">{lang === "am" && item.nameAm ? item.nameAm : item.name}</span>
+                              <span className="text-sm text-stone-800 dark:text-zinc-200">{lang === "am" && item.nameAm ? item.nameAm : item.name}</span>
                               {item.schedulable && (
                                 <span className="ml-2 text-[10px] font-semibold text-brand-700 bg-brand-50
                                   border border-brand-200 rounded px-1.5 py-0.5 inline-flex items-center gap-0.5">
@@ -382,7 +382,7 @@ export default function CategoriesPage() {
                               )}
                             </div>
                             {!item.schedulable && (
-                              <span className="text-xs text-stone-400 shrink-0">{t("maxLabel")} {item.maxQuantity}</span>
+                              <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{t("maxLabel")} {item.maxQuantity}</span>
                             )}
                             <button onClick={() => toggleSchedulable(cat.id, item.id, item.schedulable)}
                               title={item.schedulable ? t("enableScheduling") : t("enableScheduling")}
@@ -408,7 +408,7 @@ export default function CategoriesPage() {
                     {/* Add item row */}
                     {addItemCatId === cat.id ? (
                       <form onSubmit={e => addItem(cat.id, e)}
-                        className="px-4 py-2.5 flex items-center gap-2 bg-stone-50">
+                        className="px-4 py-2.5 flex items-center gap-2 bg-stone-50 dark:bg-zinc-800/60">
                         <input value={addItemName} onChange={e => setAddItemName(e.target.value)}
                           required placeholder={t("itemNamePlaceholder")} autoFocus
                           className={`${inputCls} flex-1 min-w-0`} />
@@ -416,10 +416,10 @@ export default function CategoriesPage() {
                           placeholder="አማርኛ ስም"
                           className={`${inputCls} flex-1 min-w-0`} />
                         <div className="flex items-center gap-1 shrink-0">
-                          <span className="text-xs text-stone-400">{t("maxLabel")}</span>
+                          <span className="text-xs text-stone-400 dark:text-zinc-500">{t("maxLabel")}</span>
                           <input type="number" min={1} max={99} value={addItemQty}
                             onChange={e => setAddItemQty(Number(e.target.value))}
-                            className="w-14 h-9 border border-stone-200 bg-white rounded px-2 text-sm
+                            className="w-14 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
                               text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
                         </div>
                         <button type="submit" disabled={addingItem}

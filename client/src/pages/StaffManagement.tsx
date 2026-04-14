@@ -102,7 +102,7 @@ export default function StaffManagementPage() {
     if (res.ok) setStaff(prev => prev.filter(s => s.id !== id));
   };
 
-  const inputCls = "w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700";
+  const inputCls = "w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700";
 
   return (
     <div className="min-h-screen">
@@ -111,8 +111,8 @@ export default function StaffManagementPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">{t("staffMembers")}</h1>
-            <p className="text-sm text-stone-400">{staff.length} {t("staffConfigured")}</p>
+            <h1 className="text-xl font-bold text-stone-900 dark:text-zinc-100">{t("staffMembers")}</h1>
+            <p className="text-sm text-stone-400 dark:text-zinc-500">{staff.length} {t("staffConfigured")}</p>
           </div>
           <button
             onClick={() => { setShowAdd(v => !v); setError(null); }}
@@ -126,22 +126,22 @@ export default function StaffManagementPage() {
         {/* Add form */}
         {showAdd && (
           <form onSubmit={addStaff} className="glass rounded p-5 space-y-4">
-            <h3 className="font-semibold text-stone-800 flex items-center gap-2">
+            <h3 className="font-semibold text-stone-800 dark:text-zinc-200 flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-brand-700" /> {t("newStaffMember")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("fullNameField")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("fullNameField")}</label>
                 <input value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))}
                   required placeholder="e.g. John Doe" className={inputCls} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("usernameField")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("usernameField")}</label>
                 <input value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
                   required placeholder="e.g. johndoe" className={inputCls} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("passwordField")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("passwordField")}</label>
                 <div className="relative">
                   <input type={showPwd ? "text" : "password"}
                     value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
@@ -154,7 +154,7 @@ export default function StaffManagementPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("roleField")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("roleField")}</label>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {ROLES.map(r => (
                     <button key={r.value} type="button"
@@ -162,7 +162,7 @@ export default function StaffManagementPage() {
                       className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors
                         ${form.role === r.value
                           ? "bg-brand-700 text-white border-brand-700"
-                          : "bg-white text-stone-600 border-stone-200 hover:border-brand-400"}`}>
+                          : "bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 border-stone-200 dark:border-zinc-600 hover:border-brand-400"}`}>
                       {t(r.labelKey)}
                     </button>
                   ))}
@@ -178,7 +178,7 @@ export default function StaffManagementPage() {
                 {t("addStaff")}
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
-                className="text-sm text-stone-500 px-4 py-2 rounded hover:bg-stone-100 transition-colors">
+                className="text-sm text-stone-500 dark:text-zinc-400 px-4 py-2 rounded hover:bg-stone-100 dark:hover:bg-zinc-700 transition-colors">
                 {t("cancelBtn")}
               </button>
             </div>
@@ -195,19 +195,19 @@ export default function StaffManagementPage() {
           </div>
         ) : (
           <div className="glass rounded overflow-hidden">
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-stone-100 dark:divide-zinc-700/50">
               {staff.map(s => {
                 const ri = roleInfo(s.role);
                 const isEditingRole = changingRoleId === s.id;
                 return (
                   <div key={s.id} className={`px-5 py-4 transition-colors ${!s.enabled ? "opacity-50" : ""}`}>
                     <div className="flex items-center gap-4">
-                      <div className="h-9 w-9 rounded bg-brand-100 flex items-center justify-center shrink-0">
+                      <div className="h-9 w-9 rounded bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
                         <span className="text-brand-700 font-bold text-sm uppercase">{s.fullName.charAt(0)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-stone-900 text-sm truncate">{s.fullName}</p>
-                        <p className="text-xs text-stone-400">@{s.username}</p>
+                        <p className="font-semibold text-stone-900 dark:text-zinc-100 text-sm truncate">{s.fullName}</p>
+                        <p className="text-xs text-stone-400 dark:text-zinc-500">@{s.username}</p>
                       </div>
                       <button
                         onClick={() => setChangingRoleId(isEditingRole ? null : s.id)}
@@ -219,13 +219,13 @@ export default function StaffManagementPage() {
                       </button>
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => toggle(s.id)} title={s.enabled ? t("disableStaff") : t("enableStaff")}
-                          className="p-1.5 rounded hover:bg-stone-100 transition-colors">
+                          className="p-1.5 rounded hover:bg-stone-100 dark:hover:bg-zinc-700 transition-colors">
                           {s.enabled
                             ? <ToggleRight className="h-5 w-5 text-green-600" />
-                            : <ToggleLeft  className="h-5 w-5 text-stone-400" />}
+                            : <ToggleLeft  className="h-5 w-5 text-stone-400 dark:text-zinc-500" />}
                         </button>
                         <button onClick={() => remove(s.id, s.fullName)} title={t("removeStaff")}
-                          className="p-1.5 rounded hover:bg-red-50 text-stone-300 hover:text-red-500 transition-colors">
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-stone-300 dark:text-zinc-600 hover:text-red-500 transition-colors">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

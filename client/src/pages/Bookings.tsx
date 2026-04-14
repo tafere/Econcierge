@@ -87,22 +87,22 @@ export default function BookingsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-stone-900">Bookings</h1>
-            <p className="text-xs text-stone-400">Shuttle, Spa and scheduled reservations</p>
+            <h1 className="text-lg font-bold text-stone-900 dark:text-zinc-100">Bookings</h1>
+            <p className="text-xs text-stone-400 dark:text-zinc-500">Shuttle, Spa and scheduled reservations</p>
           </div>
         </div>
 
         {/* Date navigator */}
         <div className="flex items-center gap-3">
           <button onClick={() => changeDate(-1)}
-            className="p-2 rounded hover:bg-stone-100 text-stone-500 transition-colors">
+            className="p-2 rounded hover:bg-stone-100 dark:hover:bg-zinc-700 text-stone-500 dark:text-zinc-400 transition-colors">
             <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 text-center">
-            <p className="text-sm font-bold text-stone-900">{displayDate(date)}</p>
+            <p className="text-sm font-bold text-stone-900 dark:text-zinc-100">{displayDate(date)}</p>
           </div>
           <button onClick={() => changeDate(1)}
-            className="p-2 rounded hover:bg-stone-100 text-stone-500 transition-colors">
+            className="p-2 rounded hover:bg-stone-100 dark:hover:bg-zinc-700 text-stone-500 dark:text-zinc-400 transition-colors">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -122,31 +122,31 @@ export default function BookingsPage() {
             {sortedTimes.map(time => (
               <div key={time} className="glass rounded overflow-hidden">
                 {/* Time header */}
-                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                  <p className="text-sm font-extrabold text-stone-800">{time}</p>
-                  <div className="flex items-center gap-1.5 text-xs text-stone-500">
+                <div className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 flex items-center justify-between">
+                  <p className="text-sm font-extrabold text-stone-800 dark:text-zinc-200">{time}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-zinc-400">
                     <Users className="h-3.5 w-3.5" />
                     {grouped[time].filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.guestCount, 0)} guests
                   </div>
                 </div>
 
                 {/* Bookings at this time */}
-                <div className="divide-y divide-stone-50">
+                <div className="divide-y divide-stone-50 dark:divide-zinc-700/50">
                   {grouped[time].map(b => (
                     <div key={b.id} className={`px-4 py-3 flex items-center gap-3 ${b.status === "CANCELLED" ? "opacity-50" : ""}`}>
                       {/* Room */}
                       <div className="shrink-0 w-14">
-                        <p className="font-extrabold text-stone-900 text-sm">{b.roomNumber}</p>
-                        {b.floor && <p className="text-[10px] text-stone-400">Floor {b.floor}</p>}
+                        <p className="font-extrabold text-stone-900 dark:text-zinc-100 text-sm">{b.roomNumber}</p>
+                        {b.floor && <p className="text-[10px] text-stone-400 dark:text-zinc-500">Floor {b.floor}</p>}
                       </div>
 
                       {/* Service + guests */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-stone-800">{b.itemName}</p>
+                        <p className="text-sm font-semibold text-stone-800 dark:text-zinc-200">{b.itemName}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <Users className="h-3 w-3 text-stone-400" />
-                          <span className="text-xs text-stone-500">{b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}</span>
-                          {b.notes && <span className="text-xs text-stone-400 italic truncate">· {b.notes}</span>}
+                          <Users className="h-3 w-3 text-stone-400 dark:text-zinc-500" />
+                          <span className="text-xs text-stone-500 dark:text-zinc-400">{b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}</span>
+                          {b.notes && <span className="text-xs text-stone-400 dark:text-zinc-500 italic truncate">· {b.notes}</span>}
                         </div>
                       </div>
 

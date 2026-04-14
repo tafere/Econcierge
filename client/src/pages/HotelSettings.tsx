@@ -61,20 +61,20 @@ export default function HotelSettingsPage() {
     hintKey?: string,
   ) => (
     <div>
-      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+      <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
         {t(labelKey)}
       </label>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">{icon}</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500">{icon}</span>
         <input
           value={form[key]}
           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
           placeholder={placeholder}
-          className="w-full h-10 border border-stone-200 bg-white rounded pl-9 pr-3 text-sm
+          className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded pl-9 pr-3 text-sm
             focus:outline-none focus:ring-2 focus:ring-brand-700"
         />
       </div>
-      {hintKey && <p className="text-xs text-stone-400 mt-1">{t(hintKey)}</p>}
+      {hintKey && <p className="text-xs text-stone-400 dark:text-zinc-500 mt-1">{t(hintKey)}</p>}
     </div>
   );
 
@@ -90,16 +90,16 @@ export default function HotelSettingsPage() {
 
             {form.logoUrl && (
               <div className="flex items-center gap-4 glass rounded p-4">
-                <img src={form.logoUrl} alt="Logo preview" className="h-16 w-16 rounded object-cover border border-stone-200" />
+                <img src={form.logoUrl} alt="Logo preview" className="h-16 w-16 rounded object-cover border border-stone-200 dark:border-zinc-600" />
                 <div>
-                  <p className="font-bold text-stone-900">{form.name}</p>
-                  {form.tagline && <p className="text-sm text-stone-400">{form.tagline}</p>}
+                  <p className="font-bold text-stone-900 dark:text-zinc-100">{form.name}</p>
+                  {form.tagline && <p className="text-sm text-stone-400 dark:text-zinc-500">{form.tagline}</p>}
                 </div>
               </div>
             )}
 
             <div className="glass rounded p-6 space-y-5">
-              <h2 className="font-bold text-stone-800 flex items-center gap-2">
+              <h2 className="font-bold text-stone-800 dark:text-zinc-200 flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-brand-700" /> {t("identitySection")}
               </h2>
               {field("name",    "hotelNameField", <Building2 className="h-4 w-4" />, "e.g. Ethiopian Skylight Hotel")}
@@ -107,27 +107,27 @@ export default function HotelSettingsPage() {
               {field("logoUrl", "logoUrlField",   <Link      className="h-4 w-4" />, "https://…/logo.png", "logoUrlHint")}
               {field("website", "websiteField",   <Link      className="h-4 w-4" />, "https://www.yourhotel.com")}
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
                   Default Response Time (minutes)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"><Clock className="h-4 w-4" /></span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500"><Clock className="h-4 w-4" /></span>
                   <input
                     type="number"
                     min={1}
                     max={480}
                     value={form.etaMinutes}
                     onChange={e => setForm(f => ({ ...f, etaMinutes: Number(e.target.value) }))}
-                    className="w-full h-10 border border-stone-200 bg-white rounded pl-9 pr-3 text-sm
+                    className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded pl-9 pr-3 text-sm
                       focus:outline-none focus:ring-2 focus:ring-brand-700"
                   />
                 </div>
-                <p className="text-xs text-stone-400 mt-1">Used when no category-specific time is set</p>
+                <p className="text-xs text-stone-400 dark:text-zinc-500 mt-1">Used when no category-specific time is set</p>
               </div>
             </div>
 
             <div className="glass rounded p-6 space-y-5">
-              <h2 className="font-bold text-stone-800 flex items-center gap-2">
+              <h2 className="font-bold text-stone-800 dark:text-zinc-200 flex items-center gap-2">
                 <Phone className="h-4 w-4 text-brand-700" /> {t("contactSection")}
               </h2>
               {field("address", "addressField", <MapPin className="h-4 w-4" />, "City, Country")}

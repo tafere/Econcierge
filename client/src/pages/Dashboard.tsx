@@ -104,18 +104,18 @@ function ConfirmModal({
   const { t } = useLang();
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="glass rounded shadow-2xl w-full max-w-sm p-6 space-y-4">
+      <div className="glass rounded shadow-2xl dark:shadow-black/40 w-full max-w-sm p-6 space-y-4">
         <div className="flex items-start justify-between">
-          <h3 className="font-bold text-stone-900">{title}</h3>
-          <button onClick={onCancel} className="text-stone-300 hover:text-stone-500">
+          <h3 className="font-bold text-stone-900 dark:text-zinc-100">{title}</h3>
+          <button onClick={onCancel} className="text-stone-300 dark:text-zinc-600 hover:text-stone-500 dark:hover:text-zinc-300">
             <X className="h-5 w-5" />
           </button>
         </div>
-        {message && <p className="text-sm text-stone-500">{message}</p>}
+        {message && <p className="text-sm text-stone-500 dark:text-zinc-400">{message}</p>}
         <div className="flex gap-3">
           <button onClick={onCancel}
-            className="flex-1 h-10 bg-white border border-stone-200 rounded text-sm font-semibold
-              text-stone-600 hover:bg-stone-50 transition-all shadow-sm">
+            className="flex-1 h-10 bg-white dark:bg-zinc-700 border border-stone-200 dark:border-zinc-600 rounded text-sm font-semibold
+              text-stone-600 dark:text-zinc-200 hover:bg-stone-50 dark:hover:bg-zinc-600 transition-all shadow-sm">
             {t("goBack")}
           </button>
           <button onClick={onConfirm}
@@ -145,18 +145,18 @@ function DeclineModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="glass rounded shadow-2xl w-full max-w-sm p-6 space-y-4">
+      <div className="glass rounded shadow-2xl dark:shadow-black/40 w-full max-w-sm p-6 space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-bold text-stone-900">{t("declineRequest")}</h3>
-            <p className="text-xs text-stone-400 mt-0.5">{t("roomCol")} {req.roomNumber} · {req.itemName}</p>
+            <h3 className="font-bold text-stone-900 dark:text-zinc-100">{t("declineRequest")}</h3>
+            <p className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5">{t("roomCol")} {req.roomNumber} · {req.itemName}</p>
           </div>
-          <button onClick={onCancel} className="text-stone-300 hover:text-stone-500">
+          <button onClick={onCancel} className="text-stone-300 dark:text-zinc-600 hover:text-stone-500 dark:hover:text-zinc-300">
             <X className="h-5 w-5" />
           </button>
         </div>
         <div>
-          <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
             {t("reasonRequired")}
           </label>
           <textarea
@@ -165,14 +165,14 @@ function DeclineModal({
             onChange={e => setComment(e.target.value)}
             placeholder={t("declinePlaceholder")}
             rows={3}
-            className="w-full border border-stone-200 rounded px-3 py-2 text-sm
+            className="w-full border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 py-2 text-sm
               focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
           />
         </div>
         <div className="flex gap-3">
           <button onClick={onCancel}
-            className="flex-1 h-10 bg-white border border-stone-200 rounded text-sm font-semibold
-              text-stone-600 hover:bg-stone-50 transition-all shadow-sm">
+            className="flex-1 h-10 bg-white dark:bg-zinc-700 border border-stone-200 dark:border-zinc-600 rounded text-sm font-semibold
+              text-stone-600 dark:text-zinc-200 hover:bg-stone-50 dark:hover:bg-zinc-600 transition-all shadow-sm">
             {t("goBack")}
           </button>
           <button
@@ -208,39 +208,39 @@ function AcceptModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="glass rounded shadow-2xl w-full max-w-sm p-6 space-y-4">
+      <div className="glass rounded shadow-2xl dark:shadow-black/40 w-full max-w-sm p-6 space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-bold text-stone-900">{t("accept")} — {t("roomCol")} {req.roomNumber}</h3>
-            <p className="text-xs text-stone-400 mt-0.5">{req.itemName}</p>
+            <h3 className="font-bold text-stone-900 dark:text-zinc-100">{t("accept")} — {t("roomCol")} {req.roomNumber}</h3>
+            <p className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5">{req.itemName}</p>
           </div>
-          <button onClick={onCancel} className="text-stone-300 hover:text-stone-500">
+          <button onClick={onCancel} className="text-stone-300 dark:text-zinc-600 hover:text-stone-500 dark:hover:text-zinc-300">
             <X className="h-5 w-5" />
           </button>
         </div>
         <div>
-          <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
             ETA (minutes)
           </label>
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-stone-400 shrink-0" />
+            <Clock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
             <input
               type="number"
               min={1}
               max={480}
               value={eta}
               onChange={e => setEta(Number(e.target.value))}
-              className="flex-1 h-10 border border-stone-200 bg-white rounded px-3 text-sm
+              className="flex-1 h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm
                 focus:outline-none focus:ring-2 focus:ring-brand-700"
               autoFocus
             />
-            <span className="text-sm text-stone-400 shrink-0">min</span>
+            <span className="text-sm text-stone-400 dark:text-zinc-500 shrink-0">min</span>
           </div>
         </div>
         <div className="flex gap-3">
           <button onClick={onCancel}
-            className="flex-1 h-10 bg-white border border-stone-200 rounded text-sm font-semibold
-              text-stone-600 hover:bg-stone-50 transition-all shadow-sm">
+            className="flex-1 h-10 bg-white dark:bg-zinc-700 border border-stone-200 dark:border-zinc-600 rounded text-sm font-semibold
+              text-stone-600 dark:text-zinc-200 hover:bg-stone-50 dark:hover:bg-zinc-600 transition-all shadow-sm">
             {t("goBack")}
           </button>
           <button onClick={() => onConfirm(eta)}
@@ -282,13 +282,13 @@ function RequestTable({
   const hasNotes   = requests.some(r => r.notes || r.staffComment);
   const hasBy      = requests.some(r => r.assignedTo && r.status !== "PENDING");
 
-  const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap";
+  const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider whitespace-nowrap";
 
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm table-auto">
         <thead>
-          <tr className="border-b border-stone-200 bg-stone-50/60">
+          <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
             <th className={th}>{t("roomCol")}</th>
             <th className={th}>{t("requestCol")}</th>
             {hasNotes   && <th className={th}>{t("notesCol")}</th>}
@@ -297,7 +297,7 @@ function RequestTable({
             {hasActions && <th className={`${th} text-right`}>{t("actionCol")}</th>}
           </tr>
         </thead>
-        <tbody className="divide-y divide-stone-100">
+        <tbody className="divide-y divide-stone-100 dark:divide-zinc-700/50">
           {requests.map(req => {
             const isOverdue     = overdueIds.has(req.id);
             const isEscalated   = escalatedIds.has(req.id);
@@ -308,28 +308,28 @@ function RequestTable({
               <tr key={req.id}
                 id={`request-${req.id}`}
                 className={`border-l-4 transition-all duration-500
-                  ${isHighlighted ? "ring-2 ring-inset ring-brand-400 bg-amber-50/60" :
-                    isEscalated  ? "border-l-red-400    bg-red-50/30    hover:bg-red-50/50"    :
-                    isOverdue    ? "border-l-orange-400 bg-orange-50/30 hover:bg-orange-50/50" :
-                    req.status === "PENDING"     ? "border-l-amber-300 bg-amber-50/20 hover:bg-amber-50/40" :
-                    req.status === "IN_PROGRESS" ? "border-l-blue-400  bg-blue-50/20  hover:bg-blue-50/40"  :
-                    "border-l-transparent hover:bg-stone-50"}
+                  ${isHighlighted ? "ring-2 ring-inset ring-brand-400 bg-amber-50/60 dark:bg-amber-900/20" :
+                    isEscalated  ? "border-l-red-400    bg-red-50/30    dark:bg-red-900/20    hover:bg-red-50/50    dark:hover:bg-red-900/30"    :
+                    isOverdue    ? "border-l-orange-400 bg-orange-50/30 dark:bg-orange-900/20 hover:bg-orange-50/50 dark:hover:bg-orange-900/30" :
+                    req.status === "PENDING"     ? "border-l-amber-300 bg-amber-50/20 dark:bg-amber-900/10 hover:bg-amber-50/40 dark:hover:bg-amber-900/20" :
+                    req.status === "IN_PROGRESS" ? "border-l-blue-400  bg-blue-50/20  dark:bg-blue-900/10  hover:bg-blue-50/40  dark:hover:bg-blue-900/20"  :
+                    "border-l-transparent hover:bg-stone-50 dark:hover:bg-zinc-700"}
                   ${dimmed ? "opacity-55" : ""}`}
               >
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <p className="font-extrabold text-stone-900">{req.roomNumber}</p>
-                  {req.floor && <p className="text-[10px] text-stone-400">{t("floorLabel")} {req.floor}</p>}
+                  <p className="font-extrabold text-stone-900 dark:text-zinc-100">{req.roomNumber}</p>
+                  {req.floor && <p className="text-[10px] text-stone-400 dark:text-zinc-500">{t("floorLabel")} {req.floor}</p>}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
-                    <span className="font-semibold text-stone-900">{lang === "am" && req.itemNameAm ? req.itemNameAm : req.itemName}</span>
+                    <span className="font-semibold text-stone-900 dark:text-zinc-100">{lang === "am" && req.itemNameAm ? req.itemNameAm : req.itemName}</span>
                     {req.quantity > 1 && (
-                      <span className="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200
+                      <span className="text-xs font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/30 border border-amber-200
                         rounded px-1.5 py-0.5">×{req.quantity}</span>
                     )}
                   </div>
-                  <p className="text-xs text-stone-400 mt-0.5">{lang === "am" && req.categoryNameAm ? req.categoryNameAm : req.categoryName}</p>
+                  <p className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5">{lang === "am" && req.categoryNameAm ? req.categoryNameAm : req.categoryName}</p>
                 </td>
                 {hasNotes && (
                   <td className="px-4 py-3 max-w-[180px]">
@@ -347,7 +347,7 @@ function RequestTable({
                 )}
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className={`text-xs font-medium
-                    ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-500"}`}>
+                    ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-500 dark:text-zinc-400"}`}>
                     {fmtDateTime(req.createdAt)}
                   </p>
                   {req.completedAt && (
@@ -355,7 +355,7 @@ function RequestTable({
                   )}
                   {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
                     <span className="inline-flex items-center gap-0.5 mt-0.5 text-[10px] font-semibold
-                      text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
+                      text-blue-700 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded px-1.5 py-0.5">
                       <Clock className="h-2.5 w-2.5" />~{req.etaMinutes} min
                     </span>
                   )}
@@ -363,7 +363,7 @@ function RequestTable({
                 {hasBy && (
                   <td className="px-4 py-3 whitespace-nowrap">
                     {req.assignedTo && req.status !== "PENDING" && (
-                      <p className="text-xs text-stone-600 font-medium">{req.assignedTo}</p>
+                      <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium">{req.assignedTo}</p>
                     )}
                   </td>
                 )}
@@ -425,17 +425,17 @@ function BookingSection({
 }) {
   const { t, lang } = useLang();
   const displayName = lang === "am" && itemNameAm ? itemNameAm : itemName;
-  const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 uppercase tracking-wider whitespace-nowrap";
+  const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider whitespace-nowrap";
   const totalGuests = bookings.filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.guestCount, 0);
   const hasNotes   = bookings.some(b => b.notes);
   const hasActions = bookings.some(b => b.status === "PENDING" || b.status === "CONFIRMED");
 
   return (
     <div className="glass rounded overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-        <CalendarClock className="h-4 w-4 text-stone-400 shrink-0" />
-        <p className="text-xs font-bold text-stone-600 uppercase tracking-wider">{displayName}</p>
-        <div className="flex items-center gap-1 text-xs text-stone-400 ml-auto">
+      <div className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 flex items-center gap-2">
+        <CalendarClock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
+        <p className="text-xs font-bold text-stone-600 dark:text-zinc-300 uppercase tracking-wider">{displayName}</p>
+        <div className="flex items-center gap-1 text-xs text-stone-400 dark:text-zinc-500 ml-auto">
           <Users className="h-3.5 w-3.5" /> {totalGuests} {totalGuests !== 1 ? t("guestPlural") : t("guestSingular")}
         </div>
       </div>
@@ -443,7 +443,7 @@ function BookingSection({
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm table-auto">
           <thead>
-            <tr className="border-b border-stone-200 bg-stone-50/60">
+            <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
               <th className={th}>{t("timeCol")}</th>
               <th className={th}>{t("roomCol")}</th>
               <th className={th}>{t("guestsCol")}</th>
@@ -452,25 +452,25 @@ function BookingSection({
               {hasActions && <th className={`${th} text-right`}>{t("actionCol")}</th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody className="divide-y divide-stone-100 dark:divide-zinc-700/50">
             {bookings.map(b => (
               <tr key={b.id} className={b.status === "CANCELLED" ? "opacity-50" : ""}>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <p className="text-xs font-semibold text-stone-700">{b.slotTime}</p>
+                  <p className="text-xs font-semibold text-stone-700 dark:text-zinc-300">{b.slotTime}</p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <p className="font-extrabold text-stone-900">{b.roomNumber}</p>
-                  {b.floor && <p className="text-[10px] text-stone-400">{t("floorLabel")} {b.floor}</p>}
+                  <p className="font-extrabold text-stone-900 dark:text-zinc-100">{b.roomNumber}</p>
+                  {b.floor && <p className="text-[10px] text-stone-400 dark:text-zinc-500">{t("floorLabel")} {b.floor}</p>}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-1 text-xs text-stone-600">
-                    <Users className="h-3 w-3 text-stone-400" /> {b.guestCount}
+                  <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-zinc-400">
+                    <Users className="h-3 w-3 text-stone-400 dark:text-zinc-500" /> {b.guestCount}
                   </div>
                 </td>
                 {hasNotes && (
                   <td className="px-4 py-3 max-w-[160px]">
                     {b.notes && (
-                      <p className="text-xs text-stone-400 italic truncate cursor-default" title={b.notes}>
+                      <p className="text-xs text-stone-400 dark:text-zinc-500 italic truncate cursor-default" title={b.notes}>
                         {b.notes}
                       </p>
                     )}
@@ -697,14 +697,14 @@ export default function DashboardPage() {
         ${tab === tabId
           ? urgent ? "bg-orange-600 text-white shadow-sm" : "bg-brand-700 text-white shadow-sm"
           : urgent && (count ?? 0) > 0
-            ? "bg-white/70 text-orange-700 border border-orange-300 hover:border-orange-400"
-            : "bg-white/70 text-stone-500 border border-stone-200 hover:border-stone-300"}`}
+            ? "bg-white/70 dark:bg-zinc-800/70 text-orange-700 border border-orange-300 hover:border-orange-400"
+            : "bg-white/70 dark:bg-zinc-800/70 text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-700 hover:border-stone-300 dark:hover:border-zinc-600"}`}
     >
       {label}
       <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded
         ${tab === tabId
           ? "bg-white/20 text-white"
-          : urgent && (count ?? 0) > 0 ? "bg-orange-100 text-orange-700" : "bg-stone-100 text-stone-500"}`}>
+          : urgent && (count ?? 0) > 0 ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700" : "bg-stone-100 dark:bg-zinc-700 text-stone-500 dark:text-zinc-400"}`}>
         {count}
       </span>
     </button>
@@ -735,8 +735,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-stone-900">{t("serviceRequests")}</h1>
-            <p className="text-xs text-stone-400">{user?.fullName}</p>
+            <h1 className="text-lg font-bold text-stone-900 dark:text-zinc-100">{t("serviceRequests")}</h1>
+            <p className="text-xs text-stone-400 dark:text-zinc-500">{user?.fullName}</p>
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => {
@@ -788,10 +788,10 @@ export default function DashboardPage() {
                 <div key={dateStr} className="space-y-2">
                   {/* Date label */}
                   <div className="flex items-center gap-3 px-1">
-                    <p className="text-xs font-bold text-stone-500 uppercase tracking-wider whitespace-nowrap">
+                    <p className="text-xs font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
                       {formatDateHeader(dateStr, t)}
                     </p>
-                    <div className="flex-1 h-px bg-stone-200" />
+                    <div className="flex-1 h-px bg-stone-200 dark:bg-zinc-700" />
                   </div>
 
                   {/* Service requests */}

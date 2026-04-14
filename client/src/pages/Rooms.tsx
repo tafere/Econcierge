@@ -189,15 +189,15 @@ export default function RoomsPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-900">{t("roomsTitle")}</h1>
-            <p className="text-sm text-stone-400">{rooms.length} {t("roomsConfigured")}</p>
+            <h1 className="text-xl font-bold text-stone-900 dark:text-zinc-100">{t("roomsTitle")}</h1>
+            <p className="text-sm text-stone-400 dark:text-zinc-500">{rooms.length} {t("roomsConfigured")}</p>
           </div>
           <div className="flex items-center gap-2">
             {rooms.length > 0 && (
               <button
                 onClick={printAllQRCards}
-                className="flex items-center gap-1.5 bg-white border border-brand-700 text-brand-700
-                  text-sm font-semibold px-4 py-2 rounded hover:bg-brand-50 transition-colors"
+                className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 border border-brand-700 text-brand-700
+                  text-sm font-semibold px-4 py-2 rounded hover:bg-brand-50 dark:hover:bg-zinc-700 transition-colors"
               >
                 <Printer className="h-4 w-4" /> Print All QR Cards
               </button>
@@ -217,32 +217,32 @@ export default function RoomsPage() {
         {/* Add room form */}
         {showAdd && (
           <form onSubmit={addRoom} className="glass rounded p-5 space-y-4">
-            <h3 className="font-semibold text-stone-800">{t("newRoom")}</h3>
+            <h3 className="font-semibold text-stone-800 dark:text-zinc-200">{t("newRoom")}</h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("roomNumber")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("roomNumber")}</label>
                 <input
                   value={newRoom.roomNumber}
                   onChange={e => setNewRoom(r => ({ ...r, roomNumber: e.target.value }))}
                   required
-                  className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("floorField")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("floorField")}</label>
                 <input
                   value={newRoom.floor}
                   onChange={e => setNewRoom(r => ({ ...r, floor: e.target.value }))}
-                  className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block mb-1">{t("typeField")}</label>
+                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("typeField")}</label>
                 <input
                   value={newRoom.roomType}
                   onChange={e => setNewRoom(r => ({ ...r, roomType: e.target.value }))}
                   placeholder={t("roomTypePlaceholder")}
-                  className="w-full h-10 border border-stone-200 bg-white rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 />
               </div>
             </div>
@@ -254,7 +254,7 @@ export default function RoomsPage() {
                 {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t("addRoom")}
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
-                className="text-sm text-stone-500 px-4 py-2 rounded hover:bg-stone-100 transition-colors">
+                className="text-sm text-stone-500 dark:text-zinc-400 px-4 py-2 rounded hover:bg-stone-100 dark:hover:bg-zinc-700 transition-colors">
                 {t("cancelBtn")}
               </button>
             </div>
@@ -272,9 +272,9 @@ export default function RoomsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <BedDouble className="h-4 w-4 text-brand-700" />
-                      <span className="font-bold text-stone-900">{t("roomCol")} {room.roomNumber}</span>
+                      <span className="font-bold text-stone-900 dark:text-zinc-100">{t("roomCol")} {room.roomNumber}</span>
                     </div>
-                    <div className="text-xs text-stone-400 mt-0.5 space-x-2">
+                    <div className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5 space-x-2">
                       {room.floor && <span>{t("floorLabel")} {room.floor}</span>}
                       {room.roomType && <span>· {room.roomType}</span>}
                     </div>
@@ -295,7 +295,7 @@ export default function RoomsPage() {
                   <button
                     onClick={() => downloadQR(room)}
                     className="flex items-center justify-center gap-1 text-xs font-semibold
-                      text-stone-500 border border-stone-200 rounded px-3 py-2
+                      text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-600 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
                     title={t("downloadQr")}
                   >
@@ -304,7 +304,7 @@ export default function RoomsPage() {
                   <button
                     onClick={() => printQRCard(room)}
                     className="flex items-center justify-center gap-1 text-xs font-semibold
-                      text-stone-500 border border-stone-200 rounded px-3 py-2
+                      text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-600 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
                     title="Print QR card"
                   >
@@ -315,7 +315,7 @@ export default function RoomsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-1.5 text-xs font-semibold
-                      text-stone-500 border border-stone-200 rounded px-3 py-2
+                      text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-600 rounded px-3 py-2
                       hover:border-brand-700 hover:text-brand-700 transition-colors"
                     title={t("openTv")}
                   >
@@ -325,9 +325,9 @@ export default function RoomsPage() {
 
                 {/* Inline QR preview */}
                 {qrPreviews[room.id] && (
-                  <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 rounded p-4 border border-amber-100">
+                  <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 dark:bg-amber-900/20 rounded p-4 border border-amber-100 dark:border-amber-900/30">
                     <img src={qrPreviews[room.id]} alt={`QR Room ${room.roomNumber}`} className="w-40 h-40" />
-                    <p className="text-[11px] text-stone-400 text-center">
+                    <p className="text-[11px] text-stone-400 dark:text-zinc-500 text-center">
                       {t("scanPhone")}
                     </p>
                   </div>

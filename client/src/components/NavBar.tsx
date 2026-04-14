@@ -4,9 +4,11 @@ import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import { trRole, LANGUAGES, type Lang } from "@/lib/i18n";
 import type { AppNotification } from "@/lib/notifications";
+import { toggleTheme } from "@/lib/darkmode";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
   Users, Settings, LogOut, Menu, X, Bell, BarChart2, Languages, Clock, AlertCircle,
+  Sun, Moon,
 } from "lucide-react";
 
 interface NavBarProps {
@@ -31,6 +33,7 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const langRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +63,7 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
     `w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left
     ${active(path)
       ? "bg-brand-700 text-white"
-      : "text-stone-700 hover:bg-brand-100 hover:text-brand-800"}`;
+      : "text-stone-700 dark:text-zinc-300 hover:bg-brand-100 dark:hover:bg-zinc-700 hover:text-brand-800 dark:hover:text-zinc-100"}`;
 
   const go = (path: string) => { navigate(path); setDrawerOpen(false); };
 
@@ -96,21 +99,21 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
               </button>
               {panelOpen && (
                 <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto top-16 sm:top-full sm:mt-2
-                  sm:right-0 sm:w-80 bg-white rounded-lg shadow-xl border border-stone-200 z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-                    <p className="text-sm font-bold text-stone-800">Notifications</p>
+                  sm:right-0 sm:w-80 bg-white dark:bg-zinc-800 rounded-lg shadow-xl dark:shadow-black/40 border border-stone-200 dark:border-zinc-700 z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-stone-100 dark:border-zinc-700/50 flex items-center justify-between">
+                    <p className="text-sm font-bold text-stone-800 dark:text-zinc-200">Notifications</p>
                     {unreadCount > 0 && (
-                      <span className="text-xs text-stone-400">{unreadCount} unread</span>
+                      <span className="text-xs text-stone-400 dark:text-zinc-500">{unreadCount} unread</span>
                     )}
                   </div>
                   {notifications.length === 0 ? (
-                    <p className="text-sm text-stone-400 text-center py-8">No notifications</p>
+                    <p className="text-sm text-stone-400 dark:text-zinc-500 text-center py-8">No notifications</p>
                   ) : (
-                    <div className="max-h-80 overflow-y-auto divide-y divide-stone-100">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-stone-100 dark:divide-zinc-700/50">
                       {notifications.map(n => (
                         <div key={n.id}
                           className={`flex items-start gap-3 px-4 py-3 transition-colors
-                            ${n.read ? "opacity-50 bg-stone-50" : "hover:bg-stone-50"}`}>
+                            ${n.read ? "opacity-50 bg-stone-50 dark:bg-zinc-900" : "hover:bg-stone-50 dark:hover:bg-zinc-700"}`}>
                           <div className={`mt-0.5 shrink-0 ${n.type === "past_due" ? "text-orange-500" : "text-brand-700"}`}>
                             {n.type === "past_due"
                               ? <AlertCircle className="h-4 w-4" />
@@ -118,15 +121,15 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                           </div>
                           <button className="flex-1 text-left min-w-0"
                             onClick={() => { onNotificationClick?.(n.requestId); setPanelOpen(false); }}>
-                            <p className="text-sm font-semibold text-stone-800 truncate">
+                            <p className="text-sm font-semibold text-stone-800 dark:text-zinc-200 truncate">
                               Room {n.roomNumber} · {n.itemName}
                             </p>
-                            <p className="text-xs text-stone-400 mt-0.5">
+                            <p className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5">
                               {n.type === "past_due" ? "Past due" : "New request"} · {timeAgo(n.createdAt)}
                             </p>
                           </button>
                           <button onClick={() => onNotificationDismiss?.(n.id)}
-                            className="shrink-0 text-stone-300 hover:text-stone-600 transition-colors p-0.5 mt-0.5">
+                            className="shrink-0 text-stone-300 dark:text-zinc-600 hover:text-stone-600 dark:hover:text-zinc-300 transition-colors p-0.5 mt-0.5">
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -163,6 +166,10 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                   </button>
                 </>
               )}
+              {/* Dark mode toggle */}
+              <button onClick={() => setDark(toggleTheme())} className="flex items-center gap-1.5 text-xs font-semibold text-amber-200 hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded" title="Toggle theme">
+                {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
               {/* Language picker */}
               <div className="relative" ref={langRef}>
                 <button onClick={() => setLangOpen(v => !v)}
@@ -172,11 +179,11 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                   {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
                 </button>
                 {langOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded shadow-lg border border-stone-200 z-50 min-w-[120px]">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-800 rounded shadow-lg dark:shadow-black/40 border border-stone-200 dark:border-zinc-700 z-50 min-w-[120px]">
                     {LANGUAGES.map(l => (
                       <button key={l.code} onClick={() => { setLanguage(l.code as Lang); setLangOpen(false); }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors
-                          ${lang === l.code ? "font-bold text-brand-700" : "text-stone-700"}`}>
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 dark:hover:bg-zinc-700 transition-colors
+                          ${lang === l.code ? "font-bold text-brand-700" : "text-stone-700 dark:text-zinc-300"}`}>
                         {l.label}
                       </button>
                     ))}
@@ -207,8 +214,7 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
       {drawerOpen && (
         <div className="fixed inset-0 z-50 sm:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl"
-            style={{ background: "hsl(220 20% 96%)" }}>
+          <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl dark:shadow-black/40 bg-[hsl(220_20%_96%)] dark:bg-zinc-900">
             {/* Drawer header */}
             <div className="bg-brand-700 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -253,13 +259,19 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                   </button>
                 </>
               )}
+              {/* Dark mode toggle */}
+              <button onClick={() => setDark(toggleTheme())}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left text-stone-700 hover:bg-brand-100 hover:text-brand-800">
+                {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {dark ? "Light mode" : "Dark mode"}
+              </button>
               {/* Language picker */}
               <div className="px-1 pt-1">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider px-3 pb-1">Language</p>
+                <p className="text-[10px] font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider px-3 pb-1">Language</p>
                 {LANGUAGES.map(l => (
                   <button key={l.code} onClick={() => setLanguage(l.code as Lang)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded text-sm font-semibold transition-colors text-left
-                      ${lang === l.code ? "bg-brand-700 text-white" : "text-stone-700 hover:bg-brand-100 hover:text-brand-800"}`}>
+                      ${lang === l.code ? "bg-brand-700 text-white" : "text-stone-700 dark:text-zinc-300 hover:bg-brand-100 dark:hover:bg-zinc-700 hover:text-brand-800 dark:hover:text-zinc-100"}`}>
                     <Languages className="h-4 w-4 shrink-0" /> {l.label}
                   </button>
                 ))}
@@ -267,10 +279,10 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
             </nav>
 
             {/* Sign out */}
-            <div className="px-3 py-4 border-t border-stone-200">
+            <div className="px-3 py-4 border-t border-stone-200 dark:border-zinc-700">
               <button onClick={() => { logout(); setDrawerOpen(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold
-                  text-stone-500 hover:bg-red-50 hover:text-red-600 transition-colors text-left">
+                  text-stone-500 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors text-left">
                 <LogOut className="h-5 w-5" /> {t("signOut")}
               </button>
             </div>
