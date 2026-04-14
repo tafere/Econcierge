@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { LangProvider } from "@/lib/lang";
+import { NotificationsProvider } from "@/lib/NotificationsContext";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import RoomsPage from "@/pages/Rooms";
@@ -32,15 +33,17 @@ function StaffRouter() {
   if (user.role === "SUPER_ADMIN") return <SuperAdminPage />;
 
   return (
-    <Switch>
-      <Route path="/"         component={DashboardPage} />
-      <Route path="/rooms"      component={RoomsPage} />
-      <Route path="/categories" component={CategoriesPage} />
-      <Route path="/staff"      component={StaffManagementPage} />
-      <Route path="/settings"   component={HotelSettingsPage} />
-      <Route path="/reports"    component={ReportsPage} />
-<Route component={DashboardPage} />
-    </Switch>
+    <NotificationsProvider>
+      <Switch>
+        <Route path="/"           component={DashboardPage} />
+        <Route path="/rooms"      component={RoomsPage} />
+        <Route path="/categories" component={CategoriesPage} />
+        <Route path="/staff"      component={StaffManagementPage} />
+        <Route path="/settings"   component={HotelSettingsPage} />
+        <Route path="/reports"    component={ReportsPage} />
+        <Route component={DashboardPage} />
+      </Switch>
+    </NotificationsProvider>
   );
 }
 

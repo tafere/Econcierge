@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, getToken } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
-import { loadDismissed, saveDismissed, type AppNotification } from "@/lib/notifications";
+import { useNotifications } from "@/lib/NotificationsContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -535,32 +535,7 @@ export default function DashboardPage() {
   const [requests, setRequests]   = useState<ServiceRequest[]>([]);
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [loading, setLoading]     = useState(true);
-  const hotelId = user?.hotelId ?? 0;
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-
-  // Load dismissed IDs once hotelId is known
-  useEffect(() => { if (hotelId) setDismissed(loadDismissed(hotelId)); }, [hotelId]);
-
-  // Derive notifications from live request data — same result on every device
-  const notifications = useMemo<AppNotification[]>(() => {
-    const result: AppNotification[] = [];
-    for (const r of requests) {
-      if (r.status === "PENDING" && ageMinutes(r.createdAt) <= 120) {
-        const id = `new_${r.id}`;
-        if (!dismissed.has(id))
-          result.push({ id, type: "new_request", requestId: r.id, roomNumber: r.roomNumber, itemName: r.itemName, createdAt: r.createdAt });
-      }
-      const isPastDue =
-        (r.status === "PENDING" && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS) ||
-        (r.status === "IN_PROGRESS" && r.acceptedAt && r.etaMinutes != null && ageMinutes(r.acceptedAt) > r.etaMinutes);
-      if (isPastDue) {
-        const id = `pd_${r.id}`;
-        if (!dismissed.has(id))
-          result.push({ id, type: "past_due", requestId: r.id, roomNumber: r.roomNumber, itemName: r.itemName, createdAt: r.acceptedAt || r.createdAt });
-      }
-    }
-    return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [requests, dismissed]);
+  const { pendingTarget, setPendingTarget } = useNotifications();
   const [updatingId, setUpdatingId]             = useState<number | null>(null);
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   const [tab, setTab]             = useState<Tab>("ACTIVE");
@@ -570,6 +545,17 @@ export default function DashboardPage() {
   const [hotelEta, setHotelEta]     = useState(20);
   const [soundOn, setSoundOn]       = useState(() => localStorage.getItem("eco_sound") !== "off");
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
+
+  // Scroll to + highlight request when notification clicked from any page
+  useEffect(() => {
+    if (!pendingTarget) return;
+    setTab("ACTIVE");
+    setHighlightedId(pendingTarget);
+    setTimeout(() => {
+      document.getElementById(`request-${pendingTarget}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    setTimeout(() => { setHighlightedId(null); setPendingTarget(null); }, 3000);
+  }, [pendingTarget]);
 
   const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
 
@@ -602,9 +588,7 @@ export default function DashboardPage() {
       if (soundOn) playAlertSound();
       try {
         const data = JSON.parse(e.data ?? "{}");
-        const room = data.roomNumber ?? "";
-        const item = data.itemName   ?? "New request";
-        showNotification(`New Request — Room ${room}`, item);
+        showNotification(`New Request — Room ${data.roomNumber ?? ""}`, data.itemName ?? "New request");
       } catch { showNotification("New Request", "A guest has made a new request"); }
     });
     return () => es.close();
@@ -713,22 +697,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
 
-      <NavBar
-        notifications={notifications}
-        onNotificationDismiss={id => setDismissed(prev => {
-          const next = new Set(prev); next.add(id);
-          saveDismissed(hotelId, next);
-          return next;
-        })}
-        onNotificationClick={(requestId) => {
-          setTab("ACTIVE");
-          setHighlightedId(requestId);
-          setTimeout(() => {
-            document.getElementById(`request-${requestId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 150);
-          setTimeout(() => setHighlightedId(null), 3000);
-        }}
-      />
+      <NavBar />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
 

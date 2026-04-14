@@ -3,19 +3,13 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import { trRole, LANGUAGES, type Lang } from "@/lib/i18n";
-import type { AppNotification } from "@/lib/notifications";
 import { toggleTheme } from "@/lib/darkmode";
+import { useNotifications } from "@/lib/NotificationsContext";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
   Users, Settings, LogOut, Menu, X, Bell, BarChart2, Languages, Clock, AlertCircle,
   Sun, Moon,
 } from "lucide-react";
-
-interface NavBarProps {
-  notifications?: AppNotification[];
-  onNotificationDismiss?: (id: string) => void;
-  onNotificationClick?: (requestId: number) => void;
-}
 
 function timeAgo(iso: string) {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -26,9 +20,10 @@ function timeAgo(iso: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function NavBar({ notifications = [], onNotificationDismiss, onNotificationClick }: NavBarProps) {
+export default function NavBar() {
   const { user, logout } = useAuth();
   const { lang, t, setLanguage } = useLang();
+  const { notifications, dismiss, setPendingTarget } = useNotifications();
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -37,7 +32,7 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
   const langRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.length;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -120,7 +115,7 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                               : <Bell className="h-4 w-4" />}
                           </div>
                           <button className="flex-1 text-left min-w-0"
-                            onClick={() => { onNotificationClick?.(n.requestId); setPanelOpen(false); }}>
+                            onClick={() => { setPendingTarget(n.requestId); navigate("/"); setPanelOpen(false); }}>
                             <p className="text-sm font-semibold text-stone-800 dark:text-zinc-200 truncate">
                               Room {n.roomNumber} · {n.itemName}
                             </p>
@@ -128,7 +123,7 @@ export default function NavBar({ notifications = [], onNotificationDismiss, onNo
                               {n.type === "past_due" ? "Past due" : "New request"} · {timeAgo(n.createdAt)}
                             </p>
                           </button>
-                          <button onClick={() => onNotificationDismiss?.(n.id)}
+                          <button onClick={() => dismiss(n.id)}
                             className="shrink-0 text-stone-300 dark:text-zinc-600 hover:text-stone-600 dark:hover:text-zinc-300 transition-colors p-0.5 mt-0.5">
                             <X className="h-3.5 w-3.5" />
                           </button>
