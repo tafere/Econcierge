@@ -308,7 +308,7 @@ function RequestTable({
         return (
           <div key={req.id} id={`request-${req.id}`}
             className={`glass rounded-lg border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
-              ${isHighlighted ? "ring-2 ring-brand-400" : ""} transition-all duration-500 overflow-hidden`}>
+              ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : ""} transition-all duration-500 overflow-hidden`}>
 
             {/* Card body */}
             <div className="px-4 py-3 space-y-1.5">
@@ -374,8 +374,8 @@ function RequestTable({
                   <div className="flex gap-2 p-2">
                     <button onClick={() => onAccept(req)}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
-                        text-stone-700 dark:text-zinc-200 border border-brand-500 dark:border-brand-600 rounded
-                        hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
+                        text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600 rounded
+                        hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                       <Check className="h-3.5 w-3.5" /> {t("accept")}
                     </button>
                     <button onClick={() => onDecline(req)}
