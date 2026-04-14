@@ -673,12 +673,12 @@ export default function GuestPage() {
                       onClick={() => setSelectedCat(cat)}
                       className={`rounded p-3.5 text-left transition-all
                         ${hasHero
-                          ? "bg-white/[0.07] backdrop-blur-sm border border-white/10 hover:bg-white/15 hover:shadow-lg"
+                          ? "bg-black/40 border border-white/10 hover:bg-black/30 hover:shadow-lg"
                           : "glass hover:border-brand-700 hover:shadow-md"}`}
                     >
                       <p className="text-xl mb-1.5">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
                       <p className={`font-semibold text-sm leading-tight ${hasHero ? "text-white" : "text-stone-800"}`}>{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</p>
-                      <p className={`text-xs mt-0.5 ${hasHero ? "text-white/55" : "text-stone-400"}`}>{cat.items.length} {cat.items.length === 1 ? T("option") : T("options")}</p>
+                      <p className={`text-xs mt-0.5 ${hasHero ? "text-white/60" : "text-stone-400"}`}>{cat.items.length} {cat.items.length === 1 ? T("option") : T("options")}</p>
                     </button>
                   ))}
                 </div>
