@@ -284,8 +284,141 @@ function RequestTable({
 
   const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider whitespace-nowrap";
 
+  // ── Mobile card list ────────────────────────────────────────────────────────
+  const mobileCards = (
+    <div className="sm:hidden space-y-3 px-1">
+      {requests.map(req => {
+        const isOverdue     = overdueIds.has(req.id);
+        const isEscalated   = escalatedIds.has(req.id);
+        const isHighlighted = req.id === highlightedId;
+        const dimmed        = req.status === "DONE" || req.status === "CANCELLED" || req.status === "DECLINED";
+        const itemLabel     = lang === "am" && req.itemNameAm ? req.itemNameAm : req.itemName;
+        const catLabel      = lang === "am" && req.categoryNameAm ? req.categoryNameAm : req.categoryName;
+        const ageMins       = ageMinutes(req.createdAt);
+        const timeLabel     = ageMins < 1 ? "just now" : ageMins < 60 ? `${ageMins}m ago` : fmtDateTime(req.createdAt);
+
+        const borderColor =
+          isHighlighted ? "border-brand-400" :
+          isEscalated   ? "border-red-400" :
+          isOverdue     ? "border-orange-400" :
+          req.status === "PENDING"     ? "border-amber-300" :
+          req.status === "IN_PROGRESS" ? "border-blue-400" :
+          "border-transparent";
+
+        const bgColor =
+          isHighlighted ? "bg-amber-50/60 dark:bg-amber-900/20" :
+          isEscalated   ? "bg-red-50/40 dark:bg-red-900/20" :
+          isOverdue     ? "bg-orange-50/40 dark:bg-orange-900/20" :
+          req.status === "PENDING"     ? "bg-amber-50/30 dark:bg-amber-900/10" :
+          req.status === "IN_PROGRESS" ? "bg-blue-50/30 dark:bg-blue-900/10" :
+          "bg-white/60 dark:bg-zinc-800/60";
+
+        return (
+          <div key={req.id} id={`request-${req.id}`}
+            className={`glass rounded-lg border-l-4 ${borderColor} ${bgColor} ${dimmed ? "opacity-55" : ""}
+              transition-all duration-500 overflow-hidden`}>
+
+            {/* Card body */}
+            <div className="px-4 pt-4 pb-3 space-y-2">
+              {/* Room + time */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="text-2xl font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
+                    {t("roomCol")} {req.roomNumber}
+                  </span>
+                  {req.floor && (
+                    <span className="ml-2 text-xs text-stone-400 dark:text-zinc-500">{t("floorLabel")} {req.floor}</span>
+                  )}
+                </div>
+                <span className={`text-xs font-medium shrink-0 mt-1
+                  ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-400 dark:text-zinc-500"}`}>
+                  {timeLabel}
+                </span>
+              </div>
+
+              {/* Item */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xl leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
+                <span className="font-bold text-stone-800 dark:text-zinc-100 text-base">{itemLabel}</span>
+                {req.quantity > 1 && (
+                  <span className="text-sm font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/30
+                    border border-amber-200 rounded px-2 py-0.5">×{req.quantity}</span>
+                )}
+              </div>
+
+              {/* Category + status badges */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-stone-400 dark:text-zinc-500">{catLabel}</span>
+                {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
+                  <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold
+                    text-blue-700 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 rounded px-2 py-0.5">
+                    <Clock className="h-3 w-3" /> ~{req.etaMinutes} min
+                  </span>
+                )}
+                {isOverdue && (
+                  <span className="text-[11px] font-bold text-orange-600 bg-orange-50 dark:bg-orange-900/30
+                    border border-orange-200 rounded px-2 py-0.5">Overdue</span>
+                )}
+                {isEscalated && (
+                  <span className="text-[11px] font-bold text-red-600 bg-red-50 dark:bg-red-900/30
+                    border border-red-200 rounded px-2 py-0.5">Escalated</span>
+                )}
+              </div>
+
+              {/* Notes */}
+              {req.notes && (
+                <p className="text-xs text-stone-500 dark:text-zinc-400 italic">"{req.notes}"</p>
+              )}
+              {req.staffComment && (
+                <p className="text-xs text-red-500 italic">⚠ {req.staffComment}</p>
+              )}
+              {req.assignedTo && req.status !== "PENDING" && (
+                <p className="text-xs text-stone-500 dark:text-zinc-400">By {req.assignedTo}</p>
+              )}
+              {req.completedAt && (
+                <p className="text-xs text-green-600">✓ {fmtDateTime(req.completedAt)}</p>
+              )}
+            </div>
+
+            {/* Action buttons — full width, tall */}
+            {(req.status === "PENDING" || req.status === "IN_PROGRESS") && (
+              <div className="border-t border-stone-200/60 dark:border-zinc-700/40">
+                {updatingId === req.id ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-5 w-5 animate-spin text-stone-400" />
+                  </div>
+                ) : req.status === "PENDING" ? (
+                  <div className="grid grid-cols-2 divide-x divide-stone-200/60 dark:divide-zinc-700/40">
+                    <button onClick={() => onAccept(req)}
+                      className="flex items-center justify-center gap-2 py-4 text-sm font-bold
+                        text-white bg-brand-700 hover:bg-brand-800 active:bg-brand-900 transition-colors">
+                      <Check className="h-4 w-4" /> {t("accept")}
+                    </button>
+                    <button onClick={() => onDecline(req)}
+                      className="flex items-center justify-center gap-2 py-4 text-sm font-bold
+                        text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      <X className="h-4 w-4" /> {t("declineBtn")}
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => onDone(req.id)}
+                    className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold
+                      text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition-colors">
+                    <CheckCheck className="h-4 w-4" /> {t("markDone")}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className="overflow-x-auto">
+    <>
+      {mobileCards}
+      <div className="hidden sm:block overflow-x-auto">
       <table className="min-w-full text-sm table-auto">
         <thead>
           <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
@@ -398,7 +531,8 @@ function RequestTable({
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
 
