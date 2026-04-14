@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 027653365943.dkr.ecr.us-east-2.amazonaws.com/econcierge-frontend:c49bc88aad9a359bce97daa9af491b1a2aad0866
+        image: 027653365943.dkr.ecr.us-east-2.amazonaws.com/econcierge-frontend:23ebd719144e44577d1b14970c2d52eb1b2be897
         imagePullPolicy: Always
         ports:
         - containerPort: 80
