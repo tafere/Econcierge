@@ -151,8 +151,9 @@ public class DashboardController {
         res.put("id",      hotel.getId());
         res.put("name",    hotel.getName());
         res.put("tagline", hotel.getTagline()  != null ? hotel.getTagline()  : "");
-        res.put("logoUrl", hotel.getLogoUrl()  != null ? hotel.getLogoUrl()  : "");
-        res.put("website", hotel.getWebsite()  != null ? hotel.getWebsite()  : "");
+        res.put("logoUrl",      hotel.getLogoUrl()      != null ? hotel.getLogoUrl()      : "");
+        res.put("heroImageUrl", hotel.getHeroImageUrl() != null ? hotel.getHeroImageUrl() : "");
+        res.put("website",      hotel.getWebsite()      != null ? hotel.getWebsite()      : "");
         res.put("address",    hotel.getAddress()  != null ? hotel.getAddress()  : "");
         res.put("phone",      hotel.getPhone()    != null ? hotel.getPhone()    : "");
         res.put("email",      hotel.getEmail()    != null ? hotel.getEmail()    : "");
@@ -169,7 +170,8 @@ public class DashboardController {
         if (hotel == null) return ResponseEntity.notFound().build();
         if (body.containsKey("name")    && body.get("name") != null && !body.get("name").toString().isBlank())  hotel.setName(body.get("name").toString());
         if (body.containsKey("tagline") && body.get("tagline") != null) hotel.setTagline(body.get("tagline").toString());
-        if (body.containsKey("logoUrl") && body.get("logoUrl") != null) hotel.setLogoUrl(body.get("logoUrl").toString());
+        if (body.containsKey("logoUrl")      && body.get("logoUrl")      != null) hotel.setLogoUrl(body.get("logoUrl").toString());
+        if (body.containsKey("heroImageUrl") && body.get("heroImageUrl") != null) hotel.setHeroImageUrl(body.get("heroImageUrl").toString());
         if (body.containsKey("website") && body.get("website") != null) hotel.setWebsite(body.get("website").toString());
         if (body.containsKey("address") && body.get("address") != null) hotel.setAddress(body.get("address").toString());
         if (body.containsKey("phone")   && body.get("phone")   != null) hotel.setPhone(body.get("phone").toString());

@@ -38,6 +38,7 @@ interface RoomInfo {
   hotelName: string;
   tagline: string;
   logoUrl: string;
+  heroImageUrl: string;
   primaryColor: string;
   menu: MenuCategory[];
 }
@@ -453,11 +454,21 @@ export default function GuestPage() {
     </div>
   );
 
+  const hasHero = !!room!.heroImageUrl;
+
   return (
-    <div className="min-h-screen pb-28">
+    <div className="min-h-screen pb-28 relative">
+
+      {/* Full-screen hotel background image */}
+      {hasHero && (
+        <div className="fixed inset-0 -z-10">
+          <img src={room!.heroImageUrl} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/55" />
+        </div>
+      )}
 
       {/* Header */}
-      <div className="bg-brand-700 text-white px-4 py-5">
+      <div className={`text-white px-4 py-5 ${hasHero ? "bg-black/20 backdrop-blur-sm" : "bg-brand-700"}`}>
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             {room!.logoUrl ? (
@@ -472,8 +483,8 @@ export default function GuestPage() {
           </div>
           <button
             onClick={cycleLanguage}
-            className="text-xs font-bold bg-brand-800 hover:bg-brand-900 transition-colors
-              rounded px-3 py-1.5 text-amber-100 shrink-0 ml-3 flex items-center gap-1"
+            className={`text-xs font-bold transition-colors rounded px-3 py-1.5 text-white shrink-0 ml-3 flex items-center gap-1
+              ${hasHero ? "bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20" : "bg-brand-800 hover:bg-brand-900 text-amber-100"}`}
           >
             <Languages className="h-3.5 w-3.5" />
             {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
@@ -653,18 +664,20 @@ export default function GuestPage() {
             {/* Step 1: Category selection */}
             {!selectedCat && !selectedItem && (
               <>
-                <p className="text-sm text-stone-500 font-medium pt-1">{T("selectCategory")}</p>
+                <p className={`text-sm font-medium pt-1 ${hasHero ? "text-white/80" : "text-stone-500"}`}>{T("selectCategory")}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {room!.menu.map(cat => (
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className="glass rounded p-5 text-left
-                        hover:border-brand-700 hover:shadow-md transition-all"
+                      className={`rounded p-5 text-left transition-all
+                        ${hasHero
+                          ? "bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 hover:shadow-lg"
+                          : "glass hover:border-brand-700 hover:shadow-md"}`}
                     >
                       <p className="text-2xl mb-2">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
-                      <p className="font-semibold text-stone-800 text-sm">{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</p>
-                      <p className="text-xs text-stone-400 mt-0.5">{cat.items.length} {T("options")}</p>
+                      <p className={`font-semibold text-sm ${hasHero ? "text-white" : "text-stone-800"}`}>{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</p>
+                      <p className={`text-xs mt-0.5 ${hasHero ? "text-white/60" : "text-stone-400"}`}>{cat.items.length} {T("options")}</p>
                     </button>
                   ))}
                 </div>

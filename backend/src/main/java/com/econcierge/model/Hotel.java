@@ -31,6 +31,9 @@ public class Hotel {
     @Column(name = "logo_url", length = 500)
     private String logoUrl;
 
+    @Column(name = "hero_image_url", length = 500)
+    private String heroImageUrl;
+
     @Column(length = 300)
     private String website;
 
@@ -62,8 +65,10 @@ public class Hotel {
     public void setEmail(String v)       { this.email = v; }
     public String getTagline()           { return tagline; }
     public void setTagline(String v)     { this.tagline = v; }
-    public String getLogoUrl()           { return logoUrl; }
+    public String getLogoUrl()            { return logoUrl; }
     public void setLogoUrl(String v)     { this.logoUrl = v; }
+    public String getHeroImageUrl()      { return heroImageUrl; }
+    public void setHeroImageUrl(String v){ this.heroImageUrl = v; }
     public String getWebsite()           { return website; }
     public void setWebsite(String v)     { this.website = v; }
     public String getPrimaryColor()           { return primaryColor; }
