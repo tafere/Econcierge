@@ -312,8 +312,8 @@ function RequestTable({
 
             {/* Card body */}
             <div className="px-4 py-3 space-y-1.5">
-              {/* Row 1: Room + time */}
-              <div className="flex items-center justify-between gap-2">
+              {/* Row 1: Room (left) + overdue badge / time (right) */}
+              <div className="flex items-start justify-between gap-2">
                 <div className="flex items-baseline gap-2 min-w-0">
                   <span className="text-xl font-extrabold text-stone-900 dark:text-zinc-100 leading-none shrink-0">
                     {t("roomCol")} {req.roomNumber}
@@ -322,7 +322,15 @@ function RequestTable({
                     <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{t("floorLabel")} {req.floor}</span>
                   )}
                 </div>
-                <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{timeLabel}</span>
+                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                  {isEscalated && (
+                    <span className="text-[10px] font-bold text-red-500 border border-red-300 dark:border-red-700 rounded px-1.5 py-0.5">Escalated</span>
+                  )}
+                  {isOverdue && !isEscalated && (
+                    <span className="text-[10px] font-bold text-orange-500 border border-orange-300 dark:border-orange-700 rounded px-1.5 py-0.5">Overdue</span>
+                  )}
+                  <span className="text-xs text-stone-400 dark:text-zinc-500">{timeLabel}</span>
+                </div>
               </div>
 
               {/* Row 2: Emoji + item + quantity */}
@@ -335,16 +343,9 @@ function RequestTable({
                 )}
               </div>
 
-              {/* Row 3: Category · badges */}
+              {/* Row 3: Category · ETA */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs text-stone-400 dark:text-zinc-500">{catLabel}</span>
-                {(isOverdue || isEscalated) && <span className="text-stone-300 dark:text-zinc-600 text-xs">·</span>}
-                {isEscalated && (
-                  <span className="text-[10px] font-bold text-red-500 border border-red-300 dark:border-red-700 rounded px-1.5 py-0.5">Escalated</span>
-                )}
-                {isOverdue && !isEscalated && (
-                  <span className="text-[10px] font-bold text-orange-500 border border-orange-300 dark:border-orange-700 rounded px-1.5 py-0.5">Overdue</span>
-                )}
                 {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold
                     text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded px-1.5 py-0.5">
@@ -370,15 +371,17 @@ function RequestTable({
                     <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
                   </div>
                 ) : req.status === "PENDING" ? (
-                  <div className="grid grid-cols-2 divide-x divide-stone-200/50 dark:divide-zinc-700/40">
+                  <div className="flex gap-2 p-2">
                     <button onClick={() => onAccept(req)}
-                      className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                        text-white bg-brand-700 hover:bg-brand-800 transition-colors">
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
+                        text-stone-700 dark:text-zinc-200 border border-brand-500 dark:border-brand-600 rounded
+                        hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
                       <Check className="h-3.5 w-3.5" /> {t("accept")}
                     </button>
                     <button onClick={() => onDecline(req)}
-                      className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                        text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
+                        text-red-500 border border-red-200 dark:border-red-800 rounded
+                        hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                       <X className="h-3.5 w-3.5" /> {t("declineBtn")}
                     </button>
                   </div>
@@ -556,7 +559,77 @@ function BookingSection({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile card list */}
+      <div className="sm:hidden space-y-2.5 p-3">
+        {bookings.map(b => {
+          const borderColor =
+            b.status === "CONFIRMED" ? "border-green-400" :
+            b.status === "PENDING"   ? "border-amber-300" :
+            "border-stone-200 dark:border-zinc-700";
+          return (
+            <div key={b.id}
+              className={`glass rounded-lg border-l-4 ${borderColor} ${b.status === "CANCELLED" ? "opacity-50" : ""} overflow-hidden`}>
+              <div className="px-4 py-3 space-y-1.5">
+                {/* Row 1: Room + slot time */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xl font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
+                    {t("roomCol")} {b.roomNumber}
+                  </span>
+                  <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{b.slotTime}</span>
+                </div>
+                {/* Row 2: Date + guest count */}
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="h-3.5 w-3.5 text-stone-400 dark:text-zinc-500 shrink-0" />
+                  <span className="text-sm font-semibold text-stone-800 dark:text-zinc-100">{b.slotDate}</span>
+                  <span className="inline-flex items-center gap-0.5 text-xs text-stone-400 dark:text-zinc-500">
+                    <Users className="h-3 w-3" /> {b.guestCount}
+                  </span>
+                </div>
+                {/* Status badge */}
+                {b.status !== "PENDING" && (
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${BOOKING_STATUS_PILL[b.status]}`}>
+                    {b.status === "CONFIRMED" ? t("confirmedStatus") : t("cancelledStatus")}
+                  </span>
+                )}
+                {b.notes && (
+                  <p className="text-xs text-stone-400 dark:text-zinc-500 italic truncate">"{b.notes}"</p>
+                )}
+              </div>
+              {/* Action buttons */}
+              {(b.status === "PENDING" || b.status === "CONFIRMED") && (
+                <div className="border-t border-stone-200/50 dark:border-zinc-700/40">
+                  {updatingId === b.id ? (
+                    <div className="flex justify-center py-3">
+                      <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                    </div>
+                  ) : b.status === "PENDING" ? (
+                    <div className="grid grid-cols-2 divide-x divide-stone-200/50 dark:divide-zinc-700/40">
+                      <button onClick={() => onUpdateStatus(b.id, "CONFIRMED", b)}
+                        className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
+                          text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                        <Check className="h-3.5 w-3.5" /> {t("confirmBtn")}
+                      </button>
+                      <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
+                        className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
+                          text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        <X className="h-3.5 w-3.5" /> {t("cancelBtn")}
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
+                        text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      <X className="h-3.5 w-3.5" /> {t("cancelBtn")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full text-sm table-auto">
           <thead>
             <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
@@ -634,6 +707,7 @@ function BookingSection({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+
 
 type Tab = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PASTDUE";
 
