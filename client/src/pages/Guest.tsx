@@ -768,49 +768,57 @@ export default function GuestPage() {
                   {selectedSlot && (
                     <>
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">{T("numberOfGuests")}</p>
+                        <p className={`text-xs font-medium tracking-wider mb-2 ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("numberOfGuests")}</p>
                         <div className="flex items-center gap-4">
                           <button onClick={() => setGuestCount(n => Math.max(1, n - 1))} disabled={guestCount <= 1}
-                            className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
-                              text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors disabled:opacity-30">
-                            <Minus className="h-4 w-4" />
+                            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors disabled:opacity-30
+                              ${hasHero
+                                ? "border-white/30 text-white/70 hover:border-white hover:text-white"
+                                : "border-stone-200 text-stone-600 hover:border-brand-700 hover:text-brand-700"}`}>
+                            <Minus className="h-3.5 w-3.5" />
                           </button>
-                          <span className="text-2xl font-bold text-stone-900 w-8 text-center">{guestCount}</span>
+                          <span className={`text-2xl font-bold w-8 text-center ${hasHero ? "text-white" : "text-stone-900"}`}>{guestCount}</span>
                           <button onClick={() => setGuestCount(n => Math.min(selectedSlot.remaining, n + 1))}
                             disabled={guestCount >= selectedSlot.remaining}
-                            className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
-                              text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors disabled:opacity-30">
-                            <Plus className="h-4 w-4" />
+                            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors disabled:opacity-30
+                              ${hasHero
+                                ? "border-white/30 text-white/70 hover:border-white hover:text-white"
+                                : "border-stone-200 text-stone-600 hover:border-brand-700 hover:text-brand-700"}`}>
+                            <Plus className="h-3.5 w-3.5" />
                           </button>
-                          <span className="text-xs text-stone-400">{selectedSlot.remaining} {T("available")}</span>
+                          <span className={`text-xs ${hasHero ? "text-white/40" : "text-stone-400"}`}>{selectedSlot.remaining} {T("available")}</span>
                         </div>
                       </div>
 
                       <div>
                         <button onClick={() => setShowNotes(v => !v)}
-                          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400
-                            hover:text-brand-700 transition-colors">
+                          className={`flex items-center gap-1.5 text-xs font-medium transition-colors
+                            ${hasHero ? "text-white/50 hover:text-white" : "text-stone-400 hover:text-brand-700"}`}>
                           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showNotes ? "rotate-180" : ""}`} />
                           {T("addInstructions")}
                         </button>
                         {showNotes && (
                           <textarea value={notes} onChange={e => setNotes(e.target.value)}
                             placeholder={T("instructionsHint")} rows={2} autoFocus
-                            className="mt-2 w-full border border-stone-200 bg-white rounded px-3 py-2 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none" />
+                            className={`mt-2 w-full rounded px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2
+                              ${hasHero
+                                ? "bg-white/10 border border-white/15 text-white placeholder:text-white/30 focus:ring-white/30"
+                                : "border border-stone-200 bg-white focus:ring-brand-700"}`} />
                         )}
                       </div>
 
-                      <div className="bg-brand-50 border border-brand-200 rounded px-4 py-3">
-                        <p className="text-sm font-semibold text-stone-800">
+                      <div className={`rounded-xl px-4 py-3 ${hasHero ? "bg-white/10 border border-white/15" : "bg-brand-50 border border-brand-200"}`}>
+                        <p className={`text-sm font-semibold ${hasHero ? "text-white" : "text-stone-800"}`}>
                           {selectedItem.name} · {slotDate === todayStr ? T("today") : T("tomorrow")} {T("at")} {selectedSlot.time}
                         </p>
-                        <p className="text-xs text-stone-500 mt-0.5">{guestCount} {guestCount !== 1 ? T("guests") : T("guest")}</p>
+                        <p className={`text-xs mt-0.5 ${hasHero ? "text-white/50" : "text-stone-500"}`}>{guestCount} {guestCount !== 1 ? T("guests") : T("guest")}</p>
                       </div>
 
                       <button onClick={bookSlot} disabled={booking}
-                        className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
-                          hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                        className={`w-full h-10 rounded font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-colors
+                          ${hasHero
+                            ? "bg-white text-stone-900 hover:bg-white/90"
+                            : "bg-brand-700 text-white hover:bg-brand-800"}`}>
                         {booking ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{T("confirmBooking")}</>}
                       </button>
                     </>
