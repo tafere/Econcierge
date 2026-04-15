@@ -630,21 +630,25 @@ export default function GuestPage() {
 
             {/* My Bookings tracker */}
             {!selectedCat && !selectedItem && bookings.length > 0 && (
-              <div className="glass rounded overflow-hidden">
-                <div className="px-4 py-3 border-b border-stone-50">
-                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">{T("myBookings")}</p>
+              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/45" : "glass"}`}>
+                <div className={`px-4 py-3 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
+                  <p className={`text-xs font-medium tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myBookings")}</p>
                 </div>
-                <div className="divide-y divide-stone-50">
+                <div className={`divide-y ${hasHero ? "divide-white/10" : "divide-stone-100"}`}>
                   {bookings.map(b => (
                     <div key={b.id} className="px-4 py-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-stone-800">{b.itemName}</p>
-                        <p className="text-xs text-stone-400 mt-0.5">{b.slotTime} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}</p>
+                        <p className={`text-sm font-semibold ${hasHero ? "text-white" : "text-stone-800"}`}>{b.itemName}</p>
+                        <p className={`text-xs mt-0.5 ${hasHero ? "text-white/40" : "text-stone-400"}`}>{b.slotTime} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}</p>
                       </div>
-                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded border shrink-0
-                        ${b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-200" :
-                          b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-200" :
-                          "bg-amber-100 text-amber-800 border-amber-200"}`}>
+                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0
+                        ${hasHero
+                          ? b.status === "CONFIRMED" ? "border-green-400/50 text-green-300"
+                          : b.status === "CANCELLED" ? "border-white/20 text-white/40"
+                          : "border-amber-400/50 text-amber-300"
+                          : b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-200"
+                          : b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-200"
+                          : "bg-amber-100 text-amber-800 border-amber-200"}`}>
                         {b.status === "CONFIRMED" ? T("confirmed") : b.status === "CANCELLED" ? T("cancelled") : T("pending")}
                       </span>
                     </div>
