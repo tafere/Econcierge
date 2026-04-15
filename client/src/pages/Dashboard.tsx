@@ -324,7 +324,8 @@ function RequestTable({
                 ) : (
                   <button onClick={() => onDone(req.id)}
                     className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                      text-white bg-emerald-600 hover:bg-emerald-700 transition-colors">
+                      text-stone-700 dark:text-zinc-200 border-t border-emerald-500 dark:border-emerald-600
+                      hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                     <CheckCheck className="h-3.5 w-3.5" /> {t("markDone")}
                   </button>
                 )}
@@ -363,10 +364,10 @@ function RequestTable({
                 id={`request-${req.id}`}
                 className={`border-l-4 transition-all duration-500
                   ${isHighlighted ? "ring-2 ring-inset ring-brand-400 bg-amber-50/60 dark:bg-amber-900/20" :
-                    isEscalated  ? "border-l-red-400    bg-red-50/30    dark:bg-red-900/20    hover:bg-red-50/50    dark:hover:bg-red-900/30"    :
-                    isOverdue    ? "border-l-orange-400 bg-orange-50/30 dark:bg-orange-900/20 hover:bg-orange-50/50 dark:hover:bg-orange-900/30" :
-                    req.status === "PENDING"     ? "border-l-amber-300 bg-amber-50/20 dark:bg-amber-900/10 hover:bg-amber-50/40 dark:hover:bg-amber-900/20" :
-                    req.status === "IN_PROGRESS" ? "border-l-blue-400  bg-blue-50/20  dark:bg-blue-900/10  hover:bg-blue-50/40  dark:hover:bg-blue-900/20"  :
+                    isEscalated  ? "border-l-red-500 hover:bg-zinc-700/30" :
+                    isOverdue    ? "border-l-red-400 hover:bg-zinc-700/30" :
+                    req.status === "PENDING"     ? "border-l-amber-300 hover:bg-zinc-700/20" :
+                    req.status === "IN_PROGRESS" ? "border-l-blue-400  hover:bg-zinc-700/20"  :
                     "border-l-transparent hover:bg-stone-50 dark:hover:bg-zinc-700"}
                   ${dimmed ? "opacity-55" : ""}`}
               >
@@ -442,8 +443,9 @@ function RequestTable({
                       </div>
                     ) : req.status === "IN_PROGRESS" ? (
                       <button onClick={() => onDone(req.id)}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-white
-                          bg-emerald-600 hover:bg-emerald-700 rounded px-3 py-1.5 transition-colors">
+                        className="inline-flex items-center gap-1 text-xs font-bold
+                          text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600
+                          hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded px-3 py-1.5 transition-colors">
                         <CheckCheck className="h-3.5 w-3.5" /> {t("markDone")}
                       </button>
                     ) : null}
