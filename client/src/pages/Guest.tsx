@@ -557,65 +557,57 @@ export default function GuestPage() {
           <>
             {/* My Requests tracker — only on main screen */}
             {!selectedCat && !selectedItem && tracked.length > 0 && (
-              <div className="glass rounded overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
-                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">{T("myRequests")}</p>
-                  <button onClick={pollStatuses} className="text-stone-300 hover:text-brand-700 transition-colors">
+              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/45" : "glass"}`}>
+                <div className={`flex items-center justify-between px-4 py-2.5 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
+                  <p className={`text-[11px] font-bold uppercase tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myRequests")}</p>
+                  <button onClick={pollStatuses} className={`transition-colors ${hasHero ? "text-white/30 hover:text-white/70" : "text-stone-300 hover:text-brand-700"}`}>
                     <RefreshCw className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="divide-y divide-stone-50">
+                <div className={`divide-y ${hasHero ? "divide-white/10" : "divide-stone-50"}`}>
                   {tracked.map(req => (
                     <div key={req.id} className="px-4 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <p className="text-sm font-semibold text-stone-800 truncate">{req.itemName}</p>
+                            <p className={`text-sm font-semibold truncate ${hasHero ? "text-white" : "text-stone-800"}`}>{req.itemName}</p>
                             {req.quantity > 1 && (
-                              <span className="text-xs font-bold text-brand-700">×{req.quantity}</span>
+                              <span className={`text-xs font-bold ${hasHero ? "text-amber-400" : "text-brand-700"}`}>×{req.quantity}</span>
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-400">
+                          <div className={`flex items-center gap-1.5 mt-0.5 text-[11px] ${hasHero ? "text-white/40" : "text-stone-400"}`}>
                             <Clock className="h-3 w-3" />
                             {timeAgo(req.submittedAt)}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded border ${STATUS_STYLE[req.status]}`}>
+                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border
+                            ${hasHero
+                              ? req.status === "PENDING"     ? "border-amber-400/50 text-amber-300"
+                              : req.status === "IN_PROGRESS" ? "border-blue-400/50 text-blue-300"
+                              : req.status === "DONE"        ? "border-green-400/50 text-green-300"
+                              : req.status === "DECLINED"    ? "border-red-400/50 text-red-300"
+                              : "border-white/20 text-white/40"
+                              : STATUS_STYLE[req.status]}`}>
                             {statusLabel(req.status)}
                           </span>
                           {req.status === "PENDING" && cancellingId !== req.id && (
-                            <button
-                              onClick={() => setCancellingId(req.id)}
-                              className="text-[11px] text-stone-400 hover:text-red-500 transition-colors"
-                              title={T("cancelRequest")}
-                            >
+                            <button onClick={() => setCancellingId(req.id)}
+                              className={`transition-colors ${hasHero ? "text-white/25 hover:text-red-400" : "text-stone-400 hover:text-red-500"}`}>
                               <X className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
                       </div>
-                      {/* Inline cancel confirm */}
                       {cancellingId === req.id && (
-                        <div className="mt-2 flex items-center gap-2 bg-red-50 rounded px-3 py-2">
-                          <p className="text-xs text-red-700 flex-1">{T("confirmCancel")}</p>
-                          <button
-                            onClick={() => cancelRequest(req.id)}
-                            className="text-xs font-bold text-red-600 hover:text-red-800 transition-colors"
-                          >
-                            {T("yes")}
-                          </button>
-                          <button
-                            onClick={() => setCancellingId(null)}
-                            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
-                          >
-                            {T("no")}
-                          </button>
+                        <div className={`mt-2 flex items-center gap-2 rounded px-3 py-2 ${hasHero ? "bg-red-900/30" : "bg-red-50"}`}>
+                          <p className={`text-xs flex-1 ${hasHero ? "text-red-300" : "text-red-700"}`}>{T("confirmCancel")}</p>
+                          <button onClick={() => cancelRequest(req.id)} className="text-xs font-bold text-red-400 hover:text-red-200 transition-colors">{T("yes")}</button>
+                          <button onClick={() => setCancellingId(null)} className={`text-xs transition-colors ${hasHero ? "text-white/40 hover:text-white/70" : "text-stone-400 hover:text-stone-600"}`}>{T("no")}</button>
                         </div>
                       )}
-                      {/* ETA display */}
                       {(req.status === "IN_PROGRESS" || req.status === "PENDING") && req.etaMinutes != null && (
-                        <p className="mt-1 text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                        <p className={`mt-1 text-[11px] font-medium flex items-center gap-1 ${hasHero ? "text-blue-300" : "text-blue-600"}`}>
                           <Clock className="h-3 w-3" />
                           {req.acceptedAt
                             ? (() => {
@@ -625,9 +617,8 @@ export default function GuestPage() {
                             : `~${req.etaMinutes} min estimated`}
                         </p>
                       )}
-                      {/* Decline reason */}
                       {req.status === "DECLINED" && req.staffComment && (
-                        <p className="mt-1 text-[11px] text-red-600 italic">
+                        <p className={`mt-1 text-[11px] italic ${hasHero ? "text-red-300" : "text-red-600"}`}>
                           {T("declinedReason")}: {req.staffComment}
                         </p>
                       )}
@@ -898,8 +889,10 @@ export default function GuestPage() {
 
                   <button
                     onClick={addToCart}
-                    className="w-full h-10 bg-brand-700 text-white rounded-lg font-bold text-sm
-                      hover:bg-brand-800 transition-colors flex items-center justify-center gap-2"
+                    className={`w-full h-10 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2
+                      ${hasHero
+                        ? "bg-white text-stone-900 hover:bg-white/90"
+                        : "bg-brand-700 text-white hover:bg-brand-800"}`}
                   >
                     <ShoppingCart className="h-4 w-4" /> {T("addToCart")}
                   </button>
@@ -912,30 +905,33 @@ export default function GuestPage() {
 
       {/* ── Sticky cart bar (visible whenever cart has items) ── */}
       {cart.length > 0 && !showCart && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-stone-200 shadow-2xl px-4 py-3">
+        <div className={`fixed bottom-0 left-0 right-0 shadow-2xl px-4 py-3
+          ${hasHero ? "bg-black/70 backdrop-blur-md border-t border-white/10" : "bg-white/90 backdrop-blur-md border-t border-stone-200"}`}>
           <div className="max-w-lg mx-auto flex items-center gap-3">
             <button
               onClick={() => setShowCart(true)}
-              className="flex-1 flex items-center gap-3 bg-stone-50 rounded px-4 py-3
-                border border-stone-200 hover:border-brand-700 transition-colors text-left"
+              className={`flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5 transition-colors text-left
+                ${hasHero ? "bg-white/10 hover:bg-white/15 border border-white/10" : "bg-stone-50 border border-stone-200 hover:border-brand-700"}`}
             >
               <div className="relative">
-                <ShoppingCart className="h-5 w-5 text-brand-700" />
+                <ShoppingCart className={`h-5 w-5 ${hasHero ? "text-white" : "text-brand-700"}`} />
                 <span className="absolute -top-2 -right-2 bg-brand-700 text-white text-[10px] font-bold
-                  rounded w-4 h-4 flex items-center justify-center leading-none">
+                  rounded-full w-4 h-4 flex items-center justify-center leading-none">
                   {cart.length}
                 </span>
               </div>
               <div>
-                <p className="text-xs font-bold text-stone-800">{cart.length} {T("cartItems")}</p>
-                <p className="text-[11px] text-stone-400">{T("viewCart")}</p>
+                <p className={`text-xs font-bold ${hasHero ? "text-white" : "text-stone-800"}`}>
+                  {cart.length} {cart.length === 1 ? T("cartItem") : T("cartItems")}
+                </p>
+                <p className={`text-[11px] ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("viewCart")}</p>
               </div>
             </button>
             <button
               onClick={sendAll}
               disabled={sending}
-              className="h-12 px-5 bg-brand-700 text-white rounded font-bold text-sm
-                hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50 shrink-0"
+              className={`h-10 px-5 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 disabled:opacity-50 shrink-0
+                ${hasHero ? "bg-white text-stone-900 hover:bg-white/90" : "bg-brand-700 text-white hover:bg-brand-800"}`}
             >
               {sending
                 ? <Loader2 className="h-4 w-4 animate-spin" />
