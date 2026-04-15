@@ -690,31 +690,26 @@ export default function GuestPage() {
               <>
                 <button
                   onClick={() => setSelectedCat(null)}
-                  className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2"
+                  className={`flex items-center gap-1 text-sm font-semibold pt-2 ${hasHero ? "text-white/80" : "text-brand-700"}`}
                 >
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
-                <h2 className="font-bold text-stone-900">{lang === "am" && selectedCat.nameAm ? selectedCat.nameAm : selectedCat.name}</h2>
-                <div className="space-y-2">
+                <h2 className={`font-bold text-lg ${hasHero ? "text-white" : "text-stone-900"}`}>{lang === "am" && selectedCat.nameAm ? selectedCat.nameAm : selectedCat.name}</h2>
+                <div className={`rounded-xl overflow-hidden divide-y ${hasHero ? "bg-black/45 divide-white/10" : "glass divide-stone-100"}`}>
                   {selectedCat.items.map(item => (
                     <button
                       key={item.id}
                       onClick={() => selectItem(item)}
-                      className="w-full glass rounded px-4 py-4 text-left
-                        hover:border-brand-700 hover:shadow-md transition-all flex items-center justify-between"
+                      className={`w-full px-4 py-3.5 text-left flex items-center justify-between gap-3 transition-colors
+                        ${hasHero ? "hover:bg-white/10" : "hover:bg-stone-50"}`}
                     >
-                      <div>
-                        <p className="font-semibold text-stone-800 text-sm">{lang === "am" && item.nameAm ? item.nameAm : item.name}</p>
+                      <div className="min-w-0">
+                        <p className={`font-semibold text-sm ${hasHero ? "text-white" : "text-stone-800"}`}>{lang === "am" && item.nameAm ? item.nameAm : item.name}</p>
                         {item.description && (
-                          <p className="text-xs text-stone-400 mt-0.5">{item.description}</p>
+                          <p className={`text-xs mt-0.5 truncate ${hasHero ? "text-white/50" : "text-stone-400"}`}>{item.description}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {item.maxQuantity > 1 && (
-                          <span className="text-xs text-stone-400">{T("upTo")} {item.maxQuantity}</span>
-                        )}
-                        <ChevronRight className="h-4 w-4 text-stone-300" />
-                      </div>
+                      <ChevronRight className={`h-4 w-4 shrink-0 ${hasHero ? "text-white/30" : "text-stone-300"}`} />
                     </button>
                   ))}
                 </div>
@@ -838,43 +833,43 @@ export default function GuestPage() {
               <>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="flex items-center gap-1 text-sm text-brand-700 font-semibold pt-2"
+                  className={`flex items-center gap-1 text-sm font-semibold pt-2 ${hasHero ? "text-white/80" : "text-brand-700"}`}
                 >
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
 
-                <div className="glass rounded p-5 space-y-5">
+                <div className={`rounded-xl p-4 space-y-4 ${hasHero ? "bg-black/45" : "glass"}`}>
+                  {/* Title */}
                   <div>
-                    <p className="text-xs text-stone-400 uppercase tracking-wider font-semibold">{lang === "am" && selectedCat!.nameAm ? selectedCat!.nameAm : selectedCat!.name}</p>
-                    <h2 className="font-bold text-stone-900 text-lg">{lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name}</h2>
+                    <p className={`text-xs font-medium tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>
+                      {lang === "am" && selectedCat!.nameAm ? selectedCat!.nameAm : selectedCat!.name}
+                    </p>
+                    <h2 className={`font-bold text-lg leading-tight mt-0.5 ${hasHero ? "text-white" : "text-stone-900"}`}>
+                      {lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name}
+                    </h2>
                   </div>
 
-                  {/* Quantity stepper */}
+                  {/* Quantity stepper — compact inline row */}
                   {selectedItem.maxQuantity > 1 && (
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-3">{T("quantity")}</p>
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                          disabled={quantity <= 1}
-                          className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
-                            text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
-                            disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        <span className="text-2xl font-bold text-stone-900 w-8 text-center">{quantity}</span>
-                        <button
-                          onClick={() => setQuantity(q => Math.min(selectedItem.maxQuantity, q + 1))}
-                          disabled={quantity >= selectedItem.maxQuantity}
-                          className="w-10 h-10 rounded border-2 border-stone-200 flex items-center justify-center
-                            text-stone-600 hover:border-brand-700 hover:text-brand-700 transition-colors
-                            disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                        <span className="text-xs text-stone-400 ml-1">{T("max")} {selectedItem.maxQuantity}</span>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                        disabled={quantity <= 1}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors disabled:opacity-30
+                          ${hasHero ? "border-white/30 text-white hover:bg-white/15" : "border-stone-200 text-stone-600 hover:border-brand-700 hover:text-brand-700"}`}
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className={`text-xl font-bold w-6 text-center ${hasHero ? "text-white" : "text-stone-900"}`}>{quantity}</span>
+                      <button
+                        onClick={() => setQuantity(q => Math.min(selectedItem.maxQuantity, q + 1))}
+                        disabled={quantity >= selectedItem.maxQuantity}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors disabled:opacity-30
+                          ${hasHero ? "border-white/30 text-white hover:bg-white/15" : "border-stone-200 text-stone-600 hover:border-brand-700 hover:text-brand-700"}`}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className={`text-xs ${hasHero ? "text-white/40" : "text-stone-400"}`}>{T("max")} {selectedItem.maxQuantity}</span>
                     </div>
                   )}
 
@@ -882,8 +877,8 @@ export default function GuestPage() {
                   <div>
                     <button
                       onClick={() => setShowNotes(v => !v)}
-                      className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400
-                        hover:text-brand-700 transition-colors"
+                      className={`flex items-center gap-1.5 text-xs font-medium transition-colors
+                        ${hasHero ? "text-white/50 hover:text-white/80" : "text-stone-400 hover:text-brand-700"}`}
                     >
                       <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showNotes ? "rotate-180" : ""}`} />
                       {T("addInstructions")}
@@ -893,17 +888,17 @@ export default function GuestPage() {
                         value={notes}
                         onChange={e => setNotes(e.target.value)}
                         placeholder={T("instructionsHint")}
-                        rows={3}
+                        rows={2}
                         autoFocus
-                        className="mt-2 w-full border border-stone-200 bg-white rounded px-3 py-2 text-sm
-                          focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none"
+                        className={`mt-2 w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700 resize-none
+                          ${hasHero ? "bg-white/10 border-white/20 text-white placeholder:text-white/40" : "bg-white border-stone-200"}`}
                       />
                     )}
                   </div>
 
                   <button
                     onClick={addToCart}
-                    className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
+                    className="w-full h-10 bg-brand-700 text-white rounded-lg font-bold text-sm
                       hover:bg-brand-800 transition-colors flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="h-4 w-4" /> {T("addToCart")}
