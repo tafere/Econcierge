@@ -3,7 +3,7 @@ import { useAuth, getToken } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   ConciergeBell, Loader2, RefreshCw,
-  X, Check, CheckCheck, Users, CalendarClock, Clock, Bell, BellOff,
+  X, Check, CheckCheck, Users, CalendarClock, Clock,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
@@ -183,70 +183,6 @@ function DeclineModal({
               transition-all disabled:opacity-40"
           >
             {t("declineBtn")}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Accept modal (ETA) ───────────────────────────────────────────────────────
-
-function AcceptModal({
-  req,
-  defaultEta,
-  onConfirm,
-  onCancel,
-}: {
-  req: ServiceRequest;
-  defaultEta: number;
-  onConfirm: (etaMinutes: number) => void;
-  onCancel: () => void;
-}) {
-  const { t } = useLang();
-  const [eta, setEta] = useState(defaultEta);
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="glass rounded shadow-2xl dark:shadow-black/40 w-full max-w-sm p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-bold text-stone-900 dark:text-zinc-100">{t("accept")} — {t("roomCol")} {req.roomNumber}</h3>
-            <p className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5">{req.itemName}</p>
-          </div>
-          <button onClick={onCancel} className="text-stone-300 dark:text-zinc-600 hover:text-stone-500 dark:hover:text-zinc-300">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
-            ETA (minutes)
-          </label>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
-            <input
-              type="number"
-              min={1}
-              max={480}
-              value={eta}
-              onChange={e => setEta(Number(e.target.value))}
-              className="flex-1 h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm
-                focus:outline-none focus:ring-2 focus:ring-brand-700"
-              autoFocus
-            />
-            <span className="text-sm text-stone-400 dark:text-zinc-500 shrink-0">min</span>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={onCancel}
-            className="flex-1 h-10 bg-white dark:bg-zinc-700 border border-stone-200 dark:border-zinc-600 rounded text-sm font-semibold
-              text-stone-600 dark:text-zinc-200 hover:bg-stone-50 dark:hover:bg-zinc-600 transition-all shadow-sm">
-            {t("goBack")}
-          </button>
-          <button onClick={() => onConfirm(eta)}
-            className="flex-1 h-10 bg-brand-700 text-white rounded text-sm font-semibold shadow-sm
-              hover:bg-brand-800 transition-all">
-            {t("accept")}
           </button>
         </div>
       </div>
@@ -492,14 +428,16 @@ function RequestTable({
                     ) : req.status === "PENDING" ? (
                       <div className="inline-flex items-center gap-1.5">
                         <button onClick={() => onAccept(req)}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-white
-                            bg-brand-700 hover:bg-brand-800 rounded px-3 py-1.5 transition-colors">
+                          className="inline-flex items-center gap-1 text-xs font-bold
+                            text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600
+                            hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded px-3 py-1.5 transition-colors">
                           <Check className="h-3.5 w-3.5" /> {t("accept")}
                         </button>
                         <button onClick={() => onDecline(req)}
-                          className="text-xs font-bold text-red-500 border border-red-200 hover:bg-red-50
+                          className="inline-flex items-center gap-1 text-xs font-bold text-red-500
+                            border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20
                             rounded px-3 py-1.5 transition-colors">
-                          {t("declineBtn")}
+                          <X className="h-3.5 w-3.5" /> {t("declineBtn")}
                         </button>
                       </div>
                     ) : req.status === "IN_PROGRESS" ? (
@@ -608,13 +546,13 @@ function BookingSection({
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
                           text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600 rounded
                           hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
-                        <Check className="h-3.5 w-3.5" /> {t("confirmBtn")}
+                        <Check className="h-3.5 w-3.5" /> {t("accept")}
                       </button>
                       <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
                           text-red-500 border border-red-200 dark:border-red-800 rounded
                           hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                        <X className="h-3.5 w-3.5" /> {t("cancelBtn")}
+                        <X className="h-3.5 w-3.5" /> {t("declineBtn")}
                       </button>
                     </div>
                   ) : (
@@ -681,14 +619,16 @@ function BookingSection({
                     ) : b.status === "PENDING" ? (
                       <div className="inline-flex gap-1">
                         <button onClick={() => onUpdateStatus(b.id, "CONFIRMED", b)}
-                          className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700
-                            rounded px-2.5 py-1 transition-colors">
-                          {t("confirmBtn")}
+                          className="inline-flex items-center gap-1 text-xs font-bold
+                            text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600
+                            hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded px-2.5 py-1 transition-colors">
+                          <Check className="h-3.5 w-3.5" /> {t("accept")}
                         </button>
                         <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
-                          className="text-xs font-bold text-red-500 border border-red-200 hover:bg-red-50
+                          className="inline-flex items-center gap-1 text-xs font-bold text-red-500
+                            border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20
                             rounded px-2.5 py-1 transition-colors">
-                          {t("cancelBtn")}
+                          <X className="h-3.5 w-3.5" /> {t("declineBtn")}
                         </button>
                       </div>
                     ) : b.status === "CONFIRMED" ? (
@@ -733,9 +673,7 @@ export default function DashboardPage() {
   const [tab, setTab]             = useState<Tab>("ACTIVE");
   const [declining, setDeclining]   = useState<ServiceRequest | null>(null);
   const [confirming, setConfirming] = useState<Confirming | null>(null);
-  const [accepting, setAccepting]   = useState<ServiceRequest | null>(null);
   const [hotelEta, setHotelEta]     = useState(20);
-  const [soundOn, setSoundOn]       = useState(() => localStorage.getItem("eco_sound") !== "off");
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
   // Scroll to + highlight request when notification clicked from any page
@@ -777,14 +715,14 @@ export default function DashboardPage() {
     const es = new EventSource(`/api/dashboard/stream?token=${getToken()}`);
     es.addEventListener("request", (e: MessageEvent) => {
       fetchRequests();
-      if (soundOn) playAlertSound();
+      playAlertSound();
       try {
         const data = JSON.parse(e.data ?? "{}");
         showNotification(`New Request — Room ${data.roomNumber ?? ""}`, data.itemName ?? "New request");
       } catch { showNotification("New Request", "A guest has made a new request"); }
     });
     return () => es.close();
-  }, [soundOn]);
+  }, []);
 
 
   const updateStatus = async (id: number, status: string, comment?: string, etaMinutes?: number) => {
@@ -899,21 +837,10 @@ export default function DashboardPage() {
             <h1 className="text-lg font-bold text-stone-900 dark:text-zinc-100">{t("serviceRequests")}</h1>
             <p className="text-xs text-stone-400 dark:text-zinc-500">{user?.fullName}</p>
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => {
-              const next = !soundOn;
-              setSoundOn(next);
-              localStorage.setItem("eco_sound", next ? "on" : "off");
-            }}
-              className="p-2 text-stone-400 hover:text-brand-700 transition-colors"
-              title={soundOn ? "Mute sound alerts" : "Enable sound alerts"}>
-              {soundOn ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-            </button>
-            <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
-              className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
-              <RefreshCw className="h-4 w-4" />
-            </button>
-          </div>
+          <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
+            className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
+            <RefreshCw className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Tabs */}
@@ -961,7 +888,7 @@ export default function DashboardPage() {
                       <RequestTable
                         requests={dayReqs}
                         updatingId={updatingId}
-                        onAccept={req => setAccepting(req)}
+                        onAccept={req => updateStatus(req.id, "IN_PROGRESS", undefined, hotelEta)}
                         onDone={id => confirm({
                           title: t("markAsDone"),
                           message: t("markDoneMessage"),
@@ -1018,19 +945,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
-      {/* Accept modal (ETA) */}
-      {accepting && (
-        <AcceptModal
-          req={accepting}
-          defaultEta={hotelEta}
-          onConfirm={eta => {
-            updateStatus(accepting.id, "IN_PROGRESS", undefined, eta);
-            setAccepting(null);
-          }}
-          onCancel={() => setAccepting(null)}
-        />
-      )}
 
       {/* Decline modal */}
       {declining && (

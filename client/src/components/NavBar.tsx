@@ -52,7 +52,7 @@ export default function NavBar() {
     `flex items-center gap-1.5 text-xs font-semibold transition-colors px-2 py-1 rounded
     ${active(path)
       ? "text-white bg-white/20"
-      : "text-amber-200 hover:text-white hover:bg-white/10"}`;
+      : "text-zinc-400 hover:text-white hover:bg-white/10"}`;
 
   const drawerLink = (path: string) =>
     `w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left
@@ -64,18 +64,18 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="bg-brand-700 text-white px-4 py-3 sticky top-0 z-40">
+      <nav className="bg-zinc-900 text-white px-4 py-3 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Brand */}
           <button onClick={() => go("/")} className="flex items-center gap-3 min-w-0">
             {user?.logoUrl ? (
               <img src={user.logoUrl} alt={user.hotelName ?? ""} className="h-8 w-8 rounded object-cover shrink-0" />
             ) : (
-              <ConciergeBell className="h-5 w-5 text-amber-300 shrink-0" />
+              <ConciergeBell className="h-5 w-5 text-zinc-400 shrink-0" />
             )}
             <div className="text-left">
               <p className="font-extrabold text-white text-base leading-tight">{user?.hotelName}</p>
-              <p className="text-amber-300 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
+              <p className="text-zinc-400 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
             </div>
           </button>
 
@@ -83,7 +83,7 @@ export default function NavBar() {
             {/* Notification bell */}
             <div className="relative" ref={panelRef}>
               <button onClick={() => setPanelOpen(v => !v)}
-                className="relative p-1 text-amber-200 hover:text-white transition-colors shrink-0">
+                className="relative p-1 text-zinc-400 hover:text-white transition-colors shrink-0">
                 <Bell className={`h-5 w-5 ${unreadCount > 0 ? "animate-pulse" : ""}`} />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold
@@ -162,14 +162,14 @@ export default function NavBar() {
                 </>
               )}
               {/* Dark mode toggle */}
-              <button onClick={() => setDark(toggleTheme())} className="flex items-center gap-1.5 text-xs font-semibold text-amber-200 hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded" title="Toggle theme">
+              <button onClick={() => setDark(toggleTheme())} className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded" title="Toggle theme">
                 {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               </button>
               {/* Language picker */}
               <div className="relative" ref={langRef}>
                 <button onClick={() => setLangOpen(v => !v)}
-                  className="flex items-center gap-1 text-xs font-bold text-amber-200 hover:text-white
-                    hover:bg-white/10 transition-colors px-2 py-1 rounded border border-amber-300/40">
+                  className="flex items-center gap-1 text-xs font-bold text-zinc-400 hover:text-white
+                    hover:bg-white/10 transition-colors px-2 py-1 rounded border border-zinc-600">
                   <Languages className="h-3.5 w-3.5" />
                   {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
                 </button>
@@ -186,7 +186,7 @@ export default function NavBar() {
                 )}
               </div>
               <button onClick={logout}
-                className="flex items-center gap-1.5 text-xs font-semibold text-amber-200
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400
                   hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded">
                 <LogOut className="h-3.5 w-3.5" /> {t("signOut")}
               </button>
@@ -194,10 +194,10 @@ export default function NavBar() {
 
             {/* Mobile: logout icon + hamburger */}
             <div className="flex sm:hidden items-center gap-2">
-              <button onClick={logout} className="text-amber-200 hover:text-white transition-colors p-1">
+              <button onClick={logout} className="text-zinc-400 hover:text-white transition-colors p-1">
                 <LogOut className="h-4 w-4" />
               </button>
-              <button onClick={() => setDrawerOpen(true)} className="text-amber-200 hover:text-white transition-colors p-1">
+              <button onClick={() => setDrawerOpen(true)} className="text-zinc-400 hover:text-white transition-colors p-1">
                 <Menu className="h-6 w-6" />
               </button>
             </div>
@@ -211,7 +211,7 @@ export default function NavBar() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-72 flex flex-col shadow-2xl dark:shadow-black/40 bg-[hsl(220_20%_96%)] dark:bg-zinc-900">
             {/* Drawer header */}
-            <div className="bg-brand-700 px-4 py-3 flex items-center justify-between">
+            <div className="bg-zinc-900 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-7 w-7 rounded bg-brand-600 flex items-center justify-center shrink-0">
                   <span className="text-white font-extrabold text-sm uppercase">
@@ -220,10 +220,10 @@ export default function NavBar() {
                 </div>
                 <div>
                   <p className="font-extrabold text-white text-sm leading-tight">{user?.fullName}</p>
-                  <p className="text-amber-300 text-[10px] uppercase tracking-widest font-semibold">{user?.role ? trRole(lang, user.role) : ""}</p>
+                  <p className="text-zinc-400 text-[10px] uppercase tracking-widest font-semibold">{user?.role ? trRole(lang, user.role) : ""}</p>
                 </div>
               </div>
-              <button onClick={() => setDrawerOpen(false)} className="text-amber-300 hover:text-white transition-colors p-1">
+              <button onClick={() => setDrawerOpen(false)} className="text-zinc-400 hover:text-white transition-colors p-1">
                 <X className="h-5 w-5" />
               </button>
             </div>
