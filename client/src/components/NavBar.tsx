@@ -256,7 +256,8 @@ export default function NavBar() {
               )}
               {/* Dark mode toggle */}
               <button onClick={() => setDark(toggleTheme())}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left text-stone-700 hover:bg-brand-100 hover:text-brand-800">
+                className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left
+                  text-stone-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-700">
                 {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 {dark ? "Light mode" : "Dark mode"}
               </button>

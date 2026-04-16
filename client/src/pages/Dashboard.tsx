@@ -243,7 +243,7 @@ function RequestTable({
 
         return (
           <div key={req.id} id={`request-${req.id}`}
-            className={`glass rounded-lg border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
+            className={`glass rounded-lg border border-stone-200 dark:border-zinc-700/60 border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
               ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : ""} transition-all duration-500 overflow-hidden`}>
 
             {/* Card body */}
@@ -260,10 +260,10 @@ function RequestTable({
                 </div>
                 <div className="flex flex-col items-end gap-0.5 shrink-0">
                   {isEscalated && (
-                    <span className="text-[10px] font-bold text-red-500 border border-red-300 dark:border-red-700 rounded px-1.5 py-0.5">Escalated</span>
+                    <span className="text-[10px] font-bold text-red-500 border border-red-400 dark:border-red-500 rounded-full px-1.5 py-0.5">Escalated</span>
                   )}
                   {isOverdue && !isEscalated && (
-                    <span className="text-[10px] font-bold text-orange-500 border border-orange-300 dark:border-orange-700 rounded px-1.5 py-0.5">Overdue</span>
+                    <span className="text-[10px] font-bold text-orange-500 border border-orange-400 dark:border-orange-500 rounded-full px-1.5 py-0.5">Overdue</span>
                   )}
                   <span className="text-xs text-stone-400 dark:text-zinc-500">{timeLabel}</span>
                 </div>
@@ -310,7 +310,7 @@ function RequestTable({
                   <div className="flex gap-2 p-2">
                     <button onClick={() => onAccept(req)}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
-                        text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600 rounded
+                        text-stone-800 dark:text-white border border-emerald-500 dark:border-emerald-500 rounded
                         hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                       <Check className="h-3.5 w-3.5" /> {t("accept")}
                     </button>
