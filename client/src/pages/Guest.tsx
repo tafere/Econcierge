@@ -142,18 +142,18 @@ const CATEGORY_EMOJI: Record<string, string> = {
 // ─── Category tile 3D images (PNG with transparent background) ────────────────
 // Replace each empty string with your hosted image URL. Tile hides image if empty.
 const CATEGORY_IMAGE: Record<string, string> = {
-  broom:            "", // Housekeeping  — folded linen stack, maid cart
-  sparkles:         "", // Amenities     — spa kit, luxury bath set
-  soap:             "", // Toiletries    — lotion/soap tray, bathroom kit
-  utensils:         "", // Food & Bev    — silver cloche, room service tray
-  wrench:           "", // Maintenance   — toolbox, wrench set
-  "concierge-bell": "", // Concierge     — hotel bell, key card
-  car:              "", // Transport     — luxury sedan, valet key
-  coffee:           "", // Café/Bar      — espresso cup, coffee beans
-  flower:           "", // Wellness/Spa  — orchid, candle/stone set
-  dumbbell:         "", // Fitness       — dumbbells, gym equipment
-  briefcase:        "", // Business      — briefcase, laptop
-  star:             "", // VIP/Special   — star trophy, premium badge
+  broom:            "https://img.icons8.com/3d-fluency/256/towel.png",
+  sparkles:         "https://img.icons8.com/3d-fluency/256/spa.png",
+  soap:             "https://img.icons8.com/3d-fluency/256/soap.png",
+  utensils:         "https://img.icons8.com/3d-fluency/256/wine-glass.png",
+  wrench:           "https://img.icons8.com/3d-fluency/256/wrench.png",
+  "concierge-bell": "https://img.icons8.com/3d-fluency/256/bell.png",
+  car:              "https://img.icons8.com/3d-fluency/256/car.png",
+  coffee:           "https://img.icons8.com/3d-fluency/256/coffee.png",
+  flower:           "https://img.icons8.com/3d-fluency/256/lotus.png",
+  dumbbell:         "https://img.icons8.com/3d-fluency/256/dumbbell.png",
+  briefcase:        "https://img.icons8.com/3d-fluency/256/briefcase.png",
+  star:             "https://img.icons8.com/3d-fluency/256/star.png",
 };
 
 const STATUS_STYLE: Record<string, string> = {
