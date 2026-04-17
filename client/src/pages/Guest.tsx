@@ -683,14 +683,22 @@ export default function GuestPage() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className={`relative rounded p-3.5 text-left transition-all overflow-hidden min-h-[110px]
+                      className={`relative rounded-2xl p-4 text-left transition-all overflow-hidden min-h-[130px] flex flex-col justify-between
                         ${hasHero
-                          ? "bg-black/50 border border-white/10 hover:bg-black/40 hover:shadow-lg"
-                          : "glass hover:border-brand-700 hover:shadow-md"}`}
+                          ? "bg-black/50 border border-white/10 hover:bg-black/40 hover:shadow-xl"
+                          : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-md"}`}
                     >
-                      <p className="text-xl mb-1.5">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
-                      <p className={`font-semibold text-sm leading-tight ${hasHero ? "text-white" : "text-stone-800"}`}>{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</p>
-                      <p className={`text-xs mt-0.5 ${hasHero ? "text-white/60" : "text-stone-400"}`}>{cat.items.length} {cat.items.length === 1 ? T("option") : T("options")}</p>
+                      <span className={`text-base leading-none ${hasHero ? "text-white/70" : "text-stone-400"}`}>
+                        {CATEGORY_EMOJI[cat.icon] ?? "🛎️"}
+                      </span>
+                      <div>
+                        <p className={`font-bold text-base leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>
+                          {lang === "am" && cat.nameAm ? cat.nameAm : cat.name}
+                        </p>
+                        <p className={`text-xs mt-0.5 ${hasHero ? "text-white/50" : "text-stone-400 dark:text-zinc-500"}`}>
+                          {cat.items.length} {cat.items.length === 1 ? T("option") : T("options")}
+                        </p>
+                      </div>
                       {CATEGORY_IMAGE[cat.icon] && (
                         <img
                           src={CATEGORY_IMAGE[cat.icon]}
