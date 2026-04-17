@@ -139,6 +139,23 @@ const CATEGORY_EMOJI: Record<string, string> = {
   star:             "⭐",
 };
 
+// ─── Category tile 3D images (PNG with transparent background) ────────────────
+// Replace each empty string with your hosted image URL. Tile hides image if empty.
+const CATEGORY_IMAGE: Record<string, string> = {
+  broom:            "", // Housekeeping  — folded linen stack, maid cart
+  sparkles:         "", // Amenities     — spa kit, luxury bath set
+  soap:             "", // Toiletries    — lotion/soap tray, bathroom kit
+  utensils:         "", // Food & Bev    — silver cloche, room service tray
+  wrench:           "", // Maintenance   — toolbox, wrench set
+  "concierge-bell": "", // Concierge     — hotel bell, key card
+  car:              "", // Transport     — luxury sedan, valet key
+  coffee:           "", // Café/Bar      — espresso cup, coffee beans
+  flower:           "", // Wellness/Spa  — orchid, candle/stone set
+  dumbbell:         "", // Fitness       — dumbbells, gym equipment
+  briefcase:        "", // Business      — briefcase, laptop
+  star:             "", // VIP/Special   — star trophy, premium badge
+};
+
 const STATUS_STYLE: Record<string, string> = {
   PENDING:     "bg-amber-100 text-amber-800 border-amber-200",
   IN_PROGRESS: "bg-blue-100  text-blue-800  border-blue-200",
@@ -666,7 +683,7 @@ export default function GuestPage() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className={`rounded p-3.5 text-left transition-all
+                      className={`relative rounded p-3.5 text-left transition-all overflow-hidden min-h-[110px]
                         ${hasHero
                           ? "bg-black/50 border border-white/10 hover:bg-black/40 hover:shadow-lg"
                           : "glass hover:border-brand-700 hover:shadow-md"}`}
@@ -674,6 +691,13 @@ export default function GuestPage() {
                       <p className="text-xl mb-1.5">{CATEGORY_EMOJI[cat.icon] ?? "🛎️"}</p>
                       <p className={`font-semibold text-sm leading-tight ${hasHero ? "text-white" : "text-stone-800"}`}>{lang === "am" && cat.nameAm ? cat.nameAm : cat.name}</p>
                       <p className={`text-xs mt-0.5 ${hasHero ? "text-white/60" : "text-stone-400"}`}>{cat.items.length} {cat.items.length === 1 ? T("option") : T("options")}</p>
+                      {CATEGORY_IMAGE[cat.icon] && (
+                        <img
+                          src={CATEGORY_IMAGE[cat.icon]}
+                          alt=""
+                          className="absolute bottom-0 right-0 h-20 w-20 object-contain pointer-events-none select-none drop-shadow-lg"
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
