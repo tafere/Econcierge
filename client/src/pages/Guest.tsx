@@ -688,9 +688,11 @@ export default function GuestPage() {
                           ? "bg-black/50 border border-white/10 hover:bg-black/40 hover:shadow-xl"
                           : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-md"}`}
                     >
-                      <span className={`text-base leading-none ${hasHero ? "text-white/70" : "text-stone-400"}`}>
-                        {CATEGORY_EMOJI[cat.icon] ?? "🛎️"}
-                      </span>
+                      {!CATEGORY_IMAGE[cat.icon] && (
+                        <span className={`text-base leading-none ${hasHero ? "text-white/70" : "text-stone-400"}`}>
+                          {CATEGORY_EMOJI[cat.icon] ?? "🛎️"}
+                        </span>
+                      )}
                       <div>
                         <p className={`font-bold text-base leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>
                           {lang === "am" && cat.nameAm ? cat.nameAm : cat.name}
