@@ -125,13 +125,13 @@ function saveBookings(qrToken: string, bookings: TrackedBooking[]) {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  broom:            "🧹",
+  broom:            "🧺",
   sparkles:         "✨",
   soap:             "🧴",
   utensils:         "🍽️",
   wrench:           "🔧",
   "concierge-bell": "🛎️",
-  car:              "🚗",
+  car:              "🚌",
   coffee:           "☕",
   flower:           "🌸",
   dumbbell:         "💪",

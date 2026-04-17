@@ -29,13 +29,13 @@ interface Category {
 }
 
 const ICONS = [
-  { value: "broom",           emoji: "🧹", labelKey: "iconHousekeeping" },
+  { value: "broom",           emoji: "🧺", labelKey: "iconHousekeeping" },
   { value: "sparkles",        emoji: "✨", labelKey: "iconAmenities" },
   { value: "soap",            emoji: "🧴", labelKey: "iconToiletries" },
   { value: "utensils",        emoji: "🍽️", labelKey: "iconFoodBeverage" },
   { value: "wrench",          emoji: "🔧", labelKey: "iconMaintenance" },
   { value: "concierge-bell",  emoji: "🛎️", labelKey: "iconConcierge" },
-  { value: "car",             emoji: "🚗", labelKey: "iconTransport" },
+  { value: "car",             emoji: "🚌", labelKey: "iconTransport" },
   { value: "coffee",          emoji: "☕", labelKey: "iconCafeBar" },
   { value: "flower",          emoji: "🌸", labelKey: "iconSpa" },
   { value: "dumbbell",        emoji: "💪", labelKey: "iconGym" },
