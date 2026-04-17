@@ -29,7 +29,7 @@ interface Category {
 }
 
 const ICONS = [
-  { value: "broom",           emoji: "🧺", labelKey: "iconHousekeeping" },
+  { value: "broom",           emoji: "🧹", labelKey: "iconHousekeeping" },
   { value: "sparkles",        emoji: "✨", labelKey: "iconAmenities" },
   { value: "soap",            emoji: "🧴", labelKey: "iconToiletries" },
   { value: "utensils",        emoji: "🍽️", labelKey: "iconFoodBeverage" },

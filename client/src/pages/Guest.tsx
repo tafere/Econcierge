@@ -125,7 +125,7 @@ function saveBookings(qrToken: string, bookings: TrackedBooking[]) {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  broom:            "🧺",
+  broom:            "🧹",
   sparkles:         "✨",
   soap:             "🧴",
   utensils:         "🍽️",
@@ -709,13 +709,15 @@ export default function GuestPage() {
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
                 <h2 className={`font-bold text-lg ${hasHero ? "text-white" : "text-stone-900"}`}>{lang === "am" && selectedCat.nameAm ? selectedCat.nameAm : selectedCat.name}</h2>
-                <div className={`rounded-xl overflow-hidden divide-y ${hasHero ? "bg-black/45 divide-white/10" : "glass divide-stone-100"}`}>
+                <div className="flex flex-col gap-2.5">
                   {selectedCat.items.map(item => (
                     <button
                       key={item.id}
                       onClick={() => selectItem(item)}
-                      className={`w-full px-4 py-3.5 text-left flex items-center justify-between gap-3 transition-colors
-                        ${hasHero ? "hover:bg-white/10" : "hover:bg-stone-50"}`}
+                      className={`w-full px-4 py-4 text-left flex items-center justify-between gap-3 rounded-2xl transition-all
+                        ${hasHero
+                          ? "bg-black/50 border-2 border-white/30 hover:bg-black/40 hover:border-white/45 backdrop-blur-sm"
+                          : "glass border border-stone-200/60 hover:border-brand-700 hover:shadow-md"}`}
                     >
                       <div className="min-w-0">
                         <p className={`font-semibold text-sm ${hasHero ? "text-white" : "text-stone-800"}`}>{lang === "am" && item.nameAm ? item.nameAm : item.name}</p>
@@ -723,7 +725,7 @@ export default function GuestPage() {
                           <p className={`text-xs mt-0.5 truncate ${hasHero ? "text-white/50" : "text-stone-400"}`}>{item.description}</p>
                         )}
                       </div>
-                      <ChevronRight className={`h-4 w-4 shrink-0 ${hasHero ? "text-white/30" : "text-stone-300"}`} />
+                      <ChevronRight className={`h-4 w-4 shrink-0 ${hasHero ? "text-amber-400/80" : "text-stone-300"}`} />
                     </button>
                   ))}
                 </div>
