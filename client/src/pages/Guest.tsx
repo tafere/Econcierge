@@ -139,22 +139,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   star:             "⭐",
 };
 
-// ─── Category tile 3D images (PNG with transparent background) ────────────────
-// Replace each empty string with your hosted image URL. Tile hides image if empty.
-const CATEGORY_IMAGE: Record<string, string> = {
-  broom:            "https://img.icons8.com/3d-fluency/256/towel.png",
-  sparkles:         "https://img.icons8.com/3d-fluency/256/spa.png",
-  soap:             "https://img.icons8.com/3d-fluency/256/soap.png",
-  utensils:         "https://img.icons8.com/3d-fluency/256/wine-glass.png",
-  wrench:           "https://img.icons8.com/3d-fluency/256/wrench.png",
-  "concierge-bell": "https://img.icons8.com/3d-fluency/256/bell.png",
-  car:              "https://img.icons8.com/3d-fluency/256/car.png",
-  coffee:           "https://img.icons8.com/3d-fluency/256/coffee.png",
-  flower:           "https://img.icons8.com/3d-fluency/256/lotus.png",
-  dumbbell:         "https://img.icons8.com/3d-fluency/256/dumbbell.png",
-  briefcase:        "https://img.icons8.com/3d-fluency/256/briefcase.png",
-  star:             "https://img.icons8.com/3d-fluency/256/star.png",
-};
+const CATEGORY_IMAGE: Record<string, string> = {};
 
 const STATUS_STYLE: Record<string, string> = {
   PENDING:     "bg-amber-100 text-amber-800 border-amber-200",
@@ -685,11 +670,11 @@ export default function GuestPage() {
                       onClick={() => setSelectedCat(cat)}
                       className={`relative rounded-2xl p-4 text-left transition-all overflow-hidden min-h-[130px] flex flex-col justify-between
                         ${hasHero
-                          ? "bg-black/50 border border-white/10 hover:bg-black/40 hover:shadow-xl"
+                          ? "bg-white/10 border border-white/20 hover:bg-white/15 hover:shadow-xl backdrop-blur-sm"
                           : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-md"}`}
                     >
                       {!CATEGORY_IMAGE[cat.icon] && (
-                        <span className={`text-base leading-none ${hasHero ? "text-white/70" : "text-stone-400"}`}>
+                        <span className="text-3xl leading-none">
                           {CATEGORY_EMOJI[cat.icon] ?? "🛎️"}
                         </span>
                       )}
