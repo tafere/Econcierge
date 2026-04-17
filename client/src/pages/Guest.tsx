@@ -668,18 +668,18 @@ export default function GuestPage() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className={`relative rounded-2xl p-4 text-left transition-all overflow-hidden min-h-[130px] flex flex-col justify-between
+                      className={`relative rounded-2xl px-4 py-3 text-left transition-all overflow-hidden min-h-[100px] flex flex-col justify-between
                         ${hasHero
-                          ? "bg-white/10 border border-white/20 hover:bg-white/15 hover:shadow-xl backdrop-blur-sm"
+                          ? "bg-black/55 border border-white/30 hover:bg-black/45 hover:shadow-xl backdrop-blur-sm"
                           : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-md"}`}
                     >
                       {!CATEGORY_IMAGE[cat.icon] && (
-                        <span className="text-3xl leading-none">
+                        <span className="text-2xl leading-none">
                           {CATEGORY_EMOJI[cat.icon] ?? "🛎️"}
                         </span>
                       )}
                       <div>
-                        <p className={`font-bold text-base leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>
+                        <p className={`font-bold text-sm leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>
                           {lang === "am" && cat.nameAm ? cat.nameAm : cat.name}
                         </p>
                         <p className={`text-xs mt-0.5 ${hasHero ? "text-white/50" : "text-stone-400 dark:text-zinc-500"}`}>
