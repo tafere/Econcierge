@@ -670,7 +670,7 @@ export default function GuestPage() {
                       onClick={() => setSelectedCat(cat)}
                       className={`relative rounded-2xl px-4 py-3 text-left transition-all overflow-hidden min-h-[100px] flex flex-col justify-between
                         ${hasHero
-                          ? "bg-black/55 border border-white/30 hover:bg-black/45 hover:shadow-xl backdrop-blur-sm"
+                          ? "bg-black/55 border-2 border-white/40 hover:bg-black/45 hover:shadow-xl backdrop-blur-sm"
                           : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-md"}`}
                     >
                       {!CATEGORY_IMAGE[cat.icon] && (
