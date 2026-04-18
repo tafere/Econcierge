@@ -274,7 +274,7 @@ function RequestTable({
               {/* Row 2: Thumbnail + item info + time */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-zinc-700 flex items-center justify-center shrink-0">
-                  <span className="text-2xl leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
+                  <span className="text-2xl leading-none">{getItemEmoji(req.itemName, req.categoryIcon)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -537,7 +537,7 @@ function BookingSection({
                 {/* Row 2: Service name + date/time + guests */}
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-zinc-700 flex items-center justify-center shrink-0">
-                    <CalendarClock className="h-6 w-6 text-zinc-300" />
+                    <span className="text-2xl leading-none">{getItemEmoji(displayName, "car")}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="font-bold text-stone-900 dark:text-zinc-100 text-base leading-tight block">{displayName}</span>
@@ -666,6 +666,49 @@ function BookingSection({
       </div>
     </div>
   );
+}
+
+// ─── Item emoji lookup ────────────────────────────────────────────────────────
+
+const ITEM_KEYWORDS: [RegExp, string][] = [
+  [/toothbrush/i,        "🪥"],
+  [/toothpaste/i,        "🦷"],
+  [/shampoo/i,           "🧴"],
+  [/conditioner/i,       "🧴"],
+  [/lotion|moistur/i,    "🧴"],
+  [/soap/i,              "🧼"],
+  [/razor|shav/i,        "🪒"],
+  [/shower cap/i,        "🚿"],
+  [/cotton|swab|q-tip/i, "🩹"],
+  [/water bottle/i,      "💧"],
+  [/towel/i,             "🛁"],
+  [/bathrobe|robe/i,     "👘"],
+  [/pillow/i,            "🛏️"],
+  [/blanket|duvet/i,     "🛏️"],
+  [/iron|press/i,        "👔"],
+  [/coffee/i,            "☕"],
+  [/tea/i,               "🍵"],
+  [/breakfast/i,         "🍳"],
+  [/lunch|dinner|meal/i, "🍽️"],
+  [/wine/i,              "🍷"],
+  [/champagne/i,         "🍾"],
+  [/minibar|mini bar/i,  "🍹"],
+  [/newspaper/i,         "📰"],
+  [/umbrella/i,          "☂️"],
+  [/hair dryer|hairdryer/i, "💨"],
+  [/wake.?up|alarm/i,    "⏰"],
+  [/tv|television/i,     "📺"],
+  [/cleaning|housekeep/i,"🧹"],
+  [/shuttle|bus|transport/i, "🚌"],
+  [/taxi|cab/i,          "🚕"],
+  [/luggage|baggage/i,   "🧳"],
+];
+
+function getItemEmoji(itemName: string, categoryIcon: string): string {
+  for (const [pattern, emoji] of ITEM_KEYWORDS) {
+    if (pattern.test(itemName)) return emoji;
+  }
+  return CATEGORY_EMOJI[categoryIcon] ?? "🛎️";
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
