@@ -854,8 +854,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-stone-900 dark:text-zinc-100 leading-tight">{user?.hotelName}</h1>
-            <p className="text-sm font-medium text-stone-400 dark:text-zinc-500">{t("serviceRequests")}</p>
+            <h1 className="text-2xl font-extrabold text-stone-900 dark:text-zinc-100 leading-tight">{t("serviceRequests")}</h1>
+            <p className="text-sm font-medium text-stone-400 dark:text-zinc-500">{user?.fullName}</p>
           </div>
           <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
             className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
