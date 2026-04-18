@@ -506,9 +506,10 @@ function BookingSection({
       {/* Mobile card list */}
       <div className="sm:hidden space-y-4">
         {bookings.map(b => {
+          const isOverdueBooking = b.status === "PENDING" && new Date(b.slotTimeIso) < new Date();
           const accentBg =
-            b.status === "CONFIRMED" ? "bg-green-400" :
-            b.status === "PENDING"   ? "bg-orange-400" :
+            b.status === "CONFIRMED"  ? "bg-green-400" :
+            isOverdueBooking          ? "bg-orange-400" :
             "bg-transparent";
           return (
             <div key={b.id}
