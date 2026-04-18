@@ -322,7 +322,7 @@ function RequestTable({
                   <div className="flex">
                     <button onClick={() => onAccept(req)}
                       className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
-                        text-white border-r border-zinc-700/50
+                        text-stone-800 dark:text-white border-r border-stone-200 dark:border-zinc-700/50
                         hover:bg-emerald-900/20 transition-colors">
                       <Check className="h-4 w-4 text-emerald-400" /> {t("accept")}
                     </button>
@@ -566,7 +566,7 @@ function BookingSection({
                     <div className="flex">
                       <button onClick={() => onUpdateStatus(b.id, "CONFIRMED", b)}
                         className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
-                          text-white border-r border-zinc-700/50 hover:bg-emerald-900/20 transition-colors">
+                          text-stone-800 dark:text-white border-r border-stone-200 dark:border-zinc-700/50 hover:bg-emerald-900/20 transition-colors">
                         <Check className="h-4 w-4 text-emerald-400" /> {t("accept")}
                       </button>
                       <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
