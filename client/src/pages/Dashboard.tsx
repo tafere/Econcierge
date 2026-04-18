@@ -3,7 +3,7 @@ import { useAuth, getToken } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   ConciergeBell, Loader2, RefreshCw,
-  X, Check, CheckCheck, Users, CalendarClock, Clock,
+  X, Check, CheckCheck, Users, CalendarClock, Clock, GlassWater,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
@@ -274,7 +274,9 @@ function RequestTable({
               {/* Row 2: Thumbnail + item info + time */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-zinc-700 flex items-center justify-center shrink-0">
-                  <span className="text-2xl leading-none">{getItemEmoji(req.itemName, req.categoryIcon)}</span>
+                  {isWaterBottle(req.itemName)
+                    ? <GlassWater className="h-6 w-6 text-blue-400" />
+                    : <span className="text-2xl leading-none">{getItemEmoji(req.itemName, req.categoryIcon)}</span>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -694,6 +696,10 @@ function getItemEmoji(itemName: string, categoryIcon: string): string {
     if (pattern.test(itemName)) return emoji;
   }
   return CATEGORY_EMOJI[categoryIcon] ?? "🛎️";
+}
+
+function isWaterBottle(itemName: string): boolean {
+  return /water\s*bottle/i.test(itemName);
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
