@@ -222,7 +222,7 @@ function RequestTable({
 
   // ── Mobile card list ────────────────────────────────────────────────────────
   const mobileCards = (
-    <div className="sm:hidden space-y-2.5">
+    <div className="sm:hidden space-y-4">
       {requests.map(req => {
         const isOverdue     = overdueIds.has(req.id);
         const isEscalated   = escalatedIds.has(req.id);
@@ -244,8 +244,8 @@ function RequestTable({
         return (
           <div key={req.id} id={`request-${req.id}`}
             className={`glass rounded-xl border border-stone-200 dark:border-zinc-600 border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
-              shadow-sm dark:shadow-black/60
-              ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : "dark:bg-zinc-800/80"} transition-all duration-500 overflow-hidden`}>
+              shadow-md dark:shadow-black/70
+              ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : "dark:bg-zinc-800/90"} transition-all duration-500 overflow-hidden`}>
 
             {/* Card body */}
             <div className="px-4 py-3 space-y-1.5">
@@ -262,9 +262,6 @@ function RequestTable({
                 <div className="flex flex-col items-end gap-0.5 shrink-0">
                   {isEscalated && (
                     <span className="text-[10px] font-bold text-red-500 border border-red-400 dark:border-red-500 rounded-full px-1.5 py-0.5">Escalated</span>
-                  )}
-                  {isOverdue && !isEscalated && (
-                    <span className="text-[10px] font-bold text-orange-500 border border-orange-400 dark:border-orange-500 rounded-full px-1.5 py-0.5">Overdue</span>
                   )}
                   <span className="text-xs text-stone-400 dark:text-zinc-500">{timeLabel}</span>
                 </div>
