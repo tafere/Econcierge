@@ -243,8 +243,9 @@ function RequestTable({
 
         return (
           <div key={req.id} id={`request-${req.id}`}
-            className={`glass rounded-lg border border-stone-200 dark:border-zinc-700/60 border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
-              ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : ""} transition-all duration-500 overflow-hidden`}>
+            className={`glass rounded-xl border border-stone-200 dark:border-zinc-600 border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
+              shadow-sm dark:shadow-black/60
+              ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : "dark:bg-zinc-800/80"} transition-all duration-500 overflow-hidden`}>
 
             {/* Card body */}
             <div className="px-4 py-3 space-y-1.5">
