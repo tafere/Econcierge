@@ -39,7 +39,7 @@ spec:
       containers:
       - name: backend
         # deploy.yml will update this SHA automatically
-        image: 027653365943.dkr.ecr.us-east-2.amazonaws.com/econcierge-backend:0d027394ec705bfec5674ffadcafa95015145434
+        image: 027653365943.dkr.ecr.us-east-2.amazonaws.com/econcierge-backend:513570efb30cbf460e687c3d9edd3b768d67544f
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
