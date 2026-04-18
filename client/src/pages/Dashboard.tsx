@@ -234,12 +234,12 @@ function RequestTable({
         const timeLabel     = ageMins < 1 ? "just now" : ageMins < 60 ? `${ageMins}m ago` : fmtDateTime(req.createdAt);
 
         const borderColor =
-          isHighlighted ? "border-brand-400" :
-          isEscalated   ? "border-red-500" :
-          isOverdue     ? "border-orange-400" :
-          req.status === "PENDING"     ? "border-amber-300" :
-          req.status === "IN_PROGRESS" ? "border-blue-400" :
-          "border-stone-200 dark:border-zinc-700";
+          isHighlighted ? "border-l-brand-400" :
+          isEscalated   ? "border-l-red-500" :
+          isOverdue     ? "border-l-orange-400" :
+          req.status === "PENDING"     ? "border-l-amber-300" :
+          req.status === "IN_PROGRESS" ? "border-l-blue-400" :
+          "border-l-transparent";
 
         return (
           <div key={req.id} id={`request-${req.id}`}
