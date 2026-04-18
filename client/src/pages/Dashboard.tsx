@@ -820,7 +820,7 @@ export default function DashboardPage() {
   }) => (
     <button
       onClick={() => setTab(tabId)}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors
+      className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors w-full sm:w-auto
         ${tab === tabId
           ? urgent ? "bg-orange-600 text-white shadow-sm" : "bg-brand-700 text-white shadow-sm"
           : urgent && (count ?? 0) > 0
@@ -847,8 +847,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-stone-900 dark:text-zinc-100">{t("serviceRequests")}</h1>
-            <p className="text-xs text-stone-400 dark:text-zinc-500">{user?.fullName}</p>
+            <h1 className="text-2xl font-extrabold text-stone-900 dark:text-zinc-100 leading-tight">{user?.hotelName}</h1>
+            <p className="text-sm font-medium text-stone-400 dark:text-zinc-500">{t("serviceRequests")}</p>
           </div>
           <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
             className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
@@ -857,7 +857,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex gap-2">
           <TabBtn tabId="ACTIVE"    label={t("active")}       count={active.length} />
           <TabBtn tabId="PASTDUE"   label={t("pastDue")}      count={pastDue.length} urgent={pastDue.length > 0} />
           <TabBtn tabId="COMPLETED" label={t("completedTab")} count={completed.length} />
