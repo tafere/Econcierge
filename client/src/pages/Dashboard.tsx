@@ -493,8 +493,8 @@ function BookingSection({
   const hasActions = bookings.some(b => b.status === "PENDING" || b.status === "CONFIRMED");
 
   return (
-    <div className="glass rounded overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 flex items-center gap-2">
+    <div className="sm:glass sm:rounded sm:overflow-hidden">
+      <div className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 flex items-center gap-2 sm:rounded-t">
         <CalendarClock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
         <p className="text-xs font-bold text-stone-600 dark:text-zinc-300 uppercase tracking-wider">{displayName}</p>
         <div className="flex items-center gap-1 text-xs text-stone-400 dark:text-zinc-500 ml-auto">
@@ -505,14 +505,15 @@ function BookingSection({
       {/* Mobile card list */}
       <div className="sm:hidden space-y-2.5 p-3">
         {bookings.map(b => {
-          const borderColor =
-            b.status === "CONFIRMED" ? "border-green-400" :
-            b.status === "PENDING"   ? "border-amber-300" :
-            "border-stone-200 dark:border-zinc-700";
+          const accentBg =
+            b.status === "CONFIRMED" ? "bg-green-400" :
+            b.status === "PENDING"   ? "bg-amber-300" :
+            "bg-zinc-600";
           return (
             <div key={b.id}
-              className={`glass rounded-lg border-l-4 ${borderColor} ${b.status === "CANCELLED" ? "opacity-50" : ""} overflow-hidden`}>
-              <div className="px-4 py-3 space-y-1.5">
+              className={`relative glass rounded-xl border border-zinc-600 dark:bg-zinc-800/90 shadow-md dark:shadow-black/60 ${b.status === "CANCELLED" ? "opacity-50" : ""} overflow-hidden`}>
+              <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${accentBg}`} />
+              <div className="pl-5 px-4 py-3 space-y-1.5">
                 {/* Row 1: Room + slot time */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xl font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
