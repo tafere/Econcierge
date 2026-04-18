@@ -233,98 +233,103 @@ function RequestTable({
         const ageMins       = ageMinutes(req.createdAt);
         const timeLabel     = ageMins < 1 ? "just now" : ageMins < 60 ? `${ageMins}m ago` : fmtDateTime(req.createdAt);
 
-        const borderColor =
-          isHighlighted ? "border-l-brand-400" :
-          isEscalated   ? "border-l-red-500" :
-          isOverdue     ? "border-l-orange-400" :
-          req.status === "PENDING"     ? "border-l-amber-300" :
-          req.status === "IN_PROGRESS" ? "border-l-blue-400" :
-          "border-l-transparent";
+        const accentColor =
+          isHighlighted ? "bg-brand-400" :
+          isEscalated   ? "bg-red-500" :
+          isOverdue     ? "bg-orange-400" :
+          req.status === "PENDING"     ? "bg-amber-300" :
+          req.status === "IN_PROGRESS" ? "bg-blue-400" :
+          "bg-transparent";
 
         return (
           <div key={req.id} id={`request-${req.id}`}
-            className={`glass rounded-xl border border-stone-200 dark:border-zinc-600 border-l-4 ${borderColor} ${dimmed ? "opacity-55" : ""}
+            className={`relative glass rounded-xl border border-stone-200 dark:border-zinc-600 ${dimmed ? "opacity-55" : ""}
               shadow-md dark:shadow-black/70
               ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : "dark:bg-zinc-800/90"} transition-all duration-500 overflow-hidden`}>
 
+            {/* Left accent bar */}
+            <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${accentColor}`} />
+
             {/* Card body */}
-            <div className="px-4 py-3 space-y-1.5">
-              {/* Row 1: Room (left) + overdue badge / time (right) */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-baseline gap-2 min-w-0">
-                  <span className="text-xl font-extrabold text-stone-900 dark:text-zinc-100 leading-none shrink-0">
+            <div className="pl-5 pr-4 pt-3 pb-3 space-y-3">
+              {/* Row 1: Room + Floor pill | Status badge */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
                     {t("roomCol")} {req.roomNumber}
                   </span>
                   {req.floor && (
-                    <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{t("floorLabel")} {req.floor}</span>
+                    <span className="text-xs font-medium text-zinc-400 bg-zinc-700/60 rounded-full px-2 py-0.5">
+                      {t("floorLabel")} {req.floor}
+                    </span>
                   )}
                 </div>
-                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {isEscalated && (
-                    <span className="text-[10px] font-bold text-red-500 border border-red-400 dark:border-red-500 rounded-full px-1.5 py-0.5">Escalated</span>
+                    <span className="text-xs font-bold text-red-400 border border-red-500 rounded-full px-2 py-0.5">Escalated</span>
                   )}
-                  <span className="text-xs text-stone-400 dark:text-zinc-500">{timeLabel}</span>
                 </div>
               </div>
 
-              {/* Row 2: Emoji + item + quantity */}
-              <div className="flex items-center gap-2">
-                <span className="text-lg leading-none shrink-0">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
-                <span className="font-semibold text-stone-800 dark:text-zinc-100 text-sm leading-snug">{itemLabel}</span>
-                {req.quantity > 1 && (
-                  <span className="text-xs font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/30
-                    border border-amber-200 rounded px-1.5 py-0.5 shrink-0">×{req.quantity}</span>
-                )}
+              {/* Row 2: Thumbnail + item info + time */}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-zinc-700 flex items-center justify-center shrink-0">
+                  <span className="text-2xl leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-stone-900 dark:text-zinc-100 text-base leading-tight">{itemLabel}</span>
+                    {req.quantity > 1 && (
+                      <span className="text-xs font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30
+                        border border-amber-300 rounded px-1.5 py-0.5 shrink-0">×{req.quantity}</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-stone-400 dark:text-zinc-500">{catLabel}</span>
+                  {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold mt-0.5
+                      text-blue-400 border border-blue-700 rounded px-1.5 py-0.5">
+                      <Clock className="h-2.5 w-2.5" /> ~{req.etaMinutes}min
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0 text-right leading-tight">{timeLabel}</span>
               </div>
 
-              {/* Row 3: Category · ETA */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs text-stone-400 dark:text-zinc-500">{catLabel}</span>
-                {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold
-                    text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded px-1.5 py-0.5">
-                    <Clock className="h-2.5 w-2.5" /> ~{req.etaMinutes}min
-                  </span>
-                )}
-              </div>
-
-              {/* Notes — only if present */}
+              {/* Notes */}
               {(req.notes || req.staffComment) && (
-                <div className="pt-0.5 space-y-0.5">
+                <div className="space-y-0.5">
                   {req.notes && <p className="text-xs text-stone-500 dark:text-zinc-400 italic truncate">"{req.notes}"</p>}
-                  {req.staffComment && <p className="text-xs text-red-500 italic truncate">⚠ {req.staffComment}</p>}
+                  {req.staffComment && <p className="text-xs text-red-400 italic truncate">⚠ {req.staffComment}</p>}
                 </div>
               )}
             </div>
 
             {/* Action buttons */}
             {(req.status === "PENDING" || req.status === "IN_PROGRESS") && (
-              <div className="border-t border-stone-200/50 dark:border-zinc-700/40">
+              <div className="border-t border-zinc-700/50">
                 {updatingId === req.id ? (
                   <div className="flex justify-center py-3">
                     <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
                   </div>
                 ) : req.status === "PENDING" ? (
-                  <div className="flex gap-2 p-2">
+                  <div className="flex">
                     <button onClick={() => onAccept(req)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
-                        text-stone-800 dark:text-white border border-emerald-500 dark:border-emerald-500 rounded
-                        hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
-                      <Check className="h-3.5 w-3.5" /> {t("accept")}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
+                        text-white border-r border-zinc-700/50
+                        hover:bg-emerald-900/20 transition-colors">
+                      <Check className="h-4 w-4 text-emerald-400" /> {t("accept")}
                     </button>
                     <button onClick={() => onDecline(req)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
-                        text-red-500 border border-red-200 dark:border-red-800 rounded
-                        hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                      <X className="h-3.5 w-3.5" /> {t("declineBtn")}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
+                        text-red-400 hover:bg-red-900/20 transition-colors">
+                      <X className="h-4 w-4" /> {t("declineBtn")}
                     </button>
                   </div>
                 ) : (
                   <button onClick={() => onDone(req.id)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                      text-stone-700 dark:text-zinc-200 border-t border-emerald-500 dark:border-emerald-600
-                      hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
-                    <CheckCheck className="h-3.5 w-3.5" /> {t("markDone")}
+                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold
+                      text-emerald-400 hover:bg-emerald-900/20 transition-colors">
+                    <CheckCheck className="h-4 w-4" /> {t("markDone")}
                   </button>
                 )}
               </div>
