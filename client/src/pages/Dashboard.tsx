@@ -889,7 +889,7 @@ export default function DashboardPage() {
 
                   {/* Service requests */}
                   {dayReqs.length > 0 && (
-                    <div className="glass rounded overflow-hidden">
+                    <div className="sm:glass sm:rounded sm:overflow-hidden">
                       <RequestTable
                         requests={dayReqs}
                         updatingId={updatingId}
