@@ -494,7 +494,8 @@ function BookingSection({
 
   return (
     <div className="sm:glass sm:rounded sm:overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 flex items-center gap-2 sm:rounded-t">
+      {/* Desktop-only section header */}
+      <div className="hidden sm:flex px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 items-center gap-2 sm:rounded-t">
         <CalendarClock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
         <p className="text-xs font-bold text-stone-600 dark:text-zinc-300 uppercase tracking-wider">{displayName}</p>
         <div className="flex items-center gap-1 text-xs text-stone-400 dark:text-zinc-500 ml-auto">
@@ -503,69 +504,74 @@ function BookingSection({
       </div>
 
       {/* Mobile card list */}
-      <div className="sm:hidden space-y-2.5 p-3">
+      <div className="sm:hidden space-y-4">
         {bookings.map(b => {
           const accentBg =
             b.status === "CONFIRMED" ? "bg-green-400" :
-            b.status === "PENDING"   ? "bg-amber-300" :
-            "bg-zinc-600";
+            b.status === "PENDING"   ? "bg-orange-400" :
+            "bg-transparent";
           return (
             <div key={b.id}
-              className={`relative glass rounded-xl border border-zinc-600 dark:bg-zinc-800/90 shadow-md dark:shadow-black/60 ${b.status === "CANCELLED" ? "opacity-50" : ""} overflow-hidden`}>
+              className={`relative glass rounded-xl border border-zinc-600 dark:bg-zinc-800/90 shadow-md dark:shadow-black/70 ${b.status === "CANCELLED" ? "opacity-50" : ""} overflow-hidden`}>
               <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${accentBg}`} />
-              <div className="pl-5 px-4 py-3 space-y-1.5">
-                {/* Row 1: Room + slot time */}
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xl font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
+              <div className="pl-5 pr-4 pt-3 pb-3 space-y-3">
+                {/* Row 1: Room + Floor pill */}
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
                     {t("roomCol")} {b.roomNumber}
                   </span>
-                  <span className="text-xs text-stone-400 dark:text-zinc-500 shrink-0">{b.slotTime}</span>
+                  {b.floor && (
+                    <span className="text-xs font-medium text-zinc-400 bg-zinc-700/60 rounded-full px-2 py-0.5">
+                      {t("floorLabel")} {b.floor}
+                    </span>
+                  )}
                 </div>
-                {/* Row 2: Date + guest count */}
-                <div className="flex items-center gap-2">
-                  <CalendarClock className="h-3.5 w-3.5 text-stone-400 dark:text-zinc-500 shrink-0" />
-                  <span className="text-sm font-semibold text-stone-800 dark:text-zinc-100">{b.slotDate}</span>
-                  <span className="inline-flex items-center gap-0.5 text-xs text-stone-400 dark:text-zinc-500">
-                    <Users className="h-3 w-3" /> {b.guestCount}
-                  </span>
+                {/* Row 2: Service name + date/time + guests */}
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-zinc-700 flex items-center justify-center shrink-0">
+                    <CalendarClock className="h-6 w-6 text-zinc-300" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-bold text-stone-900 dark:text-zinc-100 text-base leading-tight block">{displayName}</span>
+                    <span className="text-xs text-stone-400 dark:text-zinc-500">
+                      {b.slotDate} · {b.slotTime} · <Users className="h-3 w-3 inline" /> {b.guestCount}
+                    </span>
+                  </div>
+                  {b.status !== "PENDING" && (
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${BOOKING_STATUS_PILL[b.status]}`}>
+                      {b.status === "CONFIRMED" ? t("confirmedStatus") : t("cancelledStatus")}
+                    </span>
+                  )}
                 </div>
-                {/* Status badge */}
-                {b.status !== "PENDING" && (
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${BOOKING_STATUS_PILL[b.status]}`}>
-                    {b.status === "CONFIRMED" ? t("confirmedStatus") : t("cancelledStatus")}
-                  </span>
-                )}
                 {b.notes && (
-                  <p className="text-xs text-stone-400 dark:text-zinc-500 italic truncate">"{b.notes}"</p>
+                  <p className="text-xs text-zinc-500 italic truncate">"{b.notes}"</p>
                 )}
               </div>
               {/* Action buttons */}
               {(b.status === "PENDING" || b.status === "CONFIRMED") && (
-                <div className="border-t border-stone-200/50 dark:border-zinc-700/40">
+                <div className="border-t border-zinc-700/50">
                   {updatingId === b.id ? (
                     <div className="flex justify-center py-3">
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
                     </div>
                   ) : b.status === "PENDING" ? (
-                    <div className="flex gap-2 p-2">
+                    <div className="flex">
                       <button onClick={() => onUpdateStatus(b.id, "CONFIRMED", b)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
-                          text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600 rounded
-                          hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
-                        <Check className="h-3.5 w-3.5" /> {t("accept")}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
+                          text-white border-r border-zinc-700/50 hover:bg-emerald-900/20 transition-colors">
+                        <Check className="h-4 w-4 text-emerald-400" /> {t("accept")}
                       </button>
                       <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold
-                          text-red-500 border border-red-200 dark:border-red-800 rounded
-                          hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                        <X className="h-3.5 w-3.5" /> {t("declineBtn")}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
+                          text-red-400 hover:bg-red-900/20 transition-colors">
+                        <X className="h-4 w-4" /> {t("declineBtn")}
                       </button>
                     </div>
                   ) : (
                     <button onClick={() => onUpdateStatus(b.id, "CANCELLED", b)}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold
-                        text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                      <X className="h-3.5 w-3.5" /> {t("cancelBtn")}
+                      className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold
+                        text-red-400 hover:bg-red-900/20 transition-colors">
+                      <X className="h-4 w-4" /> {t("cancelBtn")}
                     </button>
                   )}
                 </div>
