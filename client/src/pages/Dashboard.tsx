@@ -672,6 +672,8 @@ function BookingSection({
 
 const ITEM_KEYWORDS: [RegExp, string][] = [
   [/toothbrush/i,            "🪥"],
+  [/towel/i,                 "🧺"],
+  [/soap/i,                  "🧼"],
   [/razor|shav/i,            "🪒"],
   [/bathrobe|robe/i,         "👘"],
   [/shuttle|bus|transport/i, "🚌"],
