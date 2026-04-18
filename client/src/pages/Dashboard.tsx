@@ -259,7 +259,7 @@ function RequestTable({
                     {t("roomCol")} {req.roomNumber}
                   </span>
                   {req.floor && (
-                    <span className="text-xs font-medium text-zinc-400 bg-zinc-700/60 rounded-full px-2 py-0.5">
+                    <span className="text-xs font-medium text-stone-600 dark:text-zinc-300 bg-stone-200 dark:bg-zinc-700 rounded-full px-2 py-0.5">
                       {t("floorLabel")} {req.floor}
                     </span>
                   )}
@@ -305,6 +305,13 @@ function RequestTable({
             </div>
 
             {/* Action buttons */}
+            {dimmed && (
+              <div className="border-t border-zinc-700/40 flex items-center justify-center py-2.5">
+                <span className={`text-xs font-semibold ${req.status === "DONE" ? "text-green-400" : req.status === "CANCELLED" ? "text-zinc-500" : "text-red-400"}`}>
+                  {req.status === "DONE" ? "✓ " + t("done") : req.status === "CANCELLED" ? t("cancelledStatus") : t("declined")}
+                </span>
+              </div>
+            )}
             {(req.status === "PENDING" || req.status === "IN_PROGRESS") && (
               <div className="border-t border-zinc-700/50">
                 {updatingId === req.id ? (
@@ -522,7 +529,7 @@ function BookingSection({
                     {t("roomCol")} {b.roomNumber}
                   </span>
                   {b.floor && (
-                    <span className="text-xs font-medium text-zinc-400 bg-zinc-700/60 rounded-full px-2 py-0.5">
+                    <span className="text-xs font-medium text-stone-600 dark:text-zinc-300 bg-stone-200 dark:bg-zinc-700 rounded-full px-2 py-0.5">
                       {t("floorLabel")} {b.floor}
                     </span>
                   )}
@@ -822,7 +829,7 @@ export default function DashboardPage() {
       onClick={() => setTab(tabId)}
       className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors w-full sm:w-auto
         ${tab === tabId
-          ? urgent ? "bg-orange-600 text-white shadow-sm" : "bg-brand-700 text-white shadow-sm"
+          ? "bg-orange-600 text-white shadow-sm"
           : urgent && (count ?? 0) > 0
             ? "bg-white/70 dark:bg-zinc-800/70 text-orange-700 border border-orange-300 hover:border-orange-400"
             : "bg-white/70 dark:bg-zinc-800/70 text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-700 hover:border-stone-300 dark:hover:border-zinc-600"}`}
@@ -886,7 +893,7 @@ export default function DashboardPage() {
               const dayBookingItems = Object.entries(bookingsByDateItem[dateStr] ?? {});
 
               return (
-                <div key={dateStr} className="space-y-2">
+                <div key={dateStr} className="space-y-4">
                   {/* Date label */}
                   <div className="flex items-center gap-3 px-1">
                     <p className="text-xs font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
