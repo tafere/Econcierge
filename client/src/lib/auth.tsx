@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { applyHotelTheme } from "@/lib/theme";
 
+type Role = "SUPER_ADMIN" | "ADMIN" | "STAFF" | "HOUSEKEEPING" | "MAINTENANCE" | "TRANSPORT" | "RESTAURANT" | "CAFE_BAR" | "SPA" | "GYM" | "MEETING_CONFERENCE";
+
 interface StaffUser {
   username: string;
   fullName: string;
-  role: "SUPER_ADMIN" | "ADMIN" | "STAFF" | "HOUSEKEEPING" | "MAINTENANCE" | "TRANSPORT" | "RESTAURANT" | "CAFE_BAR" | "SPA" | "GYM" | "MEETING_CONFERENCE";
+  roles: Role[];
   hotelId: number | null;
   hotelName: string;
   token: string;
@@ -36,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token && saved) {
       try {
         const parsed = JSON.parse(saved);
+        // Migrate legacy single-role to roles array
+        if (parsed.role && !parsed.roles) parsed.roles = [parsed.role];
         const u = { ...parsed, token };
         setUser(u);
         if (!isGuestRoute) applyHotelTheme(u.primaryColor);
@@ -62,15 +66,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(d.error || "Login failed");
     }
     const d = await res.json();
+    // Normalise: server returns "roles" array; fall back to legacy "role" string
+    const roles: Role[] = Array.isArray(d.roles) ? d.roles : (d.role ? [d.role] : []);
     const u: StaffUser = {
-      username: d.username, fullName: d.fullName, role: d.role,
+      username: d.username, fullName: d.fullName, roles,
       hotelId: d.hotelId ?? null, hotelName: d.hotelName, token: d.token,
       primaryColor: d.primaryColor ?? null,
       logoUrl: d.logoUrl ?? null,
     };
     localStorage.setItem(TOKEN_KEY, d.token);
     localStorage.setItem(USER_KEY, JSON.stringify({
-      username: u.username, fullName: u.fullName, role: u.role,
+      username: u.username, fullName: u.fullName, roles: u.roles,
       hotelId: u.hotelId, hotelName: u.hotelName,
       primaryColor: u.primaryColor, logoUrl: u.logoUrl,
     }));

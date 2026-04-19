@@ -23,5 +23,6 @@
     <include file="classpath:db/changelog/016-backfill-category-names-am.xml"/>
     <include file="classpath:db/changelog/017-eta.xml"/>
     <include file="classpath:db/changelog/018-hero-image.xml"/>
+    <include file="classpath:db/changelog/019-multi-role.xml"/>
 
 </databaseChangeLog>

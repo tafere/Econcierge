@@ -9,8 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/dashboard/staff-mgmt")
@@ -33,40 +33,48 @@ public class StaffManagementController {
     public ResponseEntity<?> listStaff(@RequestHeader("Authorization") String header) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         List<Map<String, Object>> result = staffRepository.findByHotelId(hotelId).stream()
-                .map(s -> Map.<String, Object>of(
-                        "id",        s.getId(),
-                        "username",  s.getUsername(),
-                        "fullName",  s.getFullName(),
-                        "role",      s.getRole().name(),
-                        "enabled",   s.isEnabled()
-                )).toList();
+                .map(s -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id",       s.getId());
+                    m.put("username", s.getUsername());
+                    m.put("fullName", s.getFullName());
+                    m.put("roles",    s.getRoles().stream().map(Staff.Role::name).collect(Collectors.toList()));
+                    m.put("enabled",  s.isEnabled());
+                    return m;
+                }).toList();
         return ResponseEntity.ok(result);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createStaff(@RequestHeader("Authorization") String header,
-                                          @RequestBody Map<String, String> body) {
+                                          @RequestBody Map<String, Object> body) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
 
-        String username = body.get("username");
-        String password = body.get("password");
-        String fullName = body.get("fullName");
-        String roleStr  = body.get("role");
+        String username = (String) body.get("username");
+        String password = (String) body.get("password");
+        String fullName = (String) body.get("fullName");
 
-        if (username == null || password == null || fullName == null || roleStr == null)
+        if (username == null || password == null || fullName == null)
             return ResponseEntity.badRequest().body(Map.of("error", "All fields required"));
         if (password.length() < 6)
             return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
         if (staffRepository.existsByUsername(username))
             return ResponseEntity.badRequest().body(Map.of("error", "Username already taken"));
 
-        Staff.Role role;
-        try { role = Staff.Role.valueOf(roleStr); } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid role"));
+        // Accept either "roles" (List) or legacy "role" (String)
+        List<String> roleStrings = extractRoleStrings(body);
+        if (roleStrings.isEmpty())
+            return ResponseEntity.badRequest().body(Map.of("error", "At least one role required"));
+
+        Set<Staff.Role> roles = new HashSet<>();
+        for (String rs : roleStrings) {
+            try { roles.add(Staff.Role.valueOf(rs)); } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid role: " + rs));
+            }
         }
         // ADMIN cannot create another ADMIN
-        if (role == Staff.Role.ADMIN)
+        if (roles.contains(Staff.Role.ADMIN))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot create ADMIN users"));
 
         Staff s = new Staff();
@@ -74,11 +82,16 @@ public class StaffManagementController {
         s.setUsername(username.trim().toLowerCase());
         s.setPassword(passwordEncoder.encode(password));
         s.setFullName(fullName.trim());
-        s.setRole(role);
+        s.setRoles(roles);
         staffRepository.save(s);
 
-        return ResponseEntity.ok(Map.of("id", s.getId(), "username", s.getUsername(),
-                "fullName", s.getFullName(), "role", s.getRole().name(), "enabled", s.isEnabled()));
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id",       s.getId());
+        resp.put("username", s.getUsername());
+        resp.put("fullName", s.getFullName());
+        resp.put("roles",    s.getRoles().stream().map(Staff.Role::name).collect(Collectors.toList()));
+        resp.put("enabled",  s.isEnabled());
+        return ResponseEntity.ok(resp);
     }
 
     @PatchMapping("/{id}/toggle")
@@ -89,33 +102,45 @@ public class StaffManagementController {
         Staff s = staffRepository.findById(id).orElse(null);
         if (s == null || !s.getHotelId().equals(hotelId))
             return ResponseEntity.notFound().build();
-        if (s.getRole() == Staff.Role.ADMIN)
+        if (s.isAdminOrAbove())
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot disable ADMIN"));
         s.setEnabled(!s.isEnabled());
         staffRepository.save(s);
         return ResponseEntity.ok(Map.of("id", s.getId(), "enabled", s.isEnabled()));
     }
 
-    @PatchMapping("/{id}/role")
+    @PatchMapping("/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> changeRole(@PathVariable Long id,
-                                         @RequestHeader("Authorization") String header,
-                                         @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> changeRoles(@PathVariable Long id,
+                                          @RequestHeader("Authorization") String header,
+                                          @RequestBody Map<String, Object> body) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         Staff s = staffRepository.findById(id).orElse(null);
         if (s == null || !s.getHotelId().equals(hotelId))
             return ResponseEntity.notFound().build();
-        if (s.getRole() == Staff.Role.ADMIN)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot change ADMIN role"));
-        Staff.Role newRole;
-        try { newRole = Staff.Role.valueOf(body.get("role")); } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid role"));
+        if (s.isAdminOrAbove())
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot change ADMIN roles"));
+
+        List<String> roleStrings = extractRoleStrings(body);
+        if (roleStrings.isEmpty())
+            return ResponseEntity.badRequest().body(Map.of("error", "At least one role required"));
+
+        Set<Staff.Role> roles = new HashSet<>();
+        for (String rs : roleStrings) {
+            try { roles.add(Staff.Role.valueOf(rs)); } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid role: " + rs));
+            }
         }
-        if (newRole == Staff.Role.ADMIN)
+        if (roles.contains(Staff.Role.ADMIN))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot assign ADMIN role"));
-        s.setRole(newRole);
+
+        s.setRoles(roles);
         staffRepository.save(s);
-        return ResponseEntity.ok(Map.of("id", s.getId(), "role", s.getRole().name()));
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id",    s.getId());
+        resp.put("roles", s.getRoles().stream().map(Staff.Role::name).collect(Collectors.toList()));
+        return ResponseEntity.ok(resp);
     }
 
     @DeleteMapping("/{id}")
@@ -126,9 +151,19 @@ public class StaffManagementController {
         Staff s = staffRepository.findById(id).orElse(null);
         if (s == null || !s.getHotelId().equals(hotelId))
             return ResponseEntity.notFound().build();
-        if (s.getRole() == Staff.Role.ADMIN)
+        if (s.isAdminOrAbove())
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Cannot delete ADMIN"));
         staffRepository.delete(s);
         return ResponseEntity.ok(Map.of("deleted", true));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> extractRoleStrings(Map<String, Object> body) {
+        Object rolesVal = body.get("roles");
+        if (rolesVal instanceof List) return (List<String>) rolesVal;
+        // legacy single-role support
+        Object roleVal = body.get("role");
+        if (roleVal instanceof String s && !s.isBlank()) return List.of(s);
+        return List.of();
     }
 }

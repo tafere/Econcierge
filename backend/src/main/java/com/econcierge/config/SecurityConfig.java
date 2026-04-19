@@ -21,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableMethodSecurity
@@ -43,15 +44,10 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public: guest request submission and room lookup
                 .requestMatchers("/api/guest/**").permitAll()
-                // Public: guest scheduling (slot lookup + booking)
                 .requestMatchers("/api/schedule/**").permitAll()
-                // Public: staff login
                 .requestMatchers("/api/auth/login").permitAll()
-                // Super admin only
                 .requestMatchers("/api/super/**").hasRole("SUPER_ADMIN")
-                // Everything else requires auth
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -68,13 +64,13 @@ public class SecurityConfig {
                     String token = header.substring(7);
                     if (jwtUtil.isValid(token)) {
                         String username = jwtUtil.extractUsername(token);
-                        String role = jwtUtil.extractRole(token);
+                        List<String> roles = jwtUtil.extractRoles(token);
                         staffRepository.findByUsername(username).ifPresent(staff -> {
                             if (staff.isEnabled()) {
-                                var auth = new UsernamePasswordAuthenticationToken(
-                                    username, null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                                );
+                                List<SimpleGrantedAuthority> authorities = roles.stream()
+                                        .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                                        .collect(Collectors.toList());
+                                var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
                                 SecurityContextHolder.getContext().setAuthentication(auth);
                             }
                         });

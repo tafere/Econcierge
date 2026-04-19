@@ -2,6 +2,8 @@ package com.econcierge.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "staff")
@@ -24,9 +26,11 @@ public class Staff {
     @Column(name = "full_name", nullable = false, length = 200)
     private String fullName;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "staff_roles", joinColumns = @JoinColumn(name = "staff_id"))
+    @Column(name = "role", nullable = false, length = 30)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private Role role = Role.STAFF;
+    private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
     private boolean enabled = true;
@@ -37,18 +41,21 @@ public class Staff {
     @PrePersist
     protected void onCreate() { createdAt = LocalDateTime.now(); }
 
-    public Long getId()                  { return id; }
-    public Long getHotelId()             { return hotelId; }
-    public void setHotelId(Long v)       { this.hotelId = v; }
-    public String getUsername()          { return username; }
-    public void setUsername(String v)    { this.username = v; }
-    public String getPassword()          { return password; }
-    public void setPassword(String v)    { this.password = v; }
-    public String getFullName()          { return fullName; }
-    public void setFullName(String v)    { this.fullName = v; }
-    public Role getRole()                { return role; }
-    public void setRole(Role v)          { this.role = v; }
-    public boolean isEnabled()           { return enabled; }
-    public void setEnabled(boolean v)    { this.enabled = v; }
-    public LocalDateTime getCreatedAt()  { return createdAt; }
+    public boolean hasRole(Role r)  { return roles.contains(r); }
+    public boolean isAdminOrAbove() { return hasRole(Role.ADMIN) || hasRole(Role.SUPER_ADMIN); }
+
+    public Long getId()                   { return id; }
+    public Long getHotelId()              { return hotelId; }
+    public void setHotelId(Long v)        { this.hotelId = v; }
+    public String getUsername()           { return username; }
+    public void setUsername(String v)     { this.username = v; }
+    public String getPassword()           { return password; }
+    public void setPassword(String v)     { this.password = v; }
+    public String getFullName()           { return fullName; }
+    public void setFullName(String v)     { this.fullName = v; }
+    public Set<Role> getRoles()           { return roles; }
+    public void setRoles(Set<Role> v)     { this.roles = v; }
+    public boolean isEnabled()            { return enabled; }
+    public void setEnabled(boolean v)     { this.enabled = v; }
+    public LocalDateTime getCreatedAt()   { return createdAt; }
 }
