@@ -66,7 +66,7 @@ public class SetupController {
         admin.setUsername(username.trim().toLowerCase());
         admin.setPassword(passwordEncoder.encode(password));
         admin.setFullName(fullName.trim());
-        admin.setRole(Staff.Role.ADMIN);
+        admin.setRoles(new java.util.HashSet<>(java.util.Set.of(Staff.Role.ADMIN)));
         staffRepository.save(admin);
 
         return ResponseEntity.ok(Map.of(
