@@ -62,11 +62,14 @@ export default function CategoriesPage() {
   const [editCatIcon, setEditCatIcon]     = useState("");
   const [editCatEta, setEditCatEta]       = useState<string>("");
 
-  const [addItemCatId, setAddItemCatId]   = useState<number | null>(null);
-  const [addItemName, setAddItemName]     = useState("");
-  const [addItemNameAm, setAddItemNameAm] = useState("");
-  const [addItemQty, setAddItemQty]       = useState(1);
-  const [addingItem, setAddingItem]       = useState(false);
+  const [addItemCatId, setAddItemCatId]           = useState<number | null>(null);
+  const [addItemName, setAddItemName]             = useState("");
+  const [addItemNameAm, setAddItemNameAm]         = useState("");
+  const [addItemQty, setAddItemQty]               = useState(1);
+  const [addItemSchedulable, setAddItemSchedulable] = useState(false);
+  const [addItemInterval, setAddItemInterval]     = useState(60);
+  const [addItemCapacity, setAddItemCapacity]     = useState(10);
+  const [addingItem, setAddingItem]               = useState(false);
 
   const [editItemId, setEditItemId]           = useState<number | null>(null);
   const [editItemName, setEditItemName]       = useState("");
@@ -131,7 +134,10 @@ export default function CategoriesPage() {
     setAddingItem(true);
     const res = await fetch(`/api/dashboard/categories/${catId}/items`, {
       method: "POST", headers: authH(),
-      body: JSON.stringify({ name: addItemName, nameAm: addItemNameAm || null, maxQuantity: addItemQty }),
+      body: JSON.stringify({
+        name: addItemName, nameAm: addItemNameAm || null, maxQuantity: addItemQty,
+        schedulable: addItemSchedulable, slotIntervalMins: addItemInterval, capacity: addItemCapacity,
+      }),
     });
     if (res.ok) {
       const item = await res.json();
@@ -408,30 +414,62 @@ export default function CategoriesPage() {
                     {/* Add item row */}
                     {addItemCatId === cat.id ? (
                       <form onSubmit={e => addItem(cat.id, e)}
-                        className="px-4 py-2.5 flex items-center gap-2 bg-stone-50 dark:bg-zinc-800/60">
-                        <input value={addItemName} onChange={e => setAddItemName(e.target.value)}
-                          required placeholder={t("itemNamePlaceholder")} autoFocus
-                          className={`${inputCls} flex-1 min-w-0`} />
-                        <input value={addItemNameAm} onChange={e => setAddItemNameAm(e.target.value)}
-                          placeholder="አማርኛ ስም"
-                          className={`${inputCls} flex-1 min-w-0`} />
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span className="text-xs text-stone-400 dark:text-zinc-500">{t("maxLabel")}</span>
-                          <input type="number" min={1} max={99} value={addItemQty}
-                            onChange={e => setAddItemQty(Number(e.target.value))}
-                            className="w-14 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
-                              text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                        className="px-4 py-2.5 space-y-2 bg-stone-50 dark:bg-zinc-800/60">
+                        <div className="flex items-center gap-2">
+                          <input value={addItemName} onChange={e => setAddItemName(e.target.value)}
+                            required placeholder={t("itemNamePlaceholder")} autoFocus
+                            className={`${inputCls} flex-1 min-w-0`} />
+                          <input value={addItemNameAm} onChange={e => setAddItemNameAm(e.target.value)}
+                            placeholder="አማርኛ ስም"
+                            className={`${inputCls} flex-1 min-w-0`} />
+                          {!addItemSchedulable && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <span className="text-xs text-stone-400 dark:text-zinc-500">{t("maxLabel")}</span>
+                              <input type="number" min={1} max={99} value={addItemQty}
+                                onChange={e => setAddItemQty(Number(e.target.value))}
+                                className="w-14 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
+                                  text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                            </div>
+                          )}
+                          <button type="submit" disabled={addingItem}
+                            className="p-1.5 rounded bg-brand-700 text-white hover:bg-brand-800 transition-colors shrink-0">
+                            {addingItem ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          </button>
+                          <button type="button" onClick={() => { setAddItemCatId(null); setAddItemName(""); setAddItemSchedulable(false); setAddItemInterval(60); setAddItemCapacity(10); }}
+                            className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
+                            <X className="h-3.5 w-3.5" /></button>
                         </div>
-                        <button type="submit" disabled={addingItem}
-                          className="p-1.5 rounded bg-brand-700 text-white hover:bg-brand-800 transition-colors shrink-0">
-                          {addingItem ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                        </button>
-                        <button type="button" onClick={() => { setAddItemCatId(null); setAddItemName(""); }}
-                          className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
-                          <X className="h-3.5 w-3.5" /></button>
+                        <div className="flex items-center gap-3 pl-1 flex-wrap">
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" checked={addItemSchedulable}
+                              onChange={e => setAddItemSchedulable(e.target.checked)}
+                              className="accent-brand-700" />
+                            <span className="text-xs font-semibold text-stone-600 dark:text-zinc-400">{t("enableScheduling")}</span>
+                          </label>
+                          {addItemSchedulable && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-stone-400 dark:text-zinc-500">{t("everyLabel")}</span>
+                                <input type="number" min={5} max={240} step={5} value={addItemInterval}
+                                  onChange={e => setAddItemInterval(Number(e.target.value))}
+                                  className="w-16 h-7 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-xs
+                                    text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                                <span className="text-xs text-stone-400 dark:text-zinc-500">{t("minLabel")}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-stone-400 dark:text-zinc-500">{t("capacityLabel")}</span>
+                                <input type="number" min={1} max={500} value={addItemCapacity}
+                                  onChange={e => setAddItemCapacity(Number(e.target.value))}
+                                  className="w-16 h-7 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-xs
+                                    text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                                <span className="text-xs text-stone-400 dark:text-zinc-500">{t("peopleLabel")}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </form>
                     ) : (
-                      <button onClick={() => { setAddItemCatId(cat.id); setAddItemName(""); setAddItemQty(1); }}
+                      <button onClick={() => { setAddItemCatId(cat.id); setAddItemName(""); setAddItemQty(1); setAddItemSchedulable(false); setAddItemInterval(60); setAddItemCapacity(10); }}
                         className="w-full px-4 py-2 text-xs text-brand-700 hover:bg-brand-50 flex items-center gap-1.5
                           transition-colors font-medium">
                         <Plus className="h-3.5 w-3.5" /> {t("addItem")}
