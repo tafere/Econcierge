@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtUtil {
@@ -21,10 +22,10 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
-    public String generate(String username, String role, Long hotelId) {
+    public String generate(String username, List<String> roles, Long hotelId) {
         return Jwts.builder()
                 .subject(username)
-                .claim("role", role)
+                .claim("roles", roles)
                 .claim("hotelId", hotelId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
@@ -37,8 +38,18 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) { return getClaims(token).getSubject(); }
-    public String extractRole(String token)     { return getClaims(token).get("role", String.class); }
-    public Long extractHotelId(String token)    { return getClaims(token).get("hotelId", Long.class); }
+
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(String token) {
+        Object val = getClaims(token).get("roles");
+        if (val instanceof List) return (List<String>) val;
+        // backward compat: old tokens had a single "role" claim
+        Object legacy = getClaims(token).get("role");
+        if (legacy instanceof String) return List.of((String) legacy);
+        return List.of();
+    }
+
+    public Long extractHotelId(String token) { return getClaims(token).get("hotelId", Long.class); }
 
     private Claims getClaims(String token) {
         return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();

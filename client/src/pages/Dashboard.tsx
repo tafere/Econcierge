@@ -756,7 +756,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchRequests();
-    if (user?.role === "ADMIN") fetchBookings();
+    if (user?.roles?.includes("ADMIN")) fetchBookings();
     requestNotifyPermission();
     // Fetch hotel ETA default
     fetch("/api/dashboard/hotel", { headers: authH() })
@@ -891,7 +891,7 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-extrabold text-stone-900 dark:text-zinc-100 leading-tight">{t("serviceRequests")}</h1>
             <p className="text-sm font-medium text-stone-400 dark:text-zinc-500">{user?.fullName}</p>
           </div>
-          <button onClick={() => { fetchRequests(); if (user?.role === "ADMIN") fetchBookings(); }}
+          <button onClick={() => { fetchRequests(); if (user?.roles?.includes("ADMIN")) fetchBookings(); }}
             className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
             <RefreshCw className="h-4 w-4" />
           </button>

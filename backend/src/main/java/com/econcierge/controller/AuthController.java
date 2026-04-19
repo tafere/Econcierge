@@ -11,8 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,13 +49,17 @@ public class AuthController {
         Optional<Hotel> hotelOpt = staff.getHotelId() != null
                 ? hotelRepository.findById(staff.getHotelId()) : Optional.empty();
 
-        String token = jwtUtil.generate(staff.getUsername(), staff.getRole().name(), staff.getHotelId());
+        List<String> roleNames = staff.getRoles().stream()
+                .map(Staff.Role::name)
+                .collect(Collectors.toList());
+
+        String token = jwtUtil.generate(staff.getUsername(), roleNames, staff.getHotelId());
 
         Map<String, Object> response = new HashMap<>();
         response.put("token",        token);
         response.put("username",     staff.getUsername());
         response.put("fullName",     staff.getFullName());
-        response.put("role",         staff.getRole().name());
+        response.put("roles",        roleNames);
         response.put("hotelId",      staff.getHotelId());
         response.put("hotelName",    hotelOpt.map(Hotel::getName).orElse(""));
         response.put("primaryColor", hotelOpt.map(Hotel::getPrimaryColor).orElse(null));
@@ -74,10 +80,14 @@ public class AuthController {
         Optional<Hotel> hotelOpt = staff.getHotelId() != null
                 ? hotelRepository.findById(staff.getHotelId()) : Optional.empty();
 
+        List<String> roleNames = staff.getRoles().stream()
+                .map(Staff.Role::name)
+                .collect(Collectors.toList());
+
         Map<String, Object> response = new HashMap<>();
         response.put("username",     staff.getUsername());
         response.put("fullName",     staff.getFullName());
-        response.put("role",         staff.getRole().name());
+        response.put("roles",        roleNames);
         response.put("hotelId",      staff.getHotelId());
         response.put("hotelName",    hotelOpt.map(Hotel::getName).orElse(""));
         response.put("primaryColor", hotelOpt.map(Hotel::getPrimaryColor).orElse(null));

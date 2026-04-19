@@ -202,7 +202,7 @@ export default function RoomsPage() {
                 <Printer className="h-4 w-4" /> Print All QR Cards
               </button>
             )}
-            {user?.role === "ADMIN" && (
+            {user?.roles?.includes("ADMIN") && (
               <button
                 onClick={() => setShowAdd(true)}
                 className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold

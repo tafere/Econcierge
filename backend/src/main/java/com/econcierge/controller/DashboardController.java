@@ -46,12 +46,12 @@ public class DashboardController {
     @PreAuthorize("hasAnyRole('STAFF','ADMIN','HOUSEKEEPING','MAINTENANCE','TRANSPORT','RESTAURANT','CAFE_BAR','SPA','GYM','MEETING_CONFERENCE')")
     public ResponseEntity<?> getRequests(@RequestHeader("Authorization") String header) {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
-        String role   = jwtUtil.extractRole(header.substring(7));
+        List<String> roles = jwtUtil.extractRoles(header.substring(7));
 
         List<ServiceRequest> requests = requestRepository.findByHotelIdOrderByCreatedAtDesc(hotelId);
 
         return ResponseEntity.ok(requests.stream()
-                .filter(r -> matchesRole(r, role))
+                .filter(r -> matchesRole(r, roles))
                 .map(r -> toMap(r, hotelId)).toList());
     }
 
@@ -300,25 +300,29 @@ public class DashboardController {
         return ResponseEntity.ok(result);
     }
 
-    /** Returns true if the request's category is visible to this role. */
-    private boolean matchesRole(ServiceRequest r, String role) {
-        if ("ADMIN".equals(role) || "STAFF".equals(role)) return true;
+    /** Returns true if any of the staff's roles can see this request's category. */
+    private boolean matchesRole(ServiceRequest r, List<String> roles) {
+        if (roles.contains("ADMIN") || roles.contains("STAFF")) return true;
         RequestItem item = itemRepository.findById(r.getItemId()).orElse(null);
         if (item == null) return false;
         RequestCategory cat = categoryRepository.findById(item.getCategoryId()).orElse(null);
         if (cat == null) return false;
         String name = cat.getName();
-        return switch (role) {
-            case "HOUSEKEEPING"       -> name.equals("Housekeeping") || name.equals("Amenities") || name.equals("Toiletries");
-            case "MAINTENANCE"        -> name.equals("Maintenance");
-            case "TRANSPORT"          -> name.equals("Transport") || name.equals("Concierge");
-            case "RESTAURANT"         -> name.equals("Restaurant") || name.equals("Food & Beverage");
-            case "CAFE_BAR"           -> name.equals("Cafe & Bar") || name.equals("Food & Beverage");
-            case "SPA"                -> name.equals("Spa");
-            case "GYM"                -> name.equals("Gym");
-            case "MEETING_CONFERENCE" -> name.equals("Meeting & Conference");
-            default -> true;
-        };
+        for (String role : roles) {
+            boolean match = switch (role) {
+                case "HOUSEKEEPING"       -> name.equals("Housekeeping") || name.equals("Amenities") || name.equals("Toiletries");
+                case "MAINTENANCE"        -> name.equals("Maintenance");
+                case "TRANSPORT"          -> name.equals("Transport") || name.equals("Concierge");
+                case "RESTAURANT"         -> name.equals("Restaurant") || name.equals("Food & Beverage");
+                case "CAFE_BAR"           -> name.equals("Cafe & Bar") || name.equals("Food & Beverage");
+                case "SPA"                -> name.equals("Spa");
+                case "GYM"                -> name.equals("Gym");
+                case "MEETING_CONFERENCE" -> name.equals("Meeting & Conference");
+                default -> false;
+            };
+            if (match) return true;
+        }
+        return false;
     }
 
     private Map<String, Object> toMap(ServiceRequest r, Long hotelId) {

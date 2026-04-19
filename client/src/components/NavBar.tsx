@@ -43,8 +43,8 @@ export default function NavBar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const isAdmin = user?.role === "ADMIN";
-  const canSeeRooms = user?.role === "ADMIN" || user?.role === "STAFF";
+  const isAdmin = user?.roles?.includes("ADMIN") ?? false;
+  const canSeeRooms = (user?.roles?.includes("ADMIN") || user?.roles?.includes("STAFF")) ?? false;
 
   const active = (path: string) => location === path;
 
@@ -220,7 +220,7 @@ export default function NavBar() {
                 </div>
                 <div>
                   <p className="font-extrabold text-white text-sm leading-tight">{user?.fullName}</p>
-                  <p className="text-zinc-400 text-[10px] uppercase tracking-widest font-semibold">{user?.role ? trRole(lang, user.role) : ""}</p>
+                  <p className="text-zinc-400 text-[10px] uppercase tracking-widest font-semibold">{user?.roles?.map(r => trRole(lang, r)).join(" · ") ?? ""}</p>
                 </div>
               </div>
               <button onClick={() => setDrawerOpen(false)} className="text-zinc-400 hover:text-white transition-colors p-1">

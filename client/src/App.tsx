@@ -30,7 +30,7 @@ function StaffRouter() {
 
   if (!user) return <LoginPage />;
 
-  if (user.role === "SUPER_ADMIN") return <SuperAdminPage />;
+  if (user.roles.includes("SUPER_ADMIN")) return <SuperAdminPage />;
 
   return (
     <NotificationsProvider>
