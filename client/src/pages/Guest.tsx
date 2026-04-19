@@ -834,7 +834,7 @@ export default function GuestPage() {
 
                       <div className={`rounded-xl px-4 py-3 ${hasHero ? "bg-white/10 border border-white/15" : "bg-brand-50 border border-brand-200"}`}>
                         <p className={`text-sm font-semibold ${hasHero ? "text-white" : "text-stone-800"}`}>
-                          {selectedItem.name} · {slotDate === todayStr ? T("today") : T("tomorrow")} {T("at")} {selectedSlot.time}
+                          {lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name} · {slotDate === todayStr ? T("today") : T("tomorrow")} {T("at")} {selectedSlot.time}
                         </p>
                         <p className={`text-xs mt-0.5 ${hasHero ? "text-white/50" : "text-stone-500"}`}>{guestCount} {guestCount !== 1 ? T("guests") : T("guest")}</p>
                       </div>
