@@ -459,11 +459,11 @@ export default function GuestPage() {
   const hasHero = !!room!.heroImageUrl;
 
   return (
-    <div className="min-h-screen pb-28 relative">
+    <div className="min-h-screen pb-28 relative z-[1]">
 
       {/* Full-screen hotel background image */}
       {hasHero && (
-        <div className="fixed inset-0 -z-10">
+        <div className="fixed inset-0 z-0">
           <img src={room!.heroImageUrl} alt="" className="w-full h-full object-cover object-center" />
           {/* Gradient: darker at top for header readability, opens up in middle to show the hotel */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/20 to-black/65" />
