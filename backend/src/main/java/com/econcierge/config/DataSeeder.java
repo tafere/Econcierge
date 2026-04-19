@@ -49,7 +49,7 @@ public class DataSeeder implements CommandLineRunner {
             admin.setUsername("admin");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setFullName("Hotel Administrator");
-            admin.setRole(Staff.Role.ADMIN);
+            admin.setRoles(new java.util.HashSet<>(java.util.Set.of(Staff.Role.ADMIN)));
             staffRepository.save(admin);
 
             String[] floors = {"1", "2", "3", "4", "5"};
@@ -127,7 +127,7 @@ public class DataSeeder implements CommandLineRunner {
             hk.setUsername("housekeeping");
             hk.setPassword(passwordEncoder.encode("house123"));
             hk.setFullName("Housekeeping Team");
-            hk.setRole(Staff.Role.HOUSEKEEPING);
+            hk.setRoles(new java.util.HashSet<>(java.util.Set.of(Staff.Role.HOUSEKEEPING)));
             staffRepository.save(hk);
         }
 
@@ -137,7 +137,7 @@ public class DataSeeder implements CommandLineRunner {
             mt.setUsername("maintenance");
             mt.setPassword(passwordEncoder.encode("maint123"));
             mt.setFullName("Maintenance Team");
-            mt.setRole(Staff.Role.MAINTENANCE);
+            mt.setRoles(new java.util.HashSet<>(java.util.Set.of(Staff.Role.MAINTENANCE)));
             staffRepository.save(mt);
         }
 
@@ -150,7 +150,7 @@ public class DataSeeder implements CommandLineRunner {
             superAdmin.setUsername(superUsername);
             superAdmin.setPassword(passwordEncoder.encode(superPassword));
             superAdmin.setFullName("Platform Admin");
-            superAdmin.setRole(Staff.Role.SUPER_ADMIN);
+            superAdmin.setRoles(new java.util.HashSet<>(java.util.Set.of(Staff.Role.SUPER_ADMIN)));
             staffRepository.save(superAdmin);
             System.out.println("Econcierge: super admin created — login: " + superUsername + " / " + superPassword);
         }

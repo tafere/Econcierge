@@ -54,7 +54,7 @@ public class SuperAdminController {
             m.put("createdAt",    h.getCreatedAt() != null ? h.getCreatedAt().toString() : null);
             // Find admin
             staffRepository.findByHotelId(h.getId()).stream()
-                    .filter(s -> s.getRole() == Staff.Role.ADMIN)
+                    .filter(s -> s.hasRole(Staff.Role.ADMIN))
                     .findFirst()
                     .ifPresent(admin -> {
                         m.put("adminUsername", admin.getUsername());
@@ -108,7 +108,7 @@ public class SuperAdminController {
         admin.setUsername(adminUsername.trim().toLowerCase());
         admin.setPassword(passwordEncoder.encode(adminPassword));
         admin.setFullName(adminFullName.trim());
-        admin.setRole(Staff.Role.ADMIN);
+        admin.setRoles(new java.util.HashSet<>(java.util.Set.of(Staff.Role.ADMIN)));
         staffRepository.save(admin);
 
         // Seed default categories and items for this hotel
@@ -164,7 +164,7 @@ public class SuperAdminController {
             return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
 
         staffRepository.findByHotelId(id).stream()
-                .filter(s -> s.getRole() == Staff.Role.ADMIN)
+                .filter(s -> s.hasRole(Staff.Role.ADMIN))
                 .findFirst()
                 .ifPresent(admin -> {
                     admin.setPassword(passwordEncoder.encode(newPassword));
