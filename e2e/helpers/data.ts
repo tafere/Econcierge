@@ -5,7 +5,7 @@ export const MOCK_TOKEN = 'mock-jwt-token-for-testing';
 export const MOCK_ADMIN = {
   username: 'admin',
   fullName: 'Admin User',
-  role: 'ADMIN',
+  roles: ['ADMIN'],
   hotelId: 1,
   hotelName: 'Test Hotel',
   primaryColor: null,
@@ -15,7 +15,7 @@ export const MOCK_ADMIN = {
 export const MOCK_STAFF_USER = {
   username: 'housekeeping1',
   fullName: 'House Keeper',
-  role: 'HOUSEKEEPING',
+  roles: ['HOUSEKEEPING'],
   hotelId: 1,
   hotelName: 'Test Hotel',
   primaryColor: null,
@@ -58,10 +58,11 @@ export const MOCK_CATEGORIES = [
 // ─── Staff ────────────────────────────────────────────────────────────────────
 
 export const MOCK_STAFF = [
-  { id: 1, username: 'admin',   fullName: 'Admin User',   role: 'ADMIN',        enabled: true },
-  { id: 2, username: 'john',    fullName: 'John Smith',   role: 'HOUSEKEEPING', enabled: true },
-  { id: 3, username: 'maria',   fullName: 'Maria Garcia', role: 'SPA',          enabled: true },
-  { id: 4, username: 'disabled1', fullName: 'Old Staff', role: 'STAFF',         enabled: false },
+  { id: 1, username: 'admin',     fullName: 'Admin User',   roles: ['ADMIN'],                  enabled: true },
+  { id: 2, username: 'john',      fullName: 'John Smith',   roles: ['HOUSEKEEPING'],            enabled: true },
+  { id: 3, username: 'maria',     fullName: 'Maria Garcia', roles: ['SPA'],                    enabled: true },
+  { id: 4, username: 'disabled1', fullName: 'Old Staff',    roles: ['STAFF'],                  enabled: false },
+  { id: 5, username: 'multi1',    fullName: 'Multi Role',   roles: ['HOUSEKEEPING', 'SPA'],    enabled: true },
 ];
 
 // ─── Service Requests ─────────────────────────────────────────────────────────
@@ -149,28 +150,38 @@ export const MOCK_HOTEL = {
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
 export const MOCK_ANALYTICS = {
-  requestsToday: 24,
-  openNow: 5,
-  completionRate: 87,
-  avgResponseTimeMinutes: 12,
-  byHour: Array.from({ length: 24 }, (_, h) => ({ hour: h, count: Math.floor(Math.random() * 10) })),
-  byDay: Array.from({ length: 7 }, (_, i) => ({
-    date: new Date(Date.now() - i * 86_400_000).toISOString().split('T')[0],
-    count: Math.floor(Math.random() * 30) + 5,
+  kpi: {
+    todayCount: 24,
+    openCount: 5,
+    completionRate: 87,
+    avgResponseMins: 12,
+  },
+  byHour: Array.from({ length: 24 }, (_, h) => ({
+    hour: `${String(h).padStart(2, '0')}:00`,
+    count: Math.floor(Math.random() * 10),
   })),
+  byDay: [
+    { date: 'Apr 13', count: 12 },
+    { date: 'Apr 14', count: 18 },
+    { date: 'Apr 15', count: 9  },
+    { date: 'Apr 16', count: 22 },
+    { date: 'Apr 17', count: 15 },
+    { date: 'Apr 18', count: 30 },
+    { date: 'Apr 19', count: 24 },
+  ],
   byCategory: [
-    { item: 'Housekeeping', count: 45 },
-    { item: 'Transport',    count: 20 },
-    { item: 'Spa',          count: 12 },
+    { category: 'Housekeeping', count: 45 },
+    { category: 'Transport',    count: 20 },
+    { category: 'Spa',          count: 12 },
   ],
   topItems: [
-    { item: 'Extra Towels',   count: 30 },
-    { item: 'Extra Pillows',  count: 15 },
+    { item: 'Extra Towels',    count: 30 },
+    { item: 'Extra Pillows',   count: 15 },
     { item: 'Shuttle Schedule', count: 10 },
   ],
-  staffLeaderboard: [
-    { name: 'John Smith',   handled: 45, avgMinutes: 10 },
-    { name: 'Maria Garcia', handled: 32, avgMinutes: 8  },
+  leaderboard: [
+    { name: 'John Smith',   handled: 45, avgMins: 10 },
+    { name: 'Maria Garcia', handled: 32, avgMins: 8  },
   ],
 };
 
