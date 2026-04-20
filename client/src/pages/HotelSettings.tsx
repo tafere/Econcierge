@@ -63,12 +63,13 @@ export default function HotelSettingsPage() {
     hintKey?: string,
   ) => (
     <div>
-      <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
+      <label htmlFor={key} className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
         {t(labelKey)}
       </label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500">{icon}</span>
         <input
+          id={key}
           value={form[key]}
           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
           placeholder={placeholder}
