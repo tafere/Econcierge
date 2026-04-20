@@ -82,7 +82,7 @@ test.describe('Staff Management', () => {
     await page.getByPlaceholder('e.g. John Doe').fill('Sara Ali');
     await page.getByPlaceholder('e.g. johndoe').fill('sara');
     await page.locator('input[type="password"]').fill('sara123');
-    await page.getByRole('button', { name: 'Housekeeping' }).click();
+    // Housekeeping is already pre-selected in the form — no need to click it
     await page.getByRole('button', { name: /add staff/i }).last().click();
 
     await expect(page.getByText('Sara Ali')).toBeVisible();
@@ -95,20 +95,20 @@ test.describe('Staff Management', () => {
     // Housekeeping is selected by default — also select Maintenance
     await page.getByRole('button', { name: 'Maintenance' }).click();
 
-    // Both should be highlighted
-    await expect(page.getByRole('button', { name: 'Housekeeping' })).toHaveClass(/bg-brand-700/);
-    await expect(page.getByRole('button', { name: 'Maintenance' })).toHaveClass(/bg-brand-700/);
+    // Both should be highlighted — scope to form to avoid matching staff list badges
+    await expect(page.locator('form').getByRole('button', { name: 'Housekeeping' })).toHaveClass(/bg-brand-700/);
+    await expect(page.locator('form').getByRole('button', { name: 'Maintenance' })).toHaveClass(/bg-brand-700/);
   });
 
   test('multi-role — clicking an active role deselects it', async ({ page }) => {
     await goToStaff(page);
     await page.getByRole('button', { name: /add staff/i }).click();
 
-    // Housekeeping is selected by default — click it to deselect
-    await page.getByRole('button', { name: 'Housekeeping' }).click();
+    // Housekeeping is selected by default — click it to deselect (scope to form)
+    await page.locator('form').getByRole('button', { name: 'Housekeeping' }).click();
 
     // Housekeeping should no longer be highlighted
-    await expect(page.getByRole('button', { name: 'Housekeeping' })).not.toHaveClass(/bg-brand-700/);
+    await expect(page.locator('form').getByRole('button', { name: 'Housekeeping' })).not.toHaveClass(/bg-brand-700/);
   });
 
   test('validates minimum password length of 6 characters', async ({ page }) => {
@@ -149,8 +149,8 @@ test.describe('Staff Management', () => {
 
   test('opens role change dropdown when role badge is clicked', async ({ page }) => {
     await goToStaff(page);
-    // Click the Housekeeping badge on John Smith's row
-    await page.getByText('Housekeeping').click();
+    // Click the Housekeeping badge on John Smith's row (exact to avoid matching "Housekeeping +1")
+    await page.getByText('Housekeeping', { exact: true }).click();
     // Role picker should expand and show all roles
     await expect(page.getByText('Maintenance')).toBeVisible();
     await expect(page.getByText('Transport')).toBeVisible();

@@ -395,7 +395,7 @@ export default function CategoriesPage() {
                               className={`p-1.5 rounded transition-colors shrink-0
                                 ${item.schedulable ? "text-brand-700 bg-brand-50 hover:bg-brand-100" : "text-stone-300 hover:text-stone-500 hover:bg-stone-100"}`}>
                               <CalendarClock className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => {
+                            <button title="Edit item" onClick={() => {
                               setEditItemId(item.id); setEditItemName(item.name);
                               setEditItemNameAm(item.nameAm ?? "");
                               setEditItemQty(item.maxQuantity); setEditSchedulable(item.schedulable);

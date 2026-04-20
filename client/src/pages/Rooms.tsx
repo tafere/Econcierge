@@ -220,8 +220,9 @@ export default function RoomsPage() {
             <h3 className="font-semibold text-stone-800 dark:text-zinc-200">{t("newRoom")}</h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("roomNumber")}</label>
+                <label htmlFor="roomNumber" className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">{t("roomNumber")}</label>
                 <input
+                  id="roomNumber"
                   value={newRoom.roomNumber}
                   onChange={e => setNewRoom(r => ({ ...r, roomNumber: e.target.value }))}
                   required
