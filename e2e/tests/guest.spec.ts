@@ -34,10 +34,10 @@ test.describe('Guest Page', () => {
     await expect(page.getByText(/room.*101|101.*room/i)).toBeVisible();
   });
 
-  test('shows "How can we help you?" prompt', async ({ page }) => {
+  test('shows "Select a category" prompt', async ({ page }) => {
     await setupGuestMocks(page);
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
-    await expect(page.getByText('How can we help you?')).toBeVisible();
+    await expect(page.getByText('Select a category')).toBeVisible();
   });
 
   test('lists all service categories', async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe('Guest Page', () => {
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
     await page.getByText('Housekeeping').click();
     await page.getByText('Back').click();
-    await expect(page.getByText('How can we help you?')).toBeVisible();
+    await expect(page.getByText('Select a category')).toBeVisible();
   });
 
   // ── Cart flow ─────────────────────────────────────────────────────────────────
@@ -88,8 +88,8 @@ test.describe('Guest Page', () => {
     await page.getByText('Housekeeping').click();
     await page.getByText('Extra Towels').click();
     await page.getByRole('button', { name: /add to cart/i }).click();
-    // Cart bar should appear at the bottom
-    await expect(page.getByText('Your Cart').or(page.getByText(/tap to review/i)).or(page.getByText(/1 item/i))).toBeVisible();
+    // Cart bar should appear at the bottom with "Tap to review"
+    await expect(page.getByText(/tap to review/i)).toBeVisible();
   });
 
   test('increases quantity before adding to cart', async ({ page }) => {
@@ -98,9 +98,10 @@ test.describe('Guest Page', () => {
     await page.getByText('Housekeeping').click();
     await page.getByText('Extra Towels').click();
 
-    // Click the + button twice
-    await page.getByRole('button', { name: '+' }).last().click();
-    await page.getByRole('button', { name: '+' }).last().click();
+    // The minus button is disabled at qty=1; the only enabled round button is plus
+    const plusBtn = page.locator('button.rounded-full:not([disabled])').first();
+    await plusBtn.click();
+    await plusBtn.click();
 
     // Quantity should now show 3
     await expect(page.getByText('3')).toBeVisible();
@@ -124,7 +125,7 @@ test.describe('Guest Page', () => {
   test('submits a cart and shows confirmation', async ({ page }) => {
     await setupGuestMocks(page);
     await page.route('**/api/guest/request', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 99, status: 'PENDING' }]) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 99, status: 'PENDING' }) })
     );
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
     await page.getByText('Housekeeping').click();
@@ -134,7 +135,8 @@ test.describe('Guest Page', () => {
     await page.getByText(/tap to review/i).click();
     await page.getByRole('button', { name: /send all/i }).click();
 
-    await expect(page.getByText(/request received|team will assist/i)).toBeVisible({ timeout: 5000 });
+    // After submission, "My Requests" tracker appears with the submitted request
+    await expect(page.getByText('My Requests')).toBeVisible({ timeout: 5000 });
   });
 
   // ── Booking flow ──────────────────────────────────────────────────────────────
@@ -142,7 +144,7 @@ test.describe('Guest Page', () => {
   test('shows time slot picker for schedulable items', async ({ page }) => {
     await setupGuestMocks(page);
     await page.route(`**/api/schedule/3/slots**`, route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_SLOTS) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ slots: MOCK_SLOTS }) })
     );
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
     await page.getByText('Transport').click();
@@ -156,7 +158,7 @@ test.describe('Guest Page', () => {
   test('shows available slot times', async ({ page }) => {
     await setupGuestMocks(page);
     await page.route('**/api/schedule/3/slots**', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_SLOTS) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ slots: MOCK_SLOTS }) })
     );
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
     await page.getByText('Transport').click();
@@ -169,7 +171,7 @@ test.describe('Guest Page', () => {
   test('shows "Full" for slots with no remaining capacity', async ({ page }) => {
     await setupGuestMocks(page);
     await page.route('**/api/schedule/3/slots**', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_SLOTS) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ slots: MOCK_SLOTS }) })
     );
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
     await page.getByText('Transport').click();
@@ -181,7 +183,7 @@ test.describe('Guest Page', () => {
   test('shows guest count picker after selecting a slot', async ({ page }) => {
     await setupGuestMocks(page);
     await page.route('**/api/schedule/3/slots**', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_SLOTS) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ slots: MOCK_SLOTS }) })
     );
     await page.goto(`/r/${MOCK_QR_TOKEN}`);
     await page.getByText('Transport').click();
@@ -194,7 +196,7 @@ test.describe('Guest Page', () => {
   test('confirms a booking', async ({ page }) => {
     await setupGuestMocks(page);
     await page.route('**/api/schedule/3/slots**', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_SLOTS) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ slots: MOCK_SLOTS }) })
     );
     await page.route('**/api/schedule/book', route =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 50, status: 'PENDING' }) })
@@ -206,7 +208,8 @@ test.describe('Guest Page', () => {
     await page.getByText('10:00 AM').click();
     await page.getByRole('button', { name: /confirm booking/i }).click();
 
-    await expect(page.getByText(/received|booked|confirmed/i)).toBeVisible({ timeout: 5000 });
+    // After booking, "My Bookings" tracker appears
+    await expect(page.getByText('My Bookings')).toBeVisible({ timeout: 5000 });
   });
 
   // ── Language toggle ───────────────────────────────────────────────────────────
