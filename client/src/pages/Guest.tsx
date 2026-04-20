@@ -561,7 +561,7 @@ export default function GuestPage() {
           <>
             {/* My Requests tracker — only on main screen */}
             {!selectedCat && !selectedItem && tracked.length > 0 && (
-              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/45" : "glass"}`}>
+              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/65 backdrop-blur-sm border border-white/10" : "glass"}`}>
                 <div className={`flex items-center justify-between px-4 py-2.5 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
                   <p className={`text-[11px] font-bold uppercase tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myRequests")}</p>
                   <button onClick={pollStatuses} className={`transition-colors ${hasHero ? "text-white/30 hover:text-white/70" : "text-stone-300 hover:text-brand-700"}`}>
@@ -634,7 +634,7 @@ export default function GuestPage() {
 
             {/* My Bookings tracker */}
             {!selectedCat && !selectedItem && bookings.length > 0 && (
-              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/45" : "glass"}`}>
+              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/65 backdrop-blur-sm border border-white/10" : "glass"}`}>
                 <div className={`px-4 py-3 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
                   <p className={`text-xs font-medium tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myBookings")}</p>
                 </div>

@@ -160,7 +160,7 @@ export default function CategoriesPage() {
     const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
       method: "PATCH", headers: authH(),
       body: JSON.stringify({
-        name: editItemName, nameAm: editItemNameAm || null, maxQuantity: editItemQty,
+        name: editItemName, nameAm: editItemNameAm || null, maxQuantity: editSchedulable ? 1 : editItemQty,
         schedulable: editSchedulable, slotIntervalMins: editInterval, capacity: editCapacity,
       }),
     });
@@ -332,13 +332,15 @@ export default function CategoriesPage() {
                               <input value={editItemNameAm} onChange={e => setEditItemNameAm(e.target.value)}
                                 className={`${inputCls} flex-1 min-w-0`} placeholder="አማርኛ ስም"
                                 onKeyDown={e => { if (e.key === "Escape") setEditItemId(null); }} />
-                              <div className="flex items-center gap-1 shrink-0">
-                                <span className="text-xs text-stone-400 dark:text-zinc-500">{t("maxLabel")}</span>
-                                <input type="number" min={1} max={99} value={editItemQty}
-                                  onChange={e => setEditItemQty(Number(e.target.value))}
-                                  className="w-14 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
-                                    text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
-                              </div>
+                              {!editSchedulable && (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <span className="text-xs text-stone-400 dark:text-zinc-500">{t("maxLabel")}</span>
+                                  <input type="number" min={1} max={99} value={editItemQty}
+                                    onChange={e => setEditItemQty(Number(e.target.value))}
+                                    className="w-14 h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-2 text-sm
+                                      text-center focus:outline-none focus:ring-2 focus:ring-brand-700" />
+                                </div>
+                              )}
                               <button onClick={() => saveEditItem(cat.id, item.id)}
                                 className="p-1.5 rounded bg-brand-700 text-white hover:bg-brand-800 transition-colors shrink-0">
                                 <Check className="h-3.5 w-3.5" /></button>
