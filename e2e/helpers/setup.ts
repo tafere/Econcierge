@@ -136,7 +136,7 @@ export async function mockCreateStaff(page: Page, newStaff: object) {
 }
 
 export async function mockStaffRoleChange(page: Page) {
-  await page.route('**/api/dashboard/staff-mgmt/*/role', (route) => {
+  await page.route('**/api/dashboard/staff-mgmt/*/roles', (route) => {
     route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
   });
 }

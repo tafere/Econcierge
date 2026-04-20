@@ -35,8 +35,9 @@ test.describe('Staff Management', () => {
 
   test('shows role badge for each staff member', async ({ page }) => {
     await goToStaff(page);
-    await expect(page.getByText('Housekeeping')).toBeVisible();
-    await expect(page.getByText('Spa')).toBeVisible();
+    // John Smith has Housekeeping, Maria has Spa, Multi Role has Housekeeping+Spa (+1)
+    await expect(page.getByText('Housekeeping').first()).toBeVisible();
+    await expect(page.getByText('Spa').first()).toBeVisible();
   });
 
   test('shows disabled staff with reduced opacity', async ({ page }) => {
@@ -64,7 +65,7 @@ test.describe('Staff Management', () => {
   });
 
   test('creates a new staff member with Housekeeping role', async ({ page }) => {
-    const newStaff = { id: 5, username: 'sara', fullName: 'Sara Ali', role: 'HOUSEKEEPING', enabled: true };
+    const newStaff = { id: 6, username: 'sara', fullName: 'Sara Ali', roles: ['HOUSEKEEPING'], enabled: true };
     await setupAuthenticatedPage(page);
     await mockStaff(page);
     await mockCreateStaff(page, newStaff);
@@ -87,52 +88,27 @@ test.describe('Staff Management', () => {
     await expect(page.getByText('Sara Ali')).toBeVisible();
   });
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // KNOWN LIMITATION: Single role per staff member
-  //
-  // Currently the system only supports ONE role per staff member.
-  // Clicking a role button REPLACES the previously selected role — it does not
-  // add to a list of roles.
-  //
-  // The tests below document this behavior. If multi-role support is added in
-  // the future, these tests should be updated.
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  test('role selection is single-select — clicking a role replaces the previous one', async ({ page }) => {
+  test('role selection is multi-select — clicking a second role adds it', async ({ page }) => {
     await goToStaff(page);
     await page.getByRole('button', { name: /add staff/i }).click();
 
-    // Select Housekeeping first
-    await page.getByRole('button', { name: 'Housekeeping' }).click();
-    // Now select Maintenance — this SHOULD replace Housekeeping
+    // Housekeeping is selected by default — also select Maintenance
     await page.getByRole('button', { name: 'Maintenance' }).click();
 
-    // Only Maintenance should be highlighted (brand-700 background)
-    const maintenanceBtn = page.getByRole('button', { name: 'Maintenance' });
-    await expect(maintenanceBtn).toHaveClass(/bg-brand-700/);
-
-    // Housekeeping should no longer be selected
-    const housekeepingBtn = page.getByRole('button', { name: 'Housekeeping' });
-    await expect(housekeepingBtn).not.toHaveClass(/bg-brand-700/);
+    // Both should be highlighted
+    await expect(page.getByRole('button', { name: 'Housekeeping' })).toHaveClass(/bg-brand-700/);
+    await expect(page.getByRole('button', { name: 'Maintenance' })).toHaveClass(/bg-brand-700/);
   });
 
-  test('TODO: multi-role support — a staff member can only have ONE role at a time', async ({ page }) => {
-    // This test documents the current limitation.
-    // A staff member such as "General Staff" who also handles "Cafe & Bar"
-    // currently cannot be assigned both roles. They must choose one.
-    //
-    // To support multiple roles, the backend model and this UI both need
-    // to change from a single role string to an array of roles.
+  test('multi-role — clicking an active role deselects it', async ({ page }) => {
     await goToStaff(page);
     await page.getByRole('button', { name: /add staff/i }).click();
 
-    // Select two roles — only the last one should remain active
-    await page.getByRole('button', { name: 'Cafe & Bar' }).click();
-    await page.getByRole('button', { name: 'General Staff' }).click();
+    // Housekeeping is selected by default — click it to deselect
+    await page.getByRole('button', { name: 'Housekeeping' }).click();
 
-    const cafeBtn = page.getByRole('button', { name: 'Cafe & Bar' });
-    await expect(cafeBtn).not.toHaveClass(/bg-brand-700/);
-    // This confirms only one role is active at a time (the limitation)
+    // Housekeeping should no longer be highlighted
+    await expect(page.getByRole('button', { name: 'Housekeeping' })).not.toHaveClass(/bg-brand-700/);
   });
 
   test('validates minimum password length of 6 characters', async ({ page }) => {
@@ -180,13 +156,15 @@ test.describe('Staff Management', () => {
     await expect(page.getByText('Transport')).toBeVisible();
   });
 
-  test('changes a staff member role', async ({ page }) => {
+  test('toggles a role on a staff member', async ({ page }) => {
     await setupAuthenticatedPage(page);
     await mockStaff(page);
     await mockStaffRoleChange(page);
     await page.goto('/staff');
 
-    await page.getByText('Housekeeping').click();
+    // Open role editor for John Smith (Housekeeping badge)
+    await page.getByText('Housekeeping').first().click();
+    // Toggle on Maintenance (adds it to John's roles)
     await page.getByRole('button', { name: 'Maintenance' }).last().click();
   });
 
