@@ -54,7 +54,7 @@ test.describe('Rooms Management', () => {
       if (route.request().method() === 'GET') {
         route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([...MOCK_ROOMS, newRoom]) });
       } else {
-        route.continue();
+        route.fallback();
       }
     });
     await page.goto('/rooms');

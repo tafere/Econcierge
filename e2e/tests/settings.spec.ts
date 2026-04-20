@@ -73,7 +73,7 @@ test.describe('Hotel Settings', () => {
       if (route.request().method() === 'PUT') {
         setTimeout(() => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_HOTEL) }), 500);
       } else {
-        route.continue();
+        route.fallback();
       }
     });
     await page.goto('/settings');
