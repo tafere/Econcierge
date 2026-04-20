@@ -8,12 +8,12 @@ test.describe('Categories Management', () => {
     await setupAuthenticatedPage(page);
     await mockCategories(page);
     // Mock all mutations with a generic success response
-    await page.route('**/api/dashboard/categories**', route => {
+    await page.route('**/api/dashboard/categories/**', route => {
       const method = route.request().method();
       if (method !== 'GET') {
         route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
       } else {
-        route.continue();
+        route.fallback();
       }
     });
     await page.goto('/categories');

@@ -162,7 +162,7 @@ export async function mockSaveHotelSettings(page: Page) {
     if (route.request().method() === 'PUT') {
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_HOTEL) });
     } else {
-      route.continue();
+      route.fallback();
     }
   });
 }

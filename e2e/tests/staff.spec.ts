@@ -73,7 +73,7 @@ test.describe('Staff Management', () => {
       if (route.request().method() === 'GET') {
         route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([...MOCK_STAFF, newStaff]) });
       } else {
-        route.continue();
+        route.fallback();
       }
     });
     await page.goto('/staff');
@@ -131,7 +131,7 @@ test.describe('Staff Management', () => {
       if (route.request().method() === 'POST') {
         route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: 'Username already exists' }) });
       } else {
-        route.continue();
+        route.fallback();
       }
     });
     await page.goto('/staff');
