@@ -23,7 +23,7 @@ test.describe('Categories Management', () => {
 
   test('shows "Categories" heading', async ({ page }) => {
     await goToCategories(page);
-    await expect(page.getByText('Categories')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Categories' })).toBeVisible();
   });
 
   test('shows all category names', async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe('Categories Management', () => {
     await page.getByText('Transport').click();
     // Shuttle Schedule is schedulable — should show a scheduling badge
     await expect(page.getByText('Shuttle Schedule')).toBeVisible();
-    await expect(page.locator('text=/60.*min/i, text=/schedulable/i').first()).toBeVisible();
+    await expect(page.getByText(/60.*min/i).first()).toBeVisible();
   });
 
   // ── Add category ─────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ test.describe('Categories Management', () => {
     await page.getByText('Spa').click();
     await page.getByText(/add item/i).click();
 
-    const nameInput = page.locator('input[placeholder*="item name"]').last();
+    const nameInput = page.locator('input[placeholder="Item name"]').last();
     await nameInput.fill('Steam Room');
 
     await page.getByLabel(/enable scheduling/i).check();
@@ -126,8 +126,8 @@ test.describe('Categories Management', () => {
     const capacityInput = page.locator('input[type="number"][min="1"]').last();
     await capacityInput.fill('4');
 
-    // Submit
-    await page.getByRole('button', { name: '', exact: true }).filter({ has: page.locator('svg') }).last().click();
+    // Submit via the form's submit button
+    await page.locator('form button[type="submit"]').click();
   });
 
   // ── Edit item ────────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ test.describe('Categories Management', () => {
     await page.getByText('Housekeeping').click();
 
     // Click the edit (pencil) button on the first item
-    const editBtn = page.locator('button[class*="p-1.5"]').filter({ has: page.locator('svg') }).first();
+    const editBtn = page.locator('button[title="Edit item"]').first();
     await editBtn.click();
 
     // Edit form should show current item name

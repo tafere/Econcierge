@@ -27,9 +27,9 @@ test.describe('Dashboard — Service Requests', () => {
 
   test('displays pending requests on Active tab', async ({ page }) => {
     await goToDashboard(page);
-    // The first pending request should show its item name and room number
-    await expect(page.getByText('Extra Towels')).toBeVisible();
-    await expect(page.getByText('101')).toBeVisible();
+    // Scope to table cells — desktop table is visible at 1280px, mobile cards are hidden
+    await expect(page.locator('td').getByText('Extra Towels').first()).toBeVisible();
+    await expect(page.locator('td').getByText('101', { exact: true }).first()).toBeVisible();
   });
 
   // ── Request actions ──────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ test.describe('Dashboard — Service Requests', () => {
   test('switches to Completed tab and shows completed requests', async ({ page }) => {
     await goToDashboard(page);
     await page.getByRole('button', { name: 'Completed' }).click();
-    await expect(page.getByText('Extra Pillows')).toBeVisible();
+    await expect(page.locator('td').getByText('Extra Pillows')).toBeVisible();
   });
 
   test('switches to Cancelled tab', async ({ page }) => {
@@ -97,7 +97,7 @@ test.describe('Dashboard — Service Requests', () => {
 
   test('shows Shuttle Schedule booking in bookings section', async ({ page }) => {
     await goToDashboard(page);
-    await expect(page.getByText('Shuttle Schedule')).toBeVisible();
+    await expect(page.getByText('Shuttle Schedule').first()).toBeVisible();
   });
 
   test('shows booking guest count', async ({ page }) => {
@@ -108,14 +108,16 @@ test.describe('Dashboard — Service Requests', () => {
 
   test('confirms a pending booking', async ({ page }) => {
     await setupAuthenticatedPage(page);
-    await mockDashboard(page);
+    // Use only the PENDING booking so the Accept button is unambiguous
+    await mockDashboard(page, [], [MOCK_BOOKINGS[1]]);
     await page.route('**/api/dashboard/bookings/*/status', route =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...MOCK_BOOKINGS[1], status: 'CONFIRMED' }) })
     );
     await page.goto('/');
 
-    await page.getByRole('button', { name: /confirm/i }).first().click();
-    await page.getByRole('button', { name: /confirm booking/i }).last().click();
+    // Click Accept on the booking to open the confirm modal, then confirm
+    await page.getByRole('button', { name: /accept/i }).click();
+    await page.getByRole('button', { name: /confirm booking/i }).click();
   });
 
   // ── Overdue / Escalation ─────────────────────────────────────────────────────

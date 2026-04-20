@@ -121,7 +121,7 @@ export const MOCK_BOOKINGS = [
     id: 1, roomNumber: '101', floor: '1', itemName: 'Shuttle Schedule',
     categoryName: 'Transport', categoryIcon: 'car',
     slotTime: '10:00 AM', slotTimeIso: new Date(Date.now() + 3600_000).toISOString(),
-    guestCount: 2, status: 'CONFIRMED',
+    guestCount: 2, status: 'PENDING',
   },
   {
     id: 2, roomNumber: '202', floor: '2', itemName: 'Massage',

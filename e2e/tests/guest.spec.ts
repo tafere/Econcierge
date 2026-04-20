@@ -98,8 +98,8 @@ test.describe('Guest Page', () => {
     await page.getByText('Housekeeping').click();
     await page.getByText('Extra Towels').click();
 
-    // The minus button is disabled at qty=1; the only enabled round button is plus
-    const plusBtn = page.locator('button.rounded-full:not([disabled])').first();
+    // Plus is always the second round button (index 1); minus is first at qty=1
+    const plusBtn = page.locator('button.rounded-full').nth(1);
     await plusBtn.click();
     await plusBtn.click();
 

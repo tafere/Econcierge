@@ -27,13 +27,13 @@ test.describe('Reports & Analytics', () => {
   test('shows "Requests Today" KPI card', async ({ page }) => {
     await goToReports(page);
     await expect(page.getByText('Requests Today')).toBeVisible();
-    await expect(page.getByText('24')).toBeVisible(); // MOCK_ANALYTICS.requestsToday
+    await expect(page.locator('p.text-3xl').filter({ hasText: '24' })).toBeVisible();
   });
 
   test('shows "Open Now" KPI card', async ({ page }) => {
     await goToReports(page);
     await expect(page.getByText('Open Now')).toBeVisible();
-    await expect(page.getByText('5')).toBeVisible(); // MOCK_ANALYTICS.openNow
+    await expect(page.locator('p.text-3xl').filter({ hasText: '5' })).toBeVisible();
   });
 
   test('shows "Completion Rate" KPI card with percentage', async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('Reports & Analytics', () => {
   test('shows "Avg Response Time" KPI card', async ({ page }) => {
     await goToReports(page);
     await expect(page.getByText('Avg Response Time')).toBeVisible();
-    await expect(page.getByText(/12/)).toBeVisible(); // MOCK_ANALYTICS.avgResponseTimeMinutes
+    await expect(page.locator('p.text-3xl').filter({ hasText: '12m' })).toBeVisible();
   });
 
   // ── Charts ───────────────────────────────────────────────────────────────────
@@ -62,6 +62,7 @@ test.describe('Reports & Analytics', () => {
 
   test('shows "Requests by Category" chart heading', async ({ page }) => {
     await goToReports(page);
+    await page.getByRole('button', { name: 'Category' }).click();
     await expect(page.getByText(/requests by category/i)).toBeVisible();
   });
 
@@ -94,14 +95,12 @@ test.describe('Reports & Analytics', () => {
   test('shows "No requests yet" when analytics are empty', async ({ page }) => {
     await setupAuthenticatedPage(page);
     await mockAnalytics(page, {
-      ...MOCK_ANALYTICS,
-      requestsToday: 0,
-      openNow: 0,
+      kpi: { todayCount: 0, openCount: 0, completionRate: 0, avgResponseMins: 0 },
       byHour: [],
       byDay: [],
       byCategory: [],
       topItems: [],
-      staffLeaderboard: [],
+      leaderboard: [],
     });
     await page.goto('/reports');
     await expect(page.getByText(/no requests yet/i)).toBeVisible();

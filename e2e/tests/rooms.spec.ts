@@ -61,7 +61,7 @@ test.describe('Rooms Management', () => {
 
     await page.getByRole('button', { name: /add room/i }).click();
     await page.getByLabel(/room number/i).fill('404');
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /add room/i }).last().click();
 
     await expect(page.getByText('404')).toBeVisible();
   });
@@ -70,7 +70,7 @@ test.describe('Rooms Management', () => {
     await goToRooms(page);
     await page.getByRole('button', { name: /add room/i }).click();
     // Submit without filling room number
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /add room/i }).last().click();
     // HTML5 validation should prevent submission
     const roomInput = page.getByLabel(/room number/i);
     await expect(roomInput).toBeVisible(); // Form stays open
@@ -88,7 +88,7 @@ test.describe('Rooms Management', () => {
   test('shows "Download QR as PNG" option when QR is visible', async ({ page }) => {
     await goToRooms(page);
     await page.getByRole('button', { name: /show qr/i }).first().click();
-    await expect(page.getByText(/download qr/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /download qr/i }).first()).toBeVisible();
   });
 
   test('shows "Scan with your phone camera" instruction', async ({ page }) => {
@@ -108,7 +108,7 @@ test.describe('Rooms Management', () => {
 
   test('shows "Open TV display" link for each room', async ({ page }) => {
     await goToRooms(page);
-    await expect(page.getByText(/open tv display/i).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /open tv display/i }).first()).toBeVisible();
   });
 
 });
