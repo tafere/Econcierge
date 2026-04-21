@@ -104,6 +104,15 @@ function saveTracked(qrToken: string, reqs: TrackedRequest[]) {
   localStorage.setItem(storageKey(qrToken), JSON.stringify(pruned));
 }
 
+// Dismissed requests: {id → statusAtDismiss}. Cleared when status changes so item resurfaces.
+function dismissedKey(qrToken: string) { return `eco_dismissed_${qrToken}`; }
+function loadDismissed(qrToken: string): Record<number, string> {
+  try { return JSON.parse(localStorage.getItem(dismissedKey(qrToken)) ?? "{}"); } catch { return {}; }
+}
+function saveDismissed(qrToken: string, map: Record<number, string>) {
+  localStorage.setItem(dismissedKey(qrToken), JSON.stringify(map));
+}
+
 function bookingsKey(qrToken: string) {
   return `eco_bookings_${qrToken}`;
 }
@@ -181,6 +190,7 @@ export default function GuestPage() {
 
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
+  const [dismissed, setDismissed] = useState<Record<number, string>>({});
 
   // scheduling
   const [slotDate, setSlotDate]       = useState<string>("");
@@ -218,6 +228,9 @@ export default function GuestPage() {
         const local = loadTracked(token);
         let resolved: TrackedRequest[] = local;
 
+        // Load dismissed map and restore to state
+        const localDismissed = loadDismissed(token);
+
         // Fetch last-24h requests for this room from DB.
         // QR token is the room's shared secret — all requests here belong to this guest.
         try {
@@ -230,6 +243,14 @@ export default function GuestPage() {
               staffComment: string; submittedAt: string;
               etaMinutes?: number | null; acceptedAt?: string | null;
             }> = await res.json();
+
+            // If a dismissed item has a new status in DB, clear the dismissal so it resurfaces
+            dbReqs.forEach(r => {
+              if (localDismissed[r.id] && localDismissed[r.id] !== r.status) {
+                delete localDismissed[r.id];
+              }
+            });
+            saveDismissed(token, localDismissed);
 
             // DB is authoritative for status; also keep older local entries
             const dbMap = new Map(dbReqs.map(r => [r.id, r]));
@@ -257,6 +278,7 @@ export default function GuestPage() {
           }
         } catch { /* network error — use localStorage only */ }
 
+        setDismissed(localDismissed);
         setTracked(resolved);
       })
       .catch(() => setError(T("invalidQr")))
@@ -283,6 +305,14 @@ export default function GuestPage() {
         if (u.status !== r.status) {
           playStatusSound();
           showNotification("Request Update", `Your ${r.itemName} request is now ${u.status.replace("_", " ")}`);
+          // Status changed — clear dismissal so item resurfaces
+          setDismissed(d => {
+            if (!d[r.id]) return d;
+            const next = { ...d };
+            delete next[r.id];
+            saveDismissed(token, next);
+            return next;
+          });
         }
         return { ...r, status: u.status, staffComment: u.staffComment || r.staffComment, etaMinutes: u.etaMinutes ?? r.etaMinutes, acceptedAt: u.acceptedAt ?? r.acceptedAt };
       });
@@ -379,10 +409,10 @@ export default function GuestPage() {
     setCancellingId(null);
   };
 
-  const dismissRequest = (id: number) => {
-    setTracked(prev => {
-      const next = prev.filter(r => r.id !== id);
-      saveTracked(token, next);
+  const dismissRequest = (id: number, status: string) => {
+    setDismissed(prev => {
+      const next = { ...prev, [id]: status };
+      saveDismissed(token, next);
       return next;
     });
   };
@@ -573,7 +603,7 @@ export default function GuestPage() {
         {!showCart && (
           <>
             {/* My Requests tracker — only on main screen */}
-            {!selectedCat && !selectedItem && tracked.length > 0 && (
+            {!selectedCat && !selectedItem && tracked.filter(r => !dismissed[r.id]).length > 0 && (
               <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/65 backdrop-blur-sm border border-white/10" : "glass"}`}>
                 <div className={`flex items-center justify-between px-4 py-2.5 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
                   <p className={`text-[11px] font-bold uppercase tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myRequests")}</p>
@@ -582,7 +612,7 @@ export default function GuestPage() {
                   </button>
                 </div>
                 <div className={`divide-y ${hasHero ? "divide-white/10" : "divide-stone-50"}`}>
-                  {tracked.map(req => (
+                  {tracked.filter(r => !dismissed[r.id]).map(req => (
                     <div key={req.id} className="px-4 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -600,33 +630,38 @@ export default function GuestPage() {
                         <div className="flex items-center gap-2 shrink-0">
                           <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border
                             ${hasHero
-                              ? req.status === "PENDING"     ? "border-amber-400/50 text-amber-300"
-                              : req.status === "IN_PROGRESS" ? "border-blue-400/50 text-blue-300"
-                              : req.status === "DONE"        ? "border-green-400/50 text-green-300"
-                              : req.status === "DECLINED"    ? "border-red-400/50 text-red-300"
-                              : "border-white/20 text-white/40"
+                              ? req.status === "PENDING"     ? "border-amber-400 text-amber-300"
+                              : req.status === "IN_PROGRESS" ? "border-blue-400 text-blue-300"
+                              : req.status === "DONE"        ? "border-green-400 text-green-300"
+                              : req.status === "DECLINED"    ? "border-red-400 text-red-300"
+                              : "border-white/40 text-white/60"
                               : STATUS_STYLE[req.status]}`}>
                             {statusLabel(req.status)}
                           </span>
-                          {req.status === "PENDING" && cancellingId !== req.id && (
-                            <button onClick={() => setCancellingId(req.id)}
-                              className={`transition-colors ${hasHero ? "text-white/25 hover:text-red-400" : "text-stone-400 hover:text-red-500"}`}>
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                          {(req.status === "DONE" || req.status === "DECLINED" || req.status === "CANCELLED") && (
-                            <button onClick={() => dismissRequest(req.id)}
+                          {/* X always dismisses from screen — never cancels */}
+                          {cancellingId !== req.id && (
+                            <button onClick={() => dismissRequest(req.id, req.status)}
                               className={`transition-colors ${hasHero ? "text-white/25 hover:text-white/70" : "text-stone-300 hover:text-stone-500"}`}>
                               <X className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
                       </div>
-                      {cancellingId === req.id && (
-                        <div className={`mt-2 flex items-center gap-2 rounded px-3 py-2 ${hasHero ? "bg-red-900/30" : "bg-red-50"}`}>
-                          <p className={`text-xs flex-1 ${hasHero ? "text-red-300" : "text-red-700"}`}>{T("confirmCancel")}</p>
-                          <button onClick={() => cancelRequest(req.id)} className="text-xs font-bold text-red-400 hover:text-red-200 transition-colors">{T("yes")}</button>
-                          <button onClick={() => setCancellingId(null)} className={`text-xs transition-colors ${hasHero ? "text-white/40 hover:text-white/70" : "text-stone-400 hover:text-stone-600"}`}>{T("no")}</button>
+                      {/* Cancel option — only for PENDING, separate from dismiss */}
+                      {req.status === "PENDING" && (
+                        <div className="mt-1">
+                          {cancellingId === req.id ? (
+                            <div className={`flex items-center gap-2 rounded px-3 py-2 ${hasHero ? "bg-red-900/30" : "bg-red-50"}`}>
+                              <p className={`text-xs flex-1 ${hasHero ? "text-red-300" : "text-red-700"}`}>{T("confirmCancel")}</p>
+                              <button onClick={() => cancelRequest(req.id)} className="text-xs font-bold text-red-400 hover:text-red-200 transition-colors">{T("yes")}</button>
+                              <button onClick={() => setCancellingId(null)} className={`text-xs transition-colors ${hasHero ? "text-white/40 hover:text-white/70" : "text-stone-400 hover:text-stone-600"}`}>{T("no")}</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setCancellingId(req.id)}
+                              className={`text-[11px] transition-colors ${hasHero ? "text-white/30 hover:text-red-400" : "text-stone-400 hover:text-red-500"}`}>
+                              {T("cancelRequest")}
+                            </button>
+                          )}
                         </div>
                       )}
                       {(req.status === "IN_PROGRESS" || req.status === "PENDING") && req.etaMinutes != null && (
