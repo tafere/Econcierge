@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "wouter";
 import { applyHotelTheme } from "@/lib/theme";
 import {
@@ -158,6 +158,7 @@ export default function GuestPage() {
   const [room, setRoom]           = useState<RoomInfo | null>(null);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
+  const initialPollDone = useRef(false);
 
   // navigation
   const [selectedCat, setSelectedCat]   = useState<MenuCategory | null>(null);
@@ -291,6 +292,10 @@ export default function GuestPage() {
   }, [tracked, token]);
 
   useEffect(() => {
+    if (!initialPollDone.current) {
+      initialPollDone.current = true;
+      pollStatuses();
+    }
     const interval = setInterval(pollStatuses, 15_000);
     return () => clearInterval(interval);
   }, [pollStatuses]);
@@ -372,6 +377,14 @@ export default function GuestPage() {
       });
     }
     setCancellingId(null);
+  };
+
+  const dismissRequest = (id: number) => {
+    setTracked(prev => {
+      const next = prev.filter(r => r.id !== id);
+      saveTracked(token, next);
+      return next;
+    });
   };
 
   // ── Scheduling helpers ────────────────────────────────────────────────────
@@ -598,6 +611,12 @@ export default function GuestPage() {
                           {req.status === "PENDING" && cancellingId !== req.id && (
                             <button onClick={() => setCancellingId(req.id)}
                               className={`transition-colors ${hasHero ? "text-white/25 hover:text-red-400" : "text-stone-400 hover:text-red-500"}`}>
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {(req.status === "DONE" || req.status === "DECLINED" || req.status === "CANCELLED") && (
+                            <button onClick={() => dismissRequest(req.id)}
+                              className={`transition-colors ${hasHero ? "text-white/25 hover:text-white/70" : "text-stone-300 hover:text-stone-500"}`}>
                               <X className="h-3.5 w-3.5" />
                             </button>
                           )}
