@@ -198,6 +198,8 @@ export default function GuestPage() {
   const [aiLoading, setAiLoading]       = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<CartItem[] | null>(null);
   const [aiError, setAiError]           = useState<string | null>(null);
+  const [voiceLang, setVoiceLang]       = useState<"en" | "am">("en");
+  const [listening, setListening]       = useState(false);
 
   // scheduling
   const [slotDate, setSlotDate]       = useState<string>("");
@@ -502,12 +504,22 @@ export default function GuestPage() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
     const recognition = new SpeechRecognition();
-    recognition.lang = lang === "am" ? "am-ET" : "en-US";
-    recognition.interimResults = false;
+    recognition.lang = voiceLang === "am" ? "am-ET" : "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    setListening(true);
     recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript;
-      setAiText(transcript);
+      let interim = "";
+      let final = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      setAiText(final || interim);
     };
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false);
     recognition.start();
   };
 
@@ -797,18 +809,40 @@ export default function GuestPage() {
                         onChange={e => setAiText(e.target.value)}
                         placeholder={T("aiIntakePlaceholder")}
                         rows={3}
-                        className={`w-full text-sm rounded-xl px-3 py-2 pr-10 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
+                        className={`w-full text-sm rounded-xl px-3 py-2 pb-9 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
                           ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
                       />
-                      <button
-                        type="button"
-                        onClick={startVoice}
-                        title="Speak your request"
-                        className={`absolute bottom-2 right-2 p-1.5 rounded-lg transition-colors
-                          ${hasHero ? "text-white/40 hover:text-amber-300 hover:bg-white/10" : "text-stone-300 hover:text-brand-700 hover:bg-stone-100"}`}
-                      >
-                        <Mic className="h-4 w-4" />
-                      </button>
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                        {/* Voice language toggle */}
+                        <div className={`flex rounded overflow-hidden border text-[10px] font-bold
+                          ${hasHero ? "border-white/20" : "border-stone-200"}`}>
+                          {(["en", "am"] as const).map(code => (
+                            <button
+                              key={code}
+                              type="button"
+                              onClick={() => setVoiceLang(code)}
+                              className={`px-1.5 py-0.5 transition-colors
+                                ${voiceLang === code
+                                  ? hasHero ? "bg-amber-400 text-stone-900" : "bg-brand-700 text-white"
+                                  : hasHero ? "text-white/40 hover:text-white" : "text-stone-400 hover:text-brand-700"}`}
+                            >
+                              {code.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+                        {/* Mic button */}
+                        <button
+                          type="button"
+                          onClick={startVoice}
+                          title="Speak your request"
+                          className={`p-1.5 rounded-lg transition-colors
+                            ${listening
+                              ? hasHero ? "text-amber-300 bg-amber-400/20 animate-pulse" : "text-brand-700 bg-brand-100 animate-pulse"
+                              : hasHero ? "text-white/40 hover:text-amber-300 hover:bg-white/10" : "text-stone-300 hover:text-brand-700 hover:bg-stone-100"}`}
+                        >
+                          <Mic className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                     <button
                       onClick={runAiIntake}
