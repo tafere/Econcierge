@@ -3,7 +3,7 @@ import { useParams } from "wouter";
 import { applyHotelTheme } from "@/lib/theme";
 import {
   Loader2, ConciergeBell, ChevronRight, ChevronLeft,
-  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages,
+  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages, Sparkles,
 } from "lucide-react";
 import { tr, getLang, setLang, LANGUAGES, type Lang } from "@/lib/i18n";
 import { getDeviceId } from "@/lib/device";
@@ -191,6 +191,13 @@ export default function GuestPage() {
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
   const [dismissed, setDismissed] = useState<Record<number, string>>({});
+
+  // AI intake
+  const [showAi, setShowAi]             = useState(false);
+  const [aiText, setAiText]             = useState("");
+  const [aiLoading, setAiLoading]       = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<CartItem[] | null>(null);
+  const [aiError, setAiError]           = useState<string | null>(null);
 
   // scheduling
   const [slotDate, setSlotDate]       = useState<string>("");
@@ -457,6 +464,41 @@ export default function GuestPage() {
     setBooking(false);
   };
 
+  // ── AI intake ────────────────────────────────────────────────────────────
+  const runAiIntake = async () => {
+    if (!room || !aiText.trim()) return;
+    setAiLoading(true);
+    setAiSuggestions(null);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/guest/ai-intake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId: room.roomId, text: aiText }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setAiError(T("aiIntakeError")); return; }
+      if (!Array.isArray(data) || data.length === 0) { setAiSuggestions([]); return; }
+      setAiSuggestions(data.map((s: any) => ({
+        itemId:       s.itemId,
+        itemName:     s.itemName,
+        categoryName: s.categoryName,
+        categoryIcon: s.categoryIcon ?? "",
+        quantity:     s.quantity ?? 1,
+        notes:        s.notes ?? "",
+      })));
+    } catch { setAiError(T("aiIntakeError")); }
+    finally   { setAiLoading(false); }
+  };
+
+  const addAiToCart = () => {
+    if (!aiSuggestions) return;
+    setCart(prev => [...prev, ...aiSuggestions]);
+    setAiSuggestions(null);
+    setAiText("");
+    setShowAi(false);
+  };
+
   // ── Helpers ──────────────────────────────────────────────────────────────
   const selectItem = (item: MenuItem) => {
     setSelectedItem(item);
@@ -712,6 +754,78 @@ export default function GuestPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* ── AI Intake ─────────────────────────────────────────────── */}
+            {!selectedCat && !selectedItem && (
+              <div className={`rounded-2xl overflow-hidden ${hasHero ? "bg-black/55 backdrop-blur-sm border border-white/20" : "glass border border-stone-200/60"}`}>
+                <button
+                  onClick={() => { setShowAi(v => !v); setAiSuggestions(null); setAiError(null); }}
+                  className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${hasHero ? "text-amber-300 hover:bg-white/5" : "text-brand-700 hover:bg-stone-50"}`}
+                >
+                  <Sparkles className="h-4 w-4 shrink-0" />
+                  <span className="font-semibold text-sm">{T("aiIntakeLabel")}</span>
+                  <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${showAi ? "rotate-180" : ""}`} />
+                </button>
+
+                {showAi && (
+                  <div className={`px-4 pb-4 space-y-3 border-t ${hasHero ? "border-white/10" : "border-stone-100"}`}>
+                    <textarea
+                      value={aiText}
+                      onChange={e => setAiText(e.target.value)}
+                      placeholder={T("aiIntakePlaceholder")}
+                      rows={3}
+                      className={`w-full mt-3 text-sm rounded-xl px-3 py-2 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
+                        ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
+                    />
+                    <button
+                      onClick={runAiIntake}
+                      disabled={aiLoading || !aiText.trim()}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                    >
+                      {aiLoading ? <><Loader2 className="h-4 w-4 animate-spin" />{T("aiIntakeLoading")}</> : <><Sparkles className="h-4 w-4" />{T("aiIntakeButton")}</>}
+                    </button>
+
+                    {aiError && (
+                      <p className={`text-xs text-center ${hasHero ? "text-red-300" : "text-red-500"}`}>{aiError}</p>
+                    )}
+
+                    {aiSuggestions !== null && aiSuggestions.length === 0 && (
+                      <p className={`text-xs text-center ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("aiIntakeEmpty")}</p>
+                    )}
+
+                    {aiSuggestions && aiSuggestions.length > 0 && (
+                      <div className="space-y-2">
+                        <p className={`text-xs font-semibold ${hasHero ? "text-white/60" : "text-stone-400"}`}>{T("aiIntakeResults")}</p>
+                        {aiSuggestions.map((s, idx) => (
+                          <div key={idx} className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 ${hasHero ? "bg-white/10 border border-white/15" : "bg-stone-50 border border-stone-200"}`}>
+                            <div className="min-w-0">
+                              <p className={`text-sm font-semibold ${hasHero ? "text-white" : "text-stone-800"}`}>
+                                {CATEGORY_EMOJI[s.categoryIcon] ?? "🛎️"} {s.itemName}
+                              </p>
+                              <p className={`text-xs mt-0.5 ${hasHero ? "text-white/40" : "text-stone-400"}`}>
+                                {s.categoryName} · ×{s.quantity}{s.notes ? ` · ${s.notes}` : ""}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setAiSuggestions(prev => prev!.filter((_, i) => i !== idx))}
+                              className={`shrink-0 rounded-full p-1 transition-colors ${hasHero ? "text-white/40 hover:text-white hover:bg-white/10" : "text-stone-300 hover:text-red-500 hover:bg-red-50"}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={addAiToCart}
+                          className="w-full py-2.5 rounded-xl text-sm font-bold bg-brand-700 text-white hover:bg-brand-800 flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <ShoppingCart className="h-4 w-4" />{T("aiIntakeConfirm")}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

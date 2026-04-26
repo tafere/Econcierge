@@ -58,6 +58,11 @@ spec:
             secretKeyRef:
               name: econcierge-secrets
               key: JWT_SECRET
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: econcierge-secrets
+              key: ANTHROPIC_API_KEY
         envFrom:
         - configMapRef:
             name: backend-config

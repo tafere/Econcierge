@@ -243,6 +243,14 @@ const translations: Record<Lang, Record<string, string>> = {
     guests:              "guests",
     justNow:             "just now",
     minutesAgo:          "m ago",
+    aiIntakeLabel:       "Just tell us what you need",
+    aiIntakePlaceholder: "e.g. I need 2 extra towels and my AC isn't working…",
+    aiIntakeButton:      "Find Services",
+    aiIntakeLoading:     "Understanding your request…",
+    aiIntakeResults:     "We found these for you",
+    aiIntakeConfirm:     "Add All to Cart",
+    aiIntakeEmpty:       "We couldn't match anything — please browse the menu below.",
+    aiIntakeError:       "Something went wrong. Please try again.",
   },
   am: {
     // ── Login ──────────────────────────────────────────────────────────────
@@ -479,6 +487,14 @@ const translations: Record<Lang, Record<string, string>> = {
     guests:              "እንግዶች",
     justNow:             "አሁን ልክ",
     minutesAgo:          "ደቂቃ በፊት",
+    aiIntakeLabel:       "የሚፈልጉትን ይንገሩን",
+    aiIntakePlaceholder: "ለምሳሌ: 2 ተጨማሪ ፎጣ እና ኤ.ሲ. አይሰራም…",
+    aiIntakeButton:      "አገልግሎቶቹን ፈልግ",
+    aiIntakeLoading:     "ጥያቄዎን በማስፈታ ላይ…",
+    aiIntakeResults:     "ለእርስዎ ያገኘናቸው",
+    aiIntakeConfirm:     "ሁሉንም ወደ ቅርጫት ጨምር",
+    aiIntakeEmpty:       "ምንም ማዛመድ አልቻልን — ከዚህ በታች ያሉ ምድቦችን ይዳስሱ።",
+    aiIntakeError:       "ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
   },
 };
 
