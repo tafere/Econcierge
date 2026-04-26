@@ -8,6 +8,8 @@ import com.econcierge.repository.RequestItemRepository;
 import com.econcierge.repository.RoomRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +48,6 @@ public class AiIntakeController {
     @PostMapping("/ai-intake")
     public ResponseEntity<?> aiIntake(@RequestBody AiRequest req) {
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("AI intake called but ANTHROPIC_API_KEY is not configured");
             return ResponseEntity.status(503).body(Map.of("error", "AI not configured"));
         }
         if (req.text() == null || req.text().isBlank()) {
@@ -56,7 +57,7 @@ public class AiIntakeController {
         Room room = roomRepo.findById(req.roomId()).orElse(null);
         if (room == null) return ResponseEntity.notFound().build();
 
-        // Build compact menu JSON for the prompt
+        // Build menu with both English and Amharic names
         List<RequestCategory> categories = categoryRepo.findByHotelIdOrderBySortOrder(room.getHotelId());
         StringBuilder menu = new StringBuilder("[");
         for (int i = 0; i < categories.size(); i++) {
@@ -64,12 +65,14 @@ public class AiIntakeController {
             List<RequestItem> items = itemRepo.findByCategoryIdAndEnabledTrueOrderBySortOrder(cat.getId());
             menu.append("{\"catId\":").append(cat.getId())
                 .append(",\"cat\":\"").append(esc(cat.getName()))
+                .append("\",\"catAm\":\"").append(esc(cat.getNameAm()))
                 .append("\",\"icon\":\"").append(esc(cat.getIcon()))
                 .append("\",\"items\":[");
             for (int j = 0; j < items.size(); j++) {
                 RequestItem item = items.get(j);
                 menu.append("{\"id\":").append(item.getId())
                     .append(",\"name\":\"").append(esc(item.getName()))
+                    .append("\",\"nameAm\":\"").append(esc(item.getNameAm()))
                     .append("\",\"max\":").append(item.getMaxQuantity()).append("}");
                 if (j < items.size() - 1) menu.append(",");
             }
@@ -78,18 +81,19 @@ public class AiIntakeController {
         }
         menu.append("]");
 
-        String prompt = "You are a hotel concierge assistant. A guest described what they need — possibly in any language (Amharic, Arabic, French, English, etc.).\n" +
-            "Match their request to items from the hotel menu below.\n\n" +
-            "Menu (JSON): " + menu + "\n\n" +
+        String prompt = "You are a hotel concierge assistant. A guest described what they need.\n\n" +
+            "Hotel menu (each item has English name and Amharic nameAm): " + menu + "\n\n" +
             "Guest says: \"" + esc(req.text().trim()) + "\"\n\n" +
-            "Return ONLY a valid JSON array — no markdown fences, no explanation:\n" +
-            "[{\"itemId\":50,\"itemName\":\"Extra Towels\",\"categoryName\":\"Housekeeping\",\"categoryIcon\":\"broom\",\"quantity\":1,\"notes\":\"\"}]\n\n" +
+            "Respond with a JSON object (no markdown, no explanation):\n" +
+            "{\"detectedLang\":\"en\",\"suggestions\":[{\"itemId\":50,\"itemName\":\"Extra Towels\",\"categoryName\":\"Housekeeping\",\"categoryIcon\":\"broom\",\"quantity\":1,\"notes\":\"\"}]}\n\n" +
             "Rules:\n" +
-            "- Match every distinct need to the closest menu item (use item id/name/categoryName/categoryIcon exactly from the menu)\n" +
-            "- Extract quantity if stated; default 1; never exceed max\n" +
-            "- Put any specific guest instructions in notes (e.g. timing, preferences)\n" +
-            "- Understand any human language\n" +
-            "- If nothing matches, return []";
+            "- detectedLang must be \"am\" if the guest wrote/spoke in Amharic, otherwise \"en\"\n" +
+            "- If detectedLang is \"am\": use nameAm for itemName and catAm for categoryName from the menu\n" +
+            "- If detectedLang is \"en\": use name for itemName and cat for categoryName\n" +
+            "- Match each need to the closest menu item\n" +
+            "- Extract quantity (default 1, never exceed max)\n" +
+            "- Put specific instructions in notes\n" +
+            "- If nothing matches, return {\"detectedLang\":\"en\",\"suggestions\":[]}";
 
         try {
             Map<String, Object> requestBody = Map.of(
@@ -98,7 +102,7 @@ public class AiIntakeController {
                 "messages", List.of(Map.of("role", "user", "content", prompt))
             );
 
-            log.info("Calling Anthropic API for roomId={} text='{}'", req.roomId(), req.text());
+            log.info("AI intake roomId={} text='{}'", req.roomId(), req.text());
 
             String response = http.post()
                 .uri("https://api.anthropic.com/v1/messages")
@@ -109,24 +113,42 @@ public class AiIntakeController {
                 .retrieve()
                 .body(String.class);
 
-            log.info("Anthropic response: {}", response);
-
             JsonNode root = mapper.readTree(response);
-            String text = root.path("content").get(0).path("text").asText("[]").trim();
-
-            // Strip markdown fences if Claude added them
+            String text = root.path("content").get(0).path("text").asText("{}").trim();
             if (text.startsWith("```")) {
                 text = text.replaceAll("(?s)```[a-z]*\\n?", "").replace("```", "").trim();
             }
 
-            JsonNode suggestions = mapper.readTree(text);
-            return ResponseEntity.ok(suggestions);
+            JsonNode result = mapper.readTree(text);
+
+            // Ensure categoryIcon is present on every suggestion
+            String detectedLang = result.path("detectedLang").asText("en");
+            ArrayNode suggestions = (ArrayNode) result.path("suggestions");
+            for (JsonNode s : suggestions) {
+                if (s instanceof ObjectNode on && (!s.has("categoryIcon") || s.get("categoryIcon").asText().isBlank())) {
+                    // find icon from menu
+                    long itemId = s.path("itemId").asLong();
+                    for (RequestCategory cat : categories) {
+                        List<RequestItem> items = itemRepo.findByCategoryIdAndEnabledTrueOrderBySortOrder(cat.getId());
+                        for (RequestItem item : items) {
+                            if (item.getId().equals(itemId)) {
+                                on.put("categoryIcon", cat.getIcon() != null ? cat.getIcon() : "");
+                            }
+                        }
+                    }
+                }
+            }
+
+            ObjectNode out = mapper.createObjectNode();
+            out.put("detectedLang", detectedLang);
+            out.set("suggestions", suggestions);
+            return ResponseEntity.ok(out);
 
         } catch (RestClientResponseException e) {
             log.error("Anthropic API error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            return ResponseEntity.status(500).body(Map.of("error", "AI request failed: " + e.getResponseBodyAsString()));
+            return ResponseEntity.status(500).body(Map.of("error", "AI request failed"));
         } catch (Exception e) {
-            log.error("AI intake unexpected error", e);
+            log.error("AI intake error", e);
             return ResponseEntity.status(500).body(Map.of("error", "AI request failed: " + e.getMessage()));
         }
     }

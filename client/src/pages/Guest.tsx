@@ -3,7 +3,7 @@ import { useParams } from "wouter";
 import { applyHotelTheme } from "@/lib/theme";
 import {
   Loader2, ConciergeBell, ChevronRight, ChevronLeft,
-  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages, Sparkles,
+  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages, Sparkles, Mic,
 } from "lucide-react";
 import { tr, getLang, setLang, LANGUAGES, type Lang } from "@/lib/i18n";
 import { getDeviceId } from "@/lib/device";
@@ -478,8 +478,15 @@ export default function GuestPage() {
       });
       const data = await res.json();
       if (!res.ok || data.error) { setAiError(T("aiIntakeError")); return; }
-      if (!Array.isArray(data) || data.length === 0) { setAiSuggestions([]); return; }
-      setAiSuggestions(data.map((s: any) => ({
+      // Auto-switch UI language to match what the guest spoke
+      const detectedLang = data.detectedLang as string;
+      if (detectedLang === "am" || detectedLang === "en") {
+        setLang(detectedLang);
+        setLangState(detectedLang);
+      }
+      const suggestions = data.suggestions ?? [];
+      if (suggestions.length === 0) { setAiSuggestions([]); return; }
+      setAiSuggestions(suggestions.map((s: any) => ({
         itemId:       s.itemId,
         itemName:     s.itemName,
         categoryName: s.categoryName,
@@ -489,6 +496,19 @@ export default function GuestPage() {
       })));
     } catch { setAiError(T("aiIntakeError")); }
     finally   { setAiLoading(false); }
+  };
+
+  const startVoice = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang === "am" ? "am-ET" : "en-US";
+    recognition.interimResults = false;
+    recognition.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript;
+      setAiText(transcript);
+    };
+    recognition.start();
   };
 
   const addAiToCart = () => {
@@ -771,14 +791,25 @@ export default function GuestPage() {
 
                 {showAi && (
                   <div className={`px-4 pb-4 space-y-3 border-t ${hasHero ? "border-white/10" : "border-stone-100"}`}>
-                    <textarea
-                      value={aiText}
-                      onChange={e => setAiText(e.target.value)}
-                      placeholder={T("aiIntakePlaceholder")}
-                      rows={3}
-                      className={`w-full mt-3 text-sm rounded-xl px-3 py-2 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
-                        ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
-                    />
+                    <div className="relative mt-3">
+                      <textarea
+                        value={aiText}
+                        onChange={e => setAiText(e.target.value)}
+                        placeholder={T("aiIntakePlaceholder")}
+                        rows={3}
+                        className={`w-full text-sm rounded-xl px-3 py-2 pr-10 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
+                          ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={startVoice}
+                        title="Speak your request"
+                        className={`absolute bottom-2 right-2 p-1.5 rounded-lg transition-colors
+                          ${hasHero ? "text-white/40 hover:text-amber-300 hover:bg-white/10" : "text-stone-300 hover:text-brand-700 hover:bg-stone-100"}`}
+                      >
+                        <Mic className="h-4 w-4" />
+                      </button>
+                    </div>
                     <button
                       onClick={runAiIntake}
                       disabled={aiLoading || !aiText.trim()}
