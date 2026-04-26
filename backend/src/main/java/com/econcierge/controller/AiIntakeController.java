@@ -86,18 +86,18 @@ public class AiIntakeController {
             "- If nothing matches, return []";
 
         try {
-            String body = mapper.writeValueAsString(Map.of(
+            Map<String, Object> requestBody = Map.of(
                 "model", "claude-haiku-4-5-20251001",
                 "max_tokens", 1024,
                 "messages", List.of(Map.of("role", "user", "content", prompt))
-            ));
+            );
 
             String response = http.post()
                 .uri("https://api.anthropic.com/v1/messages")
                 .header("x-api-key", apiKey)
                 .header("anthropic-version", "2023-06-01")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
+                .body(requestBody)
                 .retrieve()
                 .body(String.class);
 
