@@ -200,6 +200,7 @@ export default function GuestPage() {
   const [aiError, setAiError]           = useState<string | null>(null);
   const [voiceLang, setVoiceLang]       = useState<"en" | "am">("en");
   const [listening, setListening]       = useState(false);
+  const recognitionRef                  = useRef<any>(null);
 
   // scheduling
   const [slotDate, setSlotDate]       = useState<string>("");
@@ -501,25 +502,53 @@ export default function GuestPage() {
   };
 
   const startVoice = () => {
+    // If already listening, stop
+    if (listening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      return;
+    }
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
+
     const recognition = new SpeechRecognition();
     recognition.lang = voiceLang === "am" ? "am-ET" : "en-US";
     recognition.interimResults = true;
-    recognition.continuous = false;
-    setListening(true);
+    recognition.continuous = true;
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    let finalText = "";
+
+    recognition.onstart = () => setListening(true);
+
     recognition.onresult = (e: any) => {
       let interim = "";
-      let final = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += t;
-        else interim += t;
+        if (e.results[i].isFinal) finalText += t;
+        else interim = t;
       }
-      setAiText(final || interim);
+      setAiText(finalText + (interim ? " " + interim : ""));
     };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
+
+    recognition.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+      // Trim any trailing space left by interim
+      setAiText(t => t.trim());
+    };
+
+    recognition.onerror = (e: any) => {
+      // "no-speech" is normal (user paused) — restart to keep listening
+      if (e.error === "no-speech" && recognitionRef.current) {
+        try { recognition.start(); } catch { /* already stopped */ }
+        return;
+      }
+      setListening(false);
+      recognitionRef.current = null;
+    };
+
     recognition.start();
   };
 
