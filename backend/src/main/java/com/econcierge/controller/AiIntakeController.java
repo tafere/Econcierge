@@ -8,11 +8,14 @@ import com.econcierge.repository.RequestItemRepository;
 import com.econcierge.repository.RoomRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/guest")
 public class AiIntakeController {
+
+    private static final Logger log = LoggerFactory.getLogger(AiIntakeController.class);
 
     @Value("${anthropic.api-key:}")
     private String apiKey;
@@ -41,6 +46,7 @@ public class AiIntakeController {
     @PostMapping("/ai-intake")
     public ResponseEntity<?> aiIntake(@RequestBody AiRequest req) {
         if (apiKey == null || apiKey.isBlank()) {
+            log.warn("AI intake called but ANTHROPIC_API_KEY is not configured");
             return ResponseEntity.status(503).body(Map.of("error", "AI not configured"));
         }
         if (req.text() == null || req.text().isBlank()) {
@@ -92,6 +98,8 @@ public class AiIntakeController {
                 "messages", List.of(Map.of("role", "user", "content", prompt))
             );
 
+            log.info("Calling Anthropic API for roomId={} text='{}'", req.roomId(), req.text());
+
             String response = http.post()
                 .uri("https://api.anthropic.com/v1/messages")
                 .header("x-api-key", apiKey)
@@ -100,6 +108,8 @@ public class AiIntakeController {
                 .body(requestBody)
                 .retrieve()
                 .body(String.class);
+
+            log.info("Anthropic response: {}", response);
 
             JsonNode root = mapper.readTree(response);
             String text = root.path("content").get(0).path("text").asText("[]").trim();
@@ -112,7 +122,11 @@ public class AiIntakeController {
             JsonNode suggestions = mapper.readTree(text);
             return ResponseEntity.ok(suggestions);
 
+        } catch (RestClientResponseException e) {
+            log.error("Anthropic API error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return ResponseEntity.status(500).body(Map.of("error", "AI request failed: " + e.getResponseBodyAsString()));
         } catch (Exception e) {
+            log.error("AI intake unexpected error", e);
             return ResponseEntity.status(500).body(Map.of("error", "AI request failed: " + e.getMessage()));
         }
     }
