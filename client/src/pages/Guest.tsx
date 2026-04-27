@@ -502,51 +502,56 @@ export default function GuestPage() {
   };
 
   const startVoice = () => {
-    // If already listening, stop
+    // Toggle: if already listening, stop
     if (listening && recognitionRef.current) {
       recognitionRef.current.stop();
       return;
     }
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      setAiError("Voice input is not supported in this browser. Please type your request.");
+      return;
+    }
+
+    if (voiceLang === "am") {
+      setAiError("Amharic voice is not yet supported — please type in Amharic and tap Find Services.");
+      return;
+    }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = voiceLang === "am" ? "am-ET" : "en-US";
+    recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.continuous = true;
     recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
 
-    let finalText = "";
-
-    recognition.onstart = () => setListening(true);
+    recognition.onstart = () => { setListening(true); setAiError(null); };
 
     recognition.onresult = (e: any) => {
+      // Rebuild from ALL results each time to avoid duplication
+      let final = "";
       let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalText += t;
-        else interim = t;
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim = e.results[i][0].transcript;
       }
-      setAiText(finalText + (interim ? " " + interim : ""));
+      setAiText(final + interim);
     };
 
     recognition.onend = () => {
       setListening(false);
       recognitionRef.current = null;
-      // Trim any trailing space left by interim
       setAiText(t => t.trim());
     };
 
     recognition.onerror = (e: any) => {
-      // "no-speech" is normal (user paused) — restart to keep listening
-      if (e.error === "no-speech" && recognitionRef.current) {
-        try { recognition.start(); } catch { /* already stopped */ }
-        return;
-      }
+      if (e.error === "no-speech") return; // browser will fire onend and we stop cleanly
       setListening(false);
       recognitionRef.current = null;
+      if (e.error === "not-allowed") {
+        setAiError("Microphone access was denied. Please allow microphone in your browser settings.");
+      }
     };
 
     recognition.start();
