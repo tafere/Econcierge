@@ -504,7 +504,9 @@ export default function GuestPage() {
   const startVoice = () => {
     // Toggle: if already listening, stop
     if (listening && recognitionRef.current) {
-      recognitionRef.current.stop();
+      const r = recognitionRef.current;
+      recognitionRef.current = null; // signal onend not to restart
+      r.stop();
       return;
     }
 
@@ -521,34 +523,30 @@ export default function GuestPage() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.continuous = false;
     recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
 
     recognition.onstart = () => { setListening(true); setAiError(null); };
 
     recognition.onresult = (e: any) => {
-      // Rebuild from ALL results each time to avoid duplication
-      let final = "";
-      let interim = "";
-      for (let i = 0; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript;
-        else interim = e.results[i][0].transcript;
-      }
-      setAiText(final + interim);
+      const transcript = e.results[0][0].transcript.trim();
+      setAiText(prev => prev ? prev + " " + transcript : transcript);
     };
 
     recognition.onend = () => {
+      // Auto-restart while the user hasn't tapped stop
+      if (recognitionRef.current) {
+        try { recognition.start(); return; } catch { /* fall through */ }
+      }
       setListening(false);
-      recognitionRef.current = null;
-      setAiText(t => t.trim());
     };
 
     recognition.onerror = (e: any) => {
-      if (e.error === "no-speech") return; // browser will fire onend and we stop cleanly
-      setListening(false);
+      if (e.error === "no-speech") return; // onend will restart
       recognitionRef.current = null;
+      setListening(false);
       if (e.error === "not-allowed") {
         setAiError("Microphone access was denied. Please allow microphone in your browser settings.");
       }
