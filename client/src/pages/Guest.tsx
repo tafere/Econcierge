@@ -3,7 +3,7 @@ import { useParams } from "wouter";
 import { applyHotelTheme } from "@/lib/theme";
 import {
   Loader2, ConciergeBell, ChevronRight, ChevronLeft,
-  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages, Sparkles, Mic,
+  Minus, Plus, ChevronDown, Clock, RefreshCw, ShoppingCart, X, Send, Languages, Sparkles,
 } from "lucide-react";
 import { tr, getLang, setLang, LANGUAGES, type Lang } from "@/lib/i18n";
 import { getDeviceId } from "@/lib/device";
@@ -198,9 +198,6 @@ export default function GuestPage() {
   const [aiLoading, setAiLoading]       = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<CartItem[] | null>(null);
   const [aiError, setAiError]           = useState<string | null>(null);
-  const [voiceLang, setVoiceLang]       = useState<"en" | "am">("en");
-  const [listening, setListening]       = useState(false);
-  const recognitionRef                  = useRef<any>(null);
 
   // scheduling
   const [slotDate, setSlotDate]       = useState<string>("");
@@ -501,60 +498,6 @@ export default function GuestPage() {
     finally   { setAiLoading(false); }
   };
 
-  const startVoice = () => {
-    // Toggle: if already listening, stop
-    if (listening && recognitionRef.current) {
-      const r = recognitionRef.current;
-      recognitionRef.current = null; // signal onend not to restart
-      r.stop();
-      return;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setAiError("Voice input is not supported in this browser. Please type your request.");
-      return;
-    }
-
-    if (voiceLang === "am") {
-      setAiError("Amharic voice is not yet supported — please type in Amharic and tap Find Services.");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
-    recognitionRef.current = recognition;
-
-    recognition.onstart = () => { setListening(true); setAiError(null); };
-
-    recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript.trim();
-      setAiText(prev => prev ? prev + " " + transcript : transcript);
-    };
-
-    recognition.onend = () => {
-      // Auto-restart while the user hasn't tapped stop
-      if (recognitionRef.current) {
-        try { recognition.start(); return; } catch { /* fall through */ }
-      }
-      setListening(false);
-    };
-
-    recognition.onerror = (e: any) => {
-      if (e.error === "no-speech") return; // onend will restart
-      recognitionRef.current = null;
-      setListening(false);
-      if (e.error === "not-allowed") {
-        setAiError("Microphone access was denied. Please allow microphone in your browser settings.");
-      }
-    };
-
-    recognition.start();
-  };
-
   const addAiToCart = () => {
     if (!aiSuggestions) return;
     setCart(prev => [...prev, ...aiSuggestions]);
@@ -835,47 +778,14 @@ export default function GuestPage() {
 
                 {showAi && (
                   <div className={`px-4 pb-4 space-y-3 border-t ${hasHero ? "border-white/10" : "border-stone-100"}`}>
-                    <div className="relative mt-3">
-                      <textarea
-                        value={aiText}
-                        onChange={e => setAiText(e.target.value)}
-                        placeholder={T("aiIntakePlaceholder")}
-                        rows={3}
-                        className={`w-full text-sm rounded-xl px-3 py-2 pb-9 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
-                          ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
-                      />
-                      <div className="absolute bottom-2 right-2 flex items-center gap-1">
-                        {/* Voice language toggle */}
-                        <div className={`flex rounded overflow-hidden border text-[10px] font-bold
-                          ${hasHero ? "border-white/20" : "border-stone-200"}`}>
-                          {(["en", "am"] as const).map(code => (
-                            <button
-                              key={code}
-                              type="button"
-                              onClick={() => setVoiceLang(code)}
-                              className={`px-1.5 py-0.5 transition-colors
-                                ${voiceLang === code
-                                  ? hasHero ? "bg-amber-400 text-stone-900" : "bg-brand-700 text-white"
-                                  : hasHero ? "text-white/40 hover:text-white" : "text-stone-400 hover:text-brand-700"}`}
-                            >
-                              {code.toUpperCase()}
-                            </button>
-                          ))}
-                        </div>
-                        {/* Mic button */}
-                        <button
-                          type="button"
-                          onClick={startVoice}
-                          title="Speak your request"
-                          className={`p-1.5 rounded-lg transition-colors
-                            ${listening
-                              ? hasHero ? "text-amber-300 bg-amber-400/20 animate-pulse" : "text-brand-700 bg-brand-100 animate-pulse"
-                              : hasHero ? "text-white/40 hover:text-amber-300 hover:bg-white/10" : "text-stone-300 hover:text-brand-700 hover:bg-stone-100"}`}
-                        >
-                          <Mic className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
+                    <textarea
+                      value={aiText}
+                      onChange={e => setAiText(e.target.value)}
+                      placeholder={T("aiIntakePlaceholder")}
+                      rows={3}
+                      className={`w-full mt-3 text-sm rounded-xl px-3 py-2 resize-none outline-none border focus:ring-2 focus:ring-brand-500/40
+                        ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
+                    />
                     <button
                       onClick={runAiIntake}
                       disabled={aiLoading || !aiText.trim()}
