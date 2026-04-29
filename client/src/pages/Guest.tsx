@@ -1135,17 +1135,25 @@ export default function GuestPage() {
             <button
               onClick={sendAll}
               disabled={sending}
-              className="w-full h-14 rounded-2xl font-bold text-base shadow-2xl transition-all
-                flex items-center justify-between px-5 gap-3 disabled:opacity-60
-                bg-brand-700 hover:bg-brand-800 text-white active:scale-[0.98]"
+              className="w-full rounded-2xl shadow-2xl transition-all disabled:opacity-60
+                bg-brand-700 hover:bg-brand-800 text-white active:scale-[0.98]
+                flex items-center gap-4 px-5 py-3"
             >
-              <span className="bg-white/20 rounded-lg px-2.5 py-1 text-sm font-extrabold">
-                {cart.length}
-              </span>
-              <span className="flex-1 text-center">
-                {sending ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : T("sendAll")}
-              </span>
-              <Send className="h-5 w-5 opacity-80" />
+              {/* Item summary */}
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-[11px] text-white/60 font-medium mb-0.5">
+                  {cart.length} {cart.length === 1 ? T("cartItem") : T("cartItems")}
+                </p>
+                <p className="text-sm font-semibold truncate">
+                  {cart.map(i => `${i.itemName}${i.quantity > 1 ? ` ×${i.quantity}` : ""}`).join(" · ")}
+                </p>
+              </div>
+              {/* Send action */}
+              <div className="shrink-0 flex items-center gap-2 bg-white text-brand-700 font-extrabold text-sm rounded-xl px-4 py-2.5">
+                {sending
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <><Send className="h-4 w-4" />{T("sendAll")}</>}
+              </div>
             </button>
           </div>
         </div>
