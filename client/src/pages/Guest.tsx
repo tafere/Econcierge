@@ -83,7 +83,12 @@ interface TrackedBooking {
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const ACTIVE_CUTOFF_MS   = 7 * 24 * 60 * 60 * 1000; // active requests kept 7 days
+const TERMINAL_CUTOFF_MS = 4 * 60 * 60 * 1000;       // done/cancelled shown for 4 h only
+
+function isTerminal(status: TrackedRequest["status"]) {
+  return status === "DONE" || status === "CANCELLED" || status === "GUEST_CANCELLED" || status === "DECLINED";
+}
 
 function storageKey(qrToken: string) {
   return `eco_req_${qrToken}`;
@@ -92,15 +97,20 @@ function storageKey(qrToken: string) {
 function loadTracked(qrToken: string): TrackedRequest[] {
   try {
     const all: TrackedRequest[] = JSON.parse(localStorage.getItem(storageKey(qrToken)) ?? "[]");
-    // Drop requests older than 7 days
-    const cutoff = Date.now() - SEVEN_DAYS_MS;
-    return all.filter(r => new Date(r.submittedAt).getTime() >= cutoff);
+    const now = Date.now();
+    return all.filter(r => {
+      const age = now - new Date(r.submittedAt).getTime();
+      return isTerminal(r.status) ? age < TERMINAL_CUTOFF_MS : age < ACTIVE_CUTOFF_MS;
+    });
   } catch { return []; }
 }
 
 function saveTracked(qrToken: string, reqs: TrackedRequest[]) {
-  const cutoff = Date.now() - SEVEN_DAYS_MS;
-  const pruned = reqs.filter(r => new Date(r.submittedAt).getTime() >= cutoff);
+  const now = Date.now();
+  const pruned = reqs.filter(r => {
+    const age = now - new Date(r.submittedAt).getTime();
+    return isTerminal(r.status) ? age < TERMINAL_CUTOFF_MS : age < ACTIVE_CUTOFF_MS;
+  });
   localStorage.setItem(storageKey(qrToken), JSON.stringify(pruned));
 }
 
@@ -120,13 +130,13 @@ function bookingsKey(qrToken: string) {
 function loadBookings(qrToken: string): TrackedBooking[] {
   try {
     const all: TrackedBooking[] = JSON.parse(localStorage.getItem(bookingsKey(qrToken)) ?? "[]");
-    const cutoff = Date.now() - SEVEN_DAYS_MS;
+    const cutoff = Date.now() - ACTIVE_CUTOFF_MS;
     return all.filter(b => new Date(b.slotTime).getTime() >= cutoff);
   } catch { return []; }
 }
 
 function saveBookings(qrToken: string, bookings: TrackedBooking[]) {
-  const cutoff = Date.now() - SEVEN_DAYS_MS;
+  const cutoff = Date.now() - ACTIVE_CUTOFF_MS;
   const pruned = bookings.filter(b => new Date(b.slotTime).getTime() >= cutoff);
   localStorage.setItem(bookingsKey(qrToken), JSON.stringify(pruned));
 }
@@ -536,9 +546,14 @@ export default function GuestPage() {
   };
 
   const timeAgo = (iso: string) => {
-    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-    if (diff < 1) return T("justNow");
-    return lang === "am" ? `${diff} ${T("minutesAgo")}` : `${diff}${T("minutesAgo")}`;
+    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (mins < 1)    return T("justNow");
+    if (mins < 60)   return lang === "am" ? `${mins} ${T("minutesAgo")}` : `${mins}m ${T("ago")}`;
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    if (hrs < 24)    return lang === "am" ? `${hrs} ${T("hoursAgo")}` : rem > 0 ? `${hrs}h ${rem}m ${T("ago")}` : `${hrs}h ${T("ago")}`;
+    const days = Math.floor(hrs / 24);
+    return lang === "am" ? `${days} ${T("daysAgo")}` : `${days}d ${T("ago")}`;
   };
 
   const statusLabel = (s: string) => {

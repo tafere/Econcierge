@@ -159,12 +159,21 @@ public class GuestController {
         Room room = roomRepository.findByQrToken(token).orElse(null);
         if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
 
-        // 24-hour window handles cross-midnight sessions and timezone offsets
-        var since = LocalDateTime.now().minusHours(24);
+        // Active requests: always show (guest may have submitted hours ago and returned).
+        // Terminal requests (done/cancelled): only within the last 4 hours so a new guest
+        // does not see a previous occupant's history.
+        var activeSince   = LocalDateTime.now().minusDays(7);   // far back — covers any active session
+        var terminalSince = LocalDateTime.now().minusHours(4);
 
         List<Map<String, Object>> result = requestRepository
-                .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), since)
+                .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), activeSince)
                 .stream()
+                .filter(r -> {
+                    boolean isActive = r.getStatus() == ServiceRequest.Status.PENDING
+                            || r.getStatus() == ServiceRequest.Status.IN_PROGRESS;
+                    if (isActive) return true;
+                    return r.getCreatedAt().isAfter(terminalSince);
+                })
                 .map(r -> {
                     Map<String, Object> m = new HashMap<>();
                     m.put("id",           r.getId());

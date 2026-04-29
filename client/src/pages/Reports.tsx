@@ -20,6 +20,17 @@ interface Analytics {
   leaderboard: { name: string; handled: number; avgMins: number }[];
 }
 
+function fmtMins(mins: number): string {
+  if (mins < 1)   return "< 1 min";
+  if (mins < 60)  return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h < 24)     return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return rh > 0 ? `${d}d ${rh}h` : `${d}d`;
+}
+
 const tooltipStyle = {
   contentStyle: { fontSize: 12, borderRadius: 6, border: "1px solid #e7e5e4" },
   itemStyle:    { color: "#44403c" },
@@ -186,7 +197,7 @@ export default function ReportsPage() {
                 { labelKey: "requestsToday",   value: data.kpi.todayCount,            subKey: "last24h" },
                 { labelKey: "openNow",          value: data.kpi.openCount,             subKey: "pendingInProgress" },
                 { labelKey: "completionRate",   value: `${data.kpi.completionRate}%`,  subKey: "doneVsClosed" },
-                { labelKey: "avgResponseTime",  value: `${data.kpi.avgResponseMins}m`, subKey: "timeToAccept" },
+                { labelKey: "avgResponseTime",  value: fmtMins(data.kpi.avgResponseMins), subKey: "timeToAccept" },
               ].map(({ labelKey, value, subKey }) => (
                 <div key={labelKey} className="glass rounded px-4 py-4">
                   <p className="text-[11px] font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider">{t(labelKey)}</p>
@@ -243,7 +254,7 @@ export default function ReportsPage() {
                           <td className="py-2.5 text-right">
                             <span className="text-xs font-bold text-white bg-brand-700 rounded px-2 py-0.5">{s.handled}</span>
                           </td>
-                          <td className="py-2.5 text-right text-xs text-stone-400 dark:text-zinc-500">{s.avgMins} {t("minLabel")}</td>
+                          <td className="py-2.5 text-right text-xs text-stone-400 dark:text-zinc-500">{fmtMins(s.avgMins)}</td>
                         </tr>
                       ))}
                     </tbody>
