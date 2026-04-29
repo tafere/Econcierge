@@ -172,7 +172,7 @@ public class GuestController {
                     m.put("quantity",     r.getQuantity());
                     m.put("notes",        r.getNotes() != null ? r.getNotes() : "");
                     m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
-                    m.put("submittedAt",  r.getCreatedAt().toString());
+                    m.put("submittedAt",  r.getCreatedAt().toString() + "Z");
                     m.put("etaMinutes",   r.getEtaMinutes());
                     m.put("acceptedAt",   r.getAcceptedAt() != null ? r.getAcceptedAt().toString() + "Z" : null);
 

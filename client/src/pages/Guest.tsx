@@ -301,32 +301,47 @@ export default function GuestPage() {
     const pending = tracked.filter(r => r.status !== "DONE" && r.status !== "CANCELLED" && r.status !== "DECLINED");
     if (pending.length === 0) return;
     const ids = pending.map(r => r.id).join(",");
-    const res = await fetch(`/api/guest/requests/status?ids=${ids}`);
-    if (!res.ok) return;
-    const updates: { id: number; status: TrackedRequest["status"]; staffComment?: string; etaMinutes?: number | null; acceptedAt?: string | null }[] = await res.json();
-    setTracked(prev => {
-      const map = Object.fromEntries(updates.map(u => [u.id, u]));
-      const next = prev.map(r => {
-        if (!map[r.id]) return r;
-        const u = map[r.id];
-        if (u.status !== r.status) {
-          playStatusSound();
-          showNotification("Request Update", `Your ${r.itemName} request is now ${u.status.replace("_", " ")}`);
-          // Status changed — clear dismissal so item resurfaces
+    try {
+      const res = await fetch(`/api/guest/requests/status?ids=${ids}`);
+      if (!res.ok) return;
+      const updates: { id: number; status: TrackedRequest["status"]; staffComment?: string; etaMinutes?: number | null; acceptedAt?: string | null }[] = await res.json();
+
+      const updateMap = new Map(updates.map(u => [u.id, u]));
+
+      // Compute which items changed status — used for side effects below
+      const changed = updates.filter(u => {
+        const prev = tracked.find(r => r.id === u.id);
+        return prev && prev.status !== u.status;
+      });
+
+      // Pure state update — no side effects inside
+      setTracked(prev => {
+        const next = prev.map(r => {
+          const u = updateMap.get(r.id);
+          if (!u) return r;
+          return { ...r, status: u.status, staffComment: u.staffComment || r.staffComment, etaMinutes: u.etaMinutes ?? r.etaMinutes, acceptedAt: u.acceptedAt ?? r.acceptedAt };
+        });
+        saveTracked(token, next);
+        return next;
+      });
+
+      // Side effects after state update, never inside the updater
+      changed.forEach(u => {
+        const prev = tracked.find(r => r.id === u.id)!;
+        try { playStatusSound(); } catch {}
+        try { showNotification("Request Update", `Your ${prev.itemName} request is now ${u.status.replace("_", " ")}`); } catch {}
+        if (dismissed[prev.id]) {
           setDismissed(d => {
-            if (!d[r.id]) return d;
+            if (!d[prev.id]) return d;
             const next = { ...d };
-            delete next[r.id];
+            delete next[prev.id];
             saveDismissed(token, next);
             return next;
           });
         }
-        return { ...r, status: u.status, staffComment: u.staffComment || r.staffComment, etaMinutes: u.etaMinutes ?? r.etaMinutes, acceptedAt: u.acceptedAt ?? r.acceptedAt };
       });
-      saveTracked(token, next);
-      return next;
-    });
-  }, [tracked, token]);
+    } catch { /* network error — silent */ }
+  }, [tracked, token, dismissed]);
 
   useEffect(() => {
     if (!initialPollDone.current) {
