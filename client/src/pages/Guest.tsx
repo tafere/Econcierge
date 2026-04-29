@@ -578,14 +578,29 @@ export default function GuestPage() {
               <p className="text-xs text-white/70 font-medium">Econcierge · {T("room")} {room!.roomNumber}</p>
             </div>
           </div>
-          <button
-            onClick={cycleLanguage}
-            className={`text-xs font-bold transition-colors rounded px-3 py-1.5 text-white shrink-0 ml-3 flex items-center gap-1
-              ${hasHero ? "bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20" : "bg-brand-800 hover:bg-brand-900 text-amber-100"}`}
-          >
-            <Languages className="h-3.5 w-3.5" />
-            {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
-          </button>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            {cart.length > 0 && !showCart && (
+              <button
+                onClick={() => setShowCart(true)}
+                className="relative p-2"
+                aria-label="View cart"
+              >
+                <ShoppingCart className="h-5 w-5 text-white" />
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold
+                  rounded-full min-w-[18px] h-[18px] flex items-center justify-center leading-none px-1">
+                  {cart.length}
+                </span>
+              </button>
+            )}
+            <button
+              onClick={cycleLanguage}
+              className={`text-xs font-bold transition-colors rounded px-3 py-1.5 text-white flex items-center gap-1
+                ${hasHero ? "bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20" : "bg-brand-800 hover:bg-brand-900 text-amber-100"}`}
+            >
+              <Languages className="h-3.5 w-3.5" />
+              {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1113,39 +1128,24 @@ export default function GuestPage() {
         )}
       </div>
 
-      {/* ── Sticky cart bar (visible whenever cart has items) ── */}
+      {/* ── Sticky bottom cart CTA ── */}
       {cart.length > 0 && !showCart && (
-        <div className={`fixed bottom-0 left-0 right-0 shadow-2xl px-4 py-3
-          ${hasHero ? "bg-black/70 backdrop-blur-md border-t border-white/10" : "bg-white/90 backdrop-blur-md border-t border-stone-200"}`}>
-          <div className="max-w-lg mx-auto flex items-center gap-3">
-            <button
-              onClick={() => setShowCart(true)}
-              className={`flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5 transition-colors text-left
-                ${hasHero ? "bg-white/10 hover:bg-white/15 border border-white/10" : "bg-stone-50 border border-stone-200 hover:border-brand-700"}`}
-            >
-              <div className="relative">
-                <ShoppingCart className={`h-5 w-5 ${hasHero ? "text-white" : "text-brand-700"}`} />
-                <span className="absolute -top-2 -right-2 bg-brand-700 text-white text-[10px] font-bold
-                  rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                  {cart.length}
-                </span>
-              </div>
-              <div>
-                <p className={`text-xs font-bold ${hasHero ? "text-white" : "text-stone-800"}`}>
-                  {cart.length} {cart.length === 1 ? T("cartItem") : T("cartItems")}
-                </p>
-                <p className={`text-[11px] ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("viewCart")}</p>
-              </div>
-            </button>
+        <div className="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2 pointer-events-none">
+          <div className="max-w-lg mx-auto pointer-events-auto">
             <button
               onClick={sendAll}
               disabled={sending}
-              className={`h-10 px-5 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 disabled:opacity-50 shrink-0
-                ${hasHero ? "bg-white text-stone-900 hover:bg-white/90" : "bg-brand-700 text-white hover:bg-brand-800"}`}
+              className="w-full h-14 rounded-2xl font-bold text-base shadow-2xl transition-all
+                flex items-center justify-between px-5 gap-3 disabled:opacity-60
+                bg-brand-700 hover:bg-brand-800 text-white active:scale-[0.98]"
             >
-              {sending
-                ? <Loader2 className="h-4 w-4 animate-spin" />
-                : <><Send className="h-4 w-4" /> {T("sendAll")}</>}
+              <span className="bg-white/20 rounded-lg px-2.5 py-1 text-sm font-extrabold">
+                {cart.length}
+              </span>
+              <span className="flex-1 text-center">
+                {sending ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : T("sendAll")}
+              </span>
+              <Send className="h-5 w-5 opacity-80" />
             </button>
           </div>
         </div>
