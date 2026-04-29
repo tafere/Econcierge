@@ -88,7 +88,8 @@ export default function RoomsPage() {
   .room-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #92400e; margin-bottom: 4px; }
   .room-number { font-size: 36px; font-weight: 800; color: #1c1917; line-height: 1; }
   .floor { font-size: 12px; color: #78716c; margin-top: 4px; }
-  img { width: 200px; height: 200px; margin: 20px auto 0; display: block; }
+  .qr-wrap { background: #ffffff; border-radius: 8px; padding: 10px; margin: 20px auto 0; display: inline-block; }
+  img { width: 240px; height: 240px; display: block; }
   .cta { font-size: 12px; font-weight: 600; color: #57534e; margin-top: 14px; }
   .footer { background: #fef3c7; padding: 10px; font-size: 10px; color: #92400e; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
   @media print { body { min-height: unset; } }
@@ -102,7 +103,7 @@ export default function RoomsPage() {
     <div class="room-label">Room</div>
     <div class="room-number">${room.roomNumber}</div>
     ${room.floor ? `<div class="floor">Floor ${room.floor}</div>` : ""}
-    <img src="${dataUrl}" alt="QR Code" />
+    <div class="qr-wrap"><img src="${dataUrl}" alt="QR Code" /></div>
     <div class="cta">Scan to request services</div>
   </div>
   <div class="footer">Scan with your phone camera</div>
@@ -134,7 +135,7 @@ export default function RoomsPage() {
           <div class="room-label">Room</div>
           <div class="room-number">${room.roomNumber}</div>
           ${room.floor ? `<div class="floor">Floor ${room.floor}</div>` : ""}
-          <img src="${dataUrl}" alt="QR Code" />
+          <div class="qr-wrap"><img src="${dataUrl}" alt="QR Code" /></div>
           <div class="cta">Scan to request services</div>
         </div>
         <div class="footer">Scan with your phone camera</div>
@@ -157,7 +158,8 @@ export default function RoomsPage() {
   .room-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #92400e; margin-bottom: 2px; }
   .room-number { font-size: 28px; font-weight: 800; color: #1c1917; line-height: 1; }
   .floor { font-size: 10px; color: #78716c; margin-top: 2px; }
-  img { width: 150px; height: 150px; margin: 12px auto 0; display: block; }
+  .qr-wrap { background: #ffffff; border-radius: 6px; padding: 8px; margin: 12px auto 0; display: inline-block; }
+  img { width: 160px; height: 160px; display: block; }
   .cta { font-size: 10px; font-weight: 600; color: #57534e; margin-top: 10px; }
   .footer { background: #fef3c7; padding: 7px; font-size: 8px; color: #92400e; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
   @media print { body { padding: 10px; } }
@@ -175,7 +177,7 @@ export default function RoomsPage() {
     }
     const url = `${window.location.origin}/r/${room.qrToken}`;
     const dataUrl = await QRCode.toDataURL(url, {
-      width: 240, margin: 3,
+      width: 512, margin: 3,
       color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "H",
     });
@@ -326,9 +328,9 @@ export default function RoomsPage() {
 
                 {/* Inline QR preview */}
                 {qrPreviews[room.id] && (
-                  <div className="mt-3 flex flex-col items-center gap-2 bg-amber-50 dark:bg-amber-900/20 rounded p-4 border border-amber-100 dark:border-amber-900/30">
-                    <img src={qrPreviews[room.id]} alt={`QR Room ${room.roomNumber}`} className="w-40 h-40" />
-                    <p className="text-[11px] text-stone-400 dark:text-zinc-500 text-center">
+                  <div className="mt-3 flex flex-col items-center gap-3 bg-white dark:bg-white rounded-lg p-4 border border-stone-200">
+                    <img src={qrPreviews[room.id]} alt={`QR Room ${room.roomNumber}`} className="w-64 h-64" />
+                    <p className="text-[11px] text-stone-400 text-center">
                       {t("scanPhone")}
                     </p>
                   </div>
