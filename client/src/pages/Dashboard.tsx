@@ -204,6 +204,7 @@ function RequestTable({
   overdueIds = new Set(),
   escalatedIds = new Set(),
   highlightedId = null,
+  isCancelledTab = false,
 }: {
   requests: ServiceRequest[];
   updatingId: number | null;
@@ -215,13 +216,14 @@ function RequestTable({
   overdueIds?:   Set<number>;
   escalatedIds?: Set<number>;
   highlightedId?: number | null;
+  isCancelledTab?: boolean;
 }) {
   const { t, lang } = useLang();
   if (requests.length === 0) return null;
 
   const hasActions = requests.some(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
   const hasNotes   = requests.some(r => r.notes || r.staffComment);
-  const hasBy      = requests.some(r => r.assignedTo && r.status !== "PENDING");
+  const hasBy      = isCancelledTab || requests.some(r => r.assignedTo && r.status !== "PENDING");
 
   const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider whitespace-nowrap";
 
@@ -313,13 +315,19 @@ function RequestTable({
 
             {/* Action buttons */}
             {dimmed && (
-              <div className="border-t border-zinc-700/40 flex items-center justify-center py-2.5">
-                <span className={`text-xs font-semibold ${req.status === "DONE" ? "text-green-400" : req.status === "CANCELLED" ? "text-zinc-500" : "text-red-400"}`}>
+              <div className="border-t border-zinc-700/40 flex items-center justify-between px-4 py-2.5">
+                <span className={`text-xs font-semibold ${req.status === "DONE" ? "text-green-400" : req.status === "CANCELLED" || req.status === "DECLINED" ? "text-zinc-500" : "text-stone-500 dark:text-zinc-400"}`}>
                   {req.status === "DONE" ? "✓ " + t("done")
-                    : req.status === "GUEST_CANCELLED" ? "👤 " + t("cancelledByGuest")
-                    : req.status === "CANCELLED" ? t("cancelledStatus")
-                    : t("declined")}
+                    : req.status === "DECLINED" ? t("declined")
+                    : t("cancelledStatus")}
                 </span>
+                {isCancelledTab && (
+                  <span className="text-xs text-stone-500 dark:text-zinc-400">
+                    {t("cancelledBy")}: <span className="font-semibold">
+                      {req.status === "GUEST_CANCELLED" ? t("guestLabel") : req.assignedTo || "—"}
+                    </span>
+                  </span>
+                )}
               </div>
             )}
             {(req.status === "PENDING" || req.status === "IN_PROGRESS") && (
@@ -382,7 +390,7 @@ function RequestTable({
             <th className={th}>{t("requestCol")}</th>
             {hasNotes   && <th className={th}>{t("notesCol")}</th>}
             <th className={th}>{t("dateTimeCol")}</th>
-            {hasBy      && <th className={th}>{t("handledBy")}</th>}
+            {hasBy      && <th className={th}>{isCancelledTab ? t("cancelledBy") : t("handledBy")}</th>}
             {hasActions && <th className={`${th} text-right`}>{t("actionCol")}</th>}
           </tr>
         </thead>
@@ -451,14 +459,16 @@ function RequestTable({
                 </td>
                 {hasBy && (
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {req.status === "GUEST_CANCELLED" && (
-                      <p className="text-xs font-semibold text-red-500">👤 {t("cancelledByGuest")}</p>
-                    )}
-                    {req.assignedTo && req.status !== "PENDING" && req.status !== "GUEST_CANCELLED" && (
-                      <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium">{req.assignedTo}</p>
-                    )}
-                    {req.assignedTo && req.status === "GUEST_CANCELLED" && (
-                      <p className="text-[10px] text-stone-400 dark:text-zinc-500 mt-0.5">{req.assignedTo}</p>
+                    {isCancelledTab ? (
+                      <p className="text-xs font-medium text-stone-600 dark:text-zinc-400">
+                        {req.status === "GUEST_CANCELLED"
+                          ? t("guestLabel")
+                          : req.assignedTo || "—"}
+                      </p>
+                    ) : (
+                      req.assignedTo && req.status !== "PENDING" && (
+                        <p className="text-xs font-medium text-stone-600 dark:text-zinc-400">{req.assignedTo}</p>
+                      )
                     )}
                   </td>
                 )}
@@ -1012,6 +1022,7 @@ export default function DashboardPage() {
                         overdueIds={dayOverdue}
                         escalatedIds={dayEscalated}
                         highlightedId={highlightedId}
+                        isCancelledTab={tab === "CANCELLED"}
                       />
                     </div>
                   )}
