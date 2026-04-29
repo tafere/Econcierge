@@ -451,8 +451,14 @@ function RequestTable({
                 </td>
                 {hasBy && (
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {req.assignedTo && req.status !== "PENDING" && (
+                    {req.status === "GUEST_CANCELLED" && (
+                      <p className="text-xs font-semibold text-red-500">👤 {t("cancelledByGuest")}</p>
+                    )}
+                    {req.assignedTo && req.status !== "PENDING" && req.status !== "GUEST_CANCELLED" && (
                       <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium">{req.assignedTo}</p>
+                    )}
+                    {req.assignedTo && req.status === "GUEST_CANCELLED" && (
+                      <p className="text-[10px] text-stone-400 dark:text-zinc-500 mt-0.5">{req.assignedTo}</p>
                     )}
                   </td>
                 )}
