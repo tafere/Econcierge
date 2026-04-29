@@ -58,7 +58,7 @@ interface TrackedRequest {
   categoryName: string;
   quantity: number;
   submittedAt: string;
-  status: "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "DECLINED";
+  status: "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "GUEST_CANCELLED" | "DECLINED";
   staffComment?: string;
   etaMinutes?: number | null;
   acceptedAt?: string | null;
@@ -154,8 +154,9 @@ const STATUS_STYLE: Record<string, string> = {
   PENDING:     "bg-amber-100 text-amber-800 border-amber-200",
   IN_PROGRESS: "bg-blue-100  text-blue-800  border-blue-200",
   DONE:        "bg-green-100 text-green-800 border-green-200",
-  CANCELLED:   "bg-stone-100 text-stone-500 border-stone-200",
-  DECLINED:    "bg-red-100   text-red-700   border-red-200",
+  CANCELLED:        "bg-stone-100 text-stone-500 border-stone-200",
+  GUEST_CANCELLED:  "bg-stone-100 text-stone-500 border-stone-200",
+  DECLINED:         "bg-red-100   text-red-700   border-red-200",
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -298,7 +299,7 @@ export default function GuestPage() {
 
   // ── Poll statuses every 15 s if there are non-DONE requests ─────────────
   const pollStatuses = useCallback(async () => {
-    const pending = tracked.filter(r => r.status !== "DONE" && r.status !== "CANCELLED" && r.status !== "DECLINED");
+    const pending = tracked.filter(r => r.status !== "DONE" && r.status !== "CANCELLED" && r.status !== "GUEST_CANCELLED" && r.status !== "DECLINED");
     if (pending.length === 0) return;
     const ids = pending.map(r => r.id).join(",");
     try {
@@ -541,11 +542,12 @@ export default function GuestPage() {
   };
 
   const statusLabel = (s: string) => {
-    if (s === "PENDING")     return T("pending");
-    if (s === "IN_PROGRESS") return T("inProgress");
-    if (s === "DONE")        return T("done");
-    if (s === "CANCELLED")   return T("cancelled");
-    if (s === "DECLINED")    return T("declined");
+    if (s === "PENDING")          return T("pending");
+    if (s === "IN_PROGRESS")      return T("inProgress");
+    if (s === "DONE")             return T("done");
+    if (s === "CANCELLED")        return T("cancelled");
+    if (s === "GUEST_CANCELLED")  return lang === "am" ? "እርስዎ ሰርዘዋል" : "Cancelled by you";
+    if (s === "DECLINED")         return T("declined");
     return s;
   };
 

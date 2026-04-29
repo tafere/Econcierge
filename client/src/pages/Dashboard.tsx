@@ -11,7 +11,7 @@ import { useNotifications } from "@/lib/NotificationsContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Status = "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "DECLINED";
+type Status = "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "GUEST_CANCELLED" | "DECLINED";
 
 interface ServiceRequest {
   id: number;
@@ -27,6 +27,7 @@ interface ServiceRequest {
   staffComment: string;
   status: Status;
   assignedTo: string;
+  assignedToId: number | null;
   etaMinutes?: number | null;
   createdAt: string;
   acceptedAt: string;
@@ -198,6 +199,8 @@ function RequestTable({
   onAccept,
   onDone,
   onDecline,
+  onAssign,
+  staffList = [],
   overdueIds = new Set(),
   escalatedIds = new Set(),
   highlightedId = null,
@@ -207,6 +210,8 @@ function RequestTable({
   onAccept:  (req: ServiceRequest) => void;
   onDone:    (id: number) => void;
   onDecline: (req: ServiceRequest) => void;
+  onAssign?: (id: number, staffId: number | null) => void;
+  staffList?: { id: number; name: string }[];
   overdueIds?:   Set<number>;
   escalatedIds?: Set<number>;
   highlightedId?: number | null;
@@ -227,7 +232,7 @@ function RequestTable({
         const isOverdue     = overdueIds.has(req.id);
         const isEscalated   = escalatedIds.has(req.id);
         const isHighlighted = req.id === highlightedId;
-        const dimmed        = req.status === "DONE" || req.status === "CANCELLED" || req.status === "DECLINED";
+        const dimmed        = req.status === "DONE" || req.status === "CANCELLED" || req.status === "GUEST_CANCELLED" || req.status === "DECLINED";
         const itemLabel     = lang === "am" && req.itemNameAm ? req.itemNameAm : req.itemName;
         const catLabel      = lang === "am" && req.categoryNameAm ? req.categoryNameAm : req.categoryName;
         const ageMins       = ageMinutes(req.createdAt);
@@ -310,7 +315,10 @@ function RequestTable({
             {dimmed && (
               <div className="border-t border-zinc-700/40 flex items-center justify-center py-2.5">
                 <span className={`text-xs font-semibold ${req.status === "DONE" ? "text-green-400" : req.status === "CANCELLED" ? "text-zinc-500" : "text-red-400"}`}>
-                  {req.status === "DONE" ? "✓ " + t("done") : req.status === "CANCELLED" ? t("cancelledStatus") : t("declined")}
+                  {req.status === "DONE" ? "✓ " + t("done")
+                    : req.status === "GUEST_CANCELLED" ? "👤 " + t("cancelledByGuest")
+                    : req.status === "CANCELLED" ? t("cancelledStatus")
+                    : t("declined")}
                 </span>
               </div>
             )}
@@ -321,18 +329,32 @@ function RequestTable({
                     <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
                   </div>
                 ) : req.status === "PENDING" ? (
-                  <div className="flex">
-                    <button onClick={() => onAccept(req)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
-                        text-stone-800 dark:text-white border-r border-stone-200 dark:border-zinc-700/50
-                        hover:bg-emerald-900/20 transition-colors">
-                      <Check className="h-4 w-4 text-emerald-400" /> {t("accept")}
-                    </button>
-                    <button onClick={() => onDecline(req)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
-                        text-red-400 hover:bg-red-900/20 transition-colors">
-                      <X className="h-4 w-4" /> {t("declineBtn")}
-                    </button>
+                  <div>
+                    <div className="flex">
+                      <button onClick={() => onAccept(req)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
+                          text-stone-800 dark:text-white border-r border-stone-200 dark:border-zinc-700/50
+                          hover:bg-emerald-900/20 transition-colors">
+                        <Check className="h-4 w-4 text-emerald-400" /> {t("accept")}
+                      </button>
+                      <button onClick={() => onDecline(req)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold
+                          text-red-400 hover:bg-red-900/20 transition-colors">
+                        <X className="h-4 w-4" /> {t("declineBtn")}
+                      </button>
+                    </div>
+                    {onAssign && staffList.length > 0 && (
+                      <div className="border-t border-zinc-700/30 px-4 py-2">
+                        <select
+                          value={req.assignedToId ?? ""}
+                          onChange={e => onAssign(req.id, e.target.value ? Number(e.target.value) : null)}
+                          className="w-full text-xs bg-transparent text-stone-400 dark:text-zinc-500 focus:outline-none"
+                        >
+                          <option value="">{t("unassigned")}</option>
+                          {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <button onClick={() => onDone(req.id)}
@@ -369,7 +391,7 @@ function RequestTable({
             const isOverdue     = overdueIds.has(req.id);
             const isEscalated   = escalatedIds.has(req.id);
             const isHighlighted = req.id === highlightedId;
-            const dimmed        = req.status === "DONE" || req.status === "CANCELLED" || req.status === "DECLINED";
+            const dimmed        = req.status === "DONE" || req.status === "CANCELLED" || req.status === "GUEST_CANCELLED" || req.status === "DECLINED";
 
             return (
               <tr key={req.id}
@@ -439,7 +461,19 @@ function RequestTable({
                     {updatingId === req.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
                     ) : req.status === "PENDING" ? (
-                      <div className="inline-flex items-center gap-1.5">
+                      <div className="inline-flex items-center gap-1.5 flex-wrap justify-end">
+                        {onAssign && staffList.length > 0 && (
+                          <select
+                            value={req.assignedToId ?? ""}
+                            onChange={e => onAssign(req.id, e.target.value ? Number(e.target.value) : null)}
+                            className="text-xs border border-stone-200 dark:border-zinc-600 rounded px-2 py-1.5
+                              bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 focus:outline-none
+                              focus:ring-1 focus:ring-brand-500"
+                          >
+                            <option value="">{t("unassigned")}</option>
+                            {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                          </select>
+                        )}
                         <button onClick={() => onAccept(req)}
                           className="inline-flex items-center gap-1 text-xs font-bold
                             text-stone-700 dark:text-zinc-200 border border-emerald-500 dark:border-emerald-600
@@ -720,6 +754,7 @@ export default function DashboardPage() {
   const { t } = useLang();
   const [requests, setRequests]   = useState<ServiceRequest[]>([]);
   const [bookings, setBookings]   = useState<Booking[]>([]);
+  const [staffList, setStaffList] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading]     = useState(true);
   const { pendingTarget, setPendingTarget } = useNotifications();
   const [updatingId, setUpdatingId]             = useState<number | null>(null);
@@ -756,7 +791,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchRequests();
-    if (user?.roles?.includes("ADMIN")) fetchBookings();
+    if (user?.roles?.includes("ADMIN")) {
+      fetchBookings();
+      fetch("/api/dashboard/staff/list", { headers: authH() })
+        .then(r => r.ok ? r.json() : [])
+        .then(setStaffList)
+        .catch(() => {});
+    }
     requestNotifyPermission();
     // Fetch hotel ETA default
     fetch("/api/dashboard/hotel", { headers: authH() })
@@ -794,6 +835,16 @@ export default function DashboardPage() {
     setUpdatingId(null);
   };
 
+  const assignRequest = async (id: number, staffId: number | null) => {
+    const res = await fetch(`/api/dashboard/requests/${id}/assign`, {
+      method: "PATCH", headers: authH(), body: JSON.stringify({ staffId }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setRequests(prev => prev.map(r => r.id === id ? updated : r));
+    }
+  };
+
   const updateBookingStatus = async (id: number, status: string) => {
     setUpdatingBookingId(id);
     const res = await fetch(`/api/dashboard/bookings/${id}/status`, {
@@ -809,7 +860,7 @@ export default function DashboardPage() {
   // ── Tab data ──────────────────────────────────────────────────────────────
   const active    = requests.filter(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
   const completed = requests.filter(r => r.status === "DONE");
-  const cancelled = requests.filter(r => r.status === "CANCELLED" || r.status === "DECLINED");
+  const cancelled = requests.filter(r => r.status === "CANCELLED" || r.status === "GUEST_CANCELLED" || r.status === "DECLINED");
 
   const overduePending  = active.filter(r => r.status === "PENDING"     && ageMinutes(r.createdAt) > OVERDUE_PENDING_MINS);
   const escalatedInProg = active.filter(r => r.status === "IN_PROGRESS" && r.acceptedAt && ageMinutes(r.acceptedAt) > ESCALATED_IN_PROG_MINS);
@@ -950,6 +1001,8 @@ export default function DashboardPage() {
                           action: () => updateStatus(id, "DONE"),
                         })}
                         onDecline={setDeclining}
+                        onAssign={user?.roles?.includes("ADMIN") ? assignRequest : undefined}
+                        staffList={staffList}
                         overdueIds={dayOverdue}
                         escalatedIds={dayEscalated}
                         highlightedId={highlightedId}

@@ -215,7 +215,7 @@ public class GuestController {
         if (req.getStatus() != ServiceRequest.Status.PENDING)
             return ResponseEntity.badRequest().body(Map.of("error", "Only pending requests can be cancelled"));
 
-        req.setStatus(ServiceRequest.Status.CANCELLED);
+        req.setStatus(ServiceRequest.Status.GUEST_CANCELLED);
         requestRepository.save(req);
         return ResponseEntity.ok(Map.of("status", "CANCELLED"));
     }

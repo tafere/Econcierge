@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Table(name = "service_requests")
 public class ServiceRequest {
 
-    public enum Status { PENDING, IN_PROGRESS, DONE, CANCELLED, DECLINED }
+    public enum Status { PENDING, IN_PROGRESS, DONE, CANCELLED, GUEST_CANCELLED, DECLINED }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

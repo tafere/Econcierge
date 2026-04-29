@@ -207,7 +207,8 @@ public class DashboardController {
         long closedCount = all7.stream().filter(r ->
                 r.getStatus() == ServiceRequest.Status.DONE ||
                 r.getStatus() == ServiceRequest.Status.DECLINED ||
-                r.getStatus() == ServiceRequest.Status.CANCELLED).count();
+                r.getStatus() == ServiceRequest.Status.CANCELLED ||
+                r.getStatus() == ServiceRequest.Status.GUEST_CANCELLED).count();
         long completionRate = closedCount == 0 ? 0 : Math.round(doneCount * 100.0 / closedCount);
 
         OptionalDouble avgResponse = all7.stream()
@@ -325,6 +326,45 @@ public class DashboardController {
         return false;
     }
 
+    @GetMapping("/staff/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getStaffList(@RequestHeader("Authorization") String header) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        List<Map<String, Object>> staff = staffRepository.findByHotelId(hotelId).stream()
+                .filter(Staff::isEnabled)
+                .map(s -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id",   s.getId());
+                    m.put("name", s.getFullName());
+                    return m;
+                }).toList();
+        return ResponseEntity.ok(staff);
+    }
+
+    @PatchMapping("/requests/{id}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> assignRequest(@PathVariable Long id,
+                                           @RequestBody Map<String, Object> body,
+                                           @RequestHeader("Authorization") String header) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        ServiceRequest req = requestRepository.findById(id).orElse(null);
+        if (req == null || !req.getHotelId().equals(hotelId))
+            return ResponseEntity.notFound().build();
+
+        Object staffIdObj = body.get("staffId");
+        if (staffIdObj == null) {
+            req.setAssignedTo(null);
+        } else {
+            Long staffId = Long.valueOf(staffIdObj.toString());
+            Staff staff = staffRepository.findById(staffId).orElse(null);
+            if (staff == null || !hotelId.equals(staff.getHotelId()))
+                return ResponseEntity.badRequest().body(Map.of("error", "Staff not found"));
+            req.setAssignedTo(staffId);
+        }
+        requestRepository.save(req);
+        return ResponseEntity.ok(toMap(req, hotelId));
+    }
+
     private Map<String, Object> toMap(ServiceRequest r, Long hotelId) {
         Room room = roomRepository.findById(r.getRoomId()).orElse(null);
         RequestItem item = itemRepository.findById(r.getItemId()).orElse(null);
@@ -347,6 +387,7 @@ public class DashboardController {
         m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
         m.put("status",       r.getStatus().name());
         m.put("assignedTo",   assignedName);
+        m.put("assignedToId", r.getAssignedTo());
         m.put("etaMinutes",   r.getEtaMinutes());
         m.put("createdAt",    r.getCreatedAt().toString() + "Z");
         m.put("updatedAt",    r.getUpdatedAt()   != null ? r.getUpdatedAt().toString()   + "Z" : "");
