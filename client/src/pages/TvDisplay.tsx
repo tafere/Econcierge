@@ -33,7 +33,7 @@ export default function TvDisplay() {
     QRCode.toDataURL(url, {
       width: 360,
       margin: 2,
-      color: { dark: "#451a03", light: "#fffbf5" },
+      color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "H",
     }).then(setQrDataUrl);
   }, [token]);

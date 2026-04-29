@@ -58,7 +58,7 @@ export default function RoomsPage() {
 
   const downloadQR = async (room: Room) => {
     const url = `${window.location.origin}/r/${room.qrToken}`;
-    const dataUrl = await QRCode.toDataURL(url, { width: 400, margin: 2, color: { dark: "#78350f" } });
+    const dataUrl = await QRCode.toDataURL(url, { width: 400, margin: 3, color: { dark: "#000000", light: "#ffffff" }, errorCorrectionLevel: "H" });
     const a = document.createElement("a");
     a.href = dataUrl;
     a.download = `room-${room.roomNumber}-qr.png`;
@@ -68,8 +68,8 @@ export default function RoomsPage() {
   const printQRCard = async (room: Room) => {
     const url = `${window.location.origin}/r/${room.qrToken}`;
     const dataUrl = await QRCode.toDataURL(url, {
-      width: 400, margin: 2,
-      color: { dark: "#451a03", light: "#fffbf5" },
+      width: 400, margin: 3,
+      color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "H",
     });
     const hotelName = user?.hotelName ?? "Hotel";
@@ -117,8 +117,8 @@ export default function RoomsPage() {
     const cards = await Promise.all(rooms.map(async room => {
       const url = `${window.location.origin}/r/${room.qrToken}`;
       const dataUrl = await QRCode.toDataURL(url, {
-        width: 400, margin: 2,
-        color: { dark: "#451a03", light: "#fffbf5" },
+        width: 400, margin: 3,
+        color: { dark: "#000000", light: "#ffffff" },
         errorCorrectionLevel: "H",
       });
       return { room, dataUrl };
@@ -175,8 +175,8 @@ export default function RoomsPage() {
     }
     const url = `${window.location.origin}/r/${room.qrToken}`;
     const dataUrl = await QRCode.toDataURL(url, {
-      width: 240, margin: 2,
-      color: { dark: "#451a03", light: "#fffbf5" },
+      width: 240, margin: 3,
+      color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "H",
     });
     setQrPreviews(prev => ({ ...prev, [room.id]: dataUrl }));
