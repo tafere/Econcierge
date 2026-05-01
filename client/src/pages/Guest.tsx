@@ -1036,10 +1036,10 @@ export default function GuestPage() {
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
 
-                <div className={`rounded-2xl px-5 py-4 ${hasHero ? "bg-black/50 backdrop-blur-sm border border-white/20" : "bg-gradient-to-br from-brand-700 to-amber-700"}`}>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">Skylight Hotel</p>
-                  <h2 className="text-lg font-extrabold text-white leading-tight">{T("faqTitle")}</h2>
-                  <p className="text-xs text-white/75 mt-1 leading-relaxed">{T("faqSubtitle")}</p>
+                <div className={`rounded-2xl px-5 py-4 ${hasHero ? "bg-black/50 backdrop-blur-sm border border-white/20" : "glass border border-stone-200/60 dark:border-zinc-700/60"}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-widest mb-1 ${hasHero ? "text-white/60" : "text-stone-400 dark:text-zinc-500"}`}>Skylight Hotel</p>
+                  <h2 className={`text-lg font-extrabold leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>{T("faqTitle")}</h2>
+                  <p className={`text-xs mt-1 leading-relaxed ${hasHero ? "text-white/70" : "text-stone-500 dark:text-zinc-400"}`}>{T("faqSubtitle")}</p>
                 </div>
 
                 {/* FAQ groups */}
