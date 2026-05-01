@@ -258,6 +258,10 @@ const translations: Record<Lang, Record<string, string>> = {
     aiIntakeConfirm:     "Add All to Cart",
     aiIntakeEmpty:       "We couldn't match anything — please browse the menu below.",
     aiIntakeError:       "Something went wrong. Please try again.",
+    faqCategoryLabel:    "Help & FAQs",
+    faqCategorySubLabel: "Hotel information",
+    faqTitle:            "Frequently Asked Questions",
+    faqSubtitle:         "Everything you need to know about your stay at Skylight Hotel",
   },
   am: {
     // ── Login ──────────────────────────────────────────────────────────────
@@ -509,6 +513,10 @@ const translations: Record<Lang, Record<string, string>> = {
     aiIntakeConfirm:     "ሁሉንም ወደ ቅርጫት ጨምር",
     aiIntakeEmpty:       "ምንም ማዛመድ አልቻልን — ከዚህ በታች ያሉ ምድቦችን ይዳስሱ።",
     aiIntakeError:       "ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
+    faqCategoryLabel:    "እርዳታ እና ጥያቄዎች",
+    faqCategorySubLabel: "የሆቴል መረጃ",
+    faqTitle:            "ተደጋጋሚ ጥያቄዎች",
+    faqSubtitle:         "ስለ Skylight Hotel ቆይታዎ ማወቅ ያለብዎ ሁሉ",
   },
 };
 

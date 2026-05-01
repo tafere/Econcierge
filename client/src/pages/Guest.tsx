@@ -9,6 +9,87 @@ import { tr, getLang, setLang, LANGUAGES, type Lang } from "@/lib/i18n";
 import { getDeviceId } from "@/lib/device";
 import { requestNotifyPermission, showNotification, playStatusSound } from "@/lib/notify";
 
+// ─── FAQ Data ─────────────────────────────────────────────────────────────────
+
+type FaqText = { en: string; am: string };
+interface FaqItem  { q: FaqText; a: FaqText }
+interface FaqGroup { icon: string; title: FaqText; items: FaqItem[] }
+
+const FAQ_DATA: FaqGroup[] = [
+  {
+    icon: "🏊",
+    title: { en: "Pool & Wellness", am: "ስፖርት እና ጤና" },
+    items: [
+      {
+        q: { en: "What are the swimming pool hours?", am: "የዋና ገንዳ የሥራ ሰዓቶች ምንድናቸው?" },
+        a: { en: "The swimming pool is open daily from 6:00 AM to 10:00 PM for the enjoyment of all our guests. Towels are available at the pool deck.", am: "የዋና ገንዳው ለሁሉም እንግዶቻችን ምቾት ዕለት ዕለት ከጠዋቱ 6:00 እስከ ምሽቱ 10:00 ድረስ ክፍት ነው። ፎጣዎች በገንዳው ወለል ላይ ይገኛሉ።" },
+      },
+      {
+        q: { en: "What are the spa operating hours?", am: "የስፓ የሥራ ሰዓቶች ምንድናቸው?" },
+        a: { en: "Our spa is open daily from 9:00 AM to 8:00 PM. We recommend reserving your treatment in advance to ensure availability. Please contact the front desk or use this app to book.", am: "ስፓው ዕለት ዕለት ከጠዋቱ 9:00 እስከ ምሽቱ 8:00 ድረስ ክፍት ነው። አቅርቦቱን ለማረጋገጥ አስቀድሞ ቦታ ማስያዝ እንመክራለን። ለቦታ ቦታ ፊት ዴስኩን ወይም ይህን አፕ ይጠቀሙ።" },
+      },
+    ],
+  },
+  {
+    icon: "🍽️",
+    title: { en: "Dining & Bars", am: "ምግብ ቤቶችና መጠጥ ቤቶች" },
+    items: [
+      {
+        q: { en: "Does the hotel have a bar?", am: "ሆቴሉ የመጠጥ ቤት አለው?" },
+        a: { en: "Yes. Our Sky Lounge Bar is open daily from 12:00 PM to midnight, offering a curated selection of premium cocktails, fine wines, local craft beers, and spirits. Light snacks are also served throughout the day.", am: "አዎ፣ Sky Lounge Bar ዕለት ዕለት ከቀኑ 12:00 እስከ እኩለ ሌሊት ድረስ ክፍት ሲሆን፣ የተዘጋጁ ኮክቴሎችን፣ ላቅ ያሉ ወይኖች፣ አካባቢያዊ ቢራዎች እና ሌሎች መጠጦችን ያቀርባል። ቀላል መክሰስ ቀኑን ሙሉ ይቀርባል።" },
+      },
+      {
+        q: { en: "What restaurants are available at the hotel?", am: "ሆቴሉ ምን ምን ምግብ ቤቶች አሉት?" },
+        a: { en: "Skylight Hotel features three dining venues: a fine-dining restaurant serving international cuisine, a rooftop terrace café for light meals and beverages, and an all-day buffet restaurant open for breakfast, lunch, and dinner. Room service is also available.", am: "Skylight Hotel ሦስት የምግብ ቦታዎች አሉት፦ ዓለም አቀፍ ምግቦችን የሚያቀርብ ፍቅር ምግብ ቤት፣ ቀላል ምግቦችንና መጠጦችን ለሚያቀርብ ሮፍቶፕ ቴራስ ካፌ፣ እና ለቁርስ፣ ምሳ እና እራት ክፍት የሆነ ሁለንተናዊ ቡፌ ምግብ ቤት። የክፍል አገልግሎትም ይገኛል።" },
+      },
+    ],
+  },
+  {
+    icon: "🚌",
+    title: { en: "Transportation", am: "ትራንስፖርት" },
+    items: [
+      {
+        q: { en: "How can I schedule a shuttle service?", am: "የሸርከ አገልግሎት እንዴት ማዘዝ ይቻላል?" },
+        a: { en: "Shuttle service can be arranged through the front desk or by submitting a request via this app. For airport transfers, please provide a minimum of 2 hours' notice to ensure timely pick-up. Our drivers are available around the clock.", am: "የሸርከ አገልግሎት በፊት ዴስክ ወይም ይህን አፕ ተጠቅሞ ጥያቄ በማስገባት ማዘዝ ይቻላል። ለአየር ማረፊያ ትራንስፖርት፣ ወቅቱን የጠበቀ አገልግሎት ለማረጋገጥ ቢያንስ 2 ሰዓት አስቀድሞ ማሳወቅ ይጠበቃል። አሽከርካሪዎቻችን 24 ሰዓት ዝግጁ ናቸው።" },
+      },
+    ],
+  },
+  {
+    icon: "💡",
+    title: { en: "Room & Amenities", am: "ክፍልና አገልግሎቶች" },
+    items: [
+      {
+        q: { en: "How do I control the room lighting?", am: "የክፍሌን መብራት እንዴት መቆጣጠር እቻላለሁ?" },
+        a: { en: "Your room features a central smart control panel located near the entrance. Press the 'Welcome' button to illuminate the entire room, or use the individual switches to adjust specific lighting zones. For assistance, please contact the front desk.", am: "ክፍልዎ በደጅ አጠገብ የሚገኝ ማዕከላዊ ስማርት ፓነል ተገጥሟል። ሙሉ ክፍሉን ለማብራት 'Welcome' ይጫኑ፣ ወይም እያንዳንዱን የብርሃን ዞን ለማስተካከል የተለያዩ ማብሪያዎቹን ይጠቀሙ። ለእርዳታ ፊት ዴስኩን ያነጋግሩ።" },
+      },
+    ],
+  },
+  {
+    icon: "🕐",
+    title: { en: "Check-out & Policies", am: "ወጭ ሰዓትና ፖሊሲዎች" },
+    items: [
+      {
+        q: { en: "What is the check-out time?", am: "የወጭ ሰዓት መቼ ነው?" },
+        a: { en: "Standard check-out time is 12:00 PM (noon). Should you require a late check-out, please contact the front desk at your earliest convenience — we will do our best to accommodate your request, subject to availability.", am: "መደበኛ ወጭ ሰዓት ከቀኑ 12:00 (ቀኑ ሲጠባ) ነው። ዘግይቶ ወጭ ካስፈለጎ፣ እባክዎ ቶሎ ፊት ዴስኩን ያነጋግሩ — ቦታ ሲኖር ጥያቄዎን ለማሟላት ሁሌ ዝግጁ ነን።" },
+      },
+    ],
+  },
+  {
+    icon: "📍",
+    title: { en: "Nearby Attractions", am: "አካባቢያዊ መስህቦች" },
+    items: [
+      {
+        q: { en: "Which restaurants are near the hotel?", am: "ሆቴሉ አካባቢ ምን ምን ምግብ ቤቶች አሉ?" },
+        a: { en: "The hotel is conveniently situated near a diverse range of dining options, including traditional Ethiopian cuisine, international restaurants, and cosy cafés — all within a 10–15 minute walk. Our concierge team is delighted to provide personalised recommendations.", am: "ሆቴሉ ከ10–15 ደቂቃ እግር ጉዞ ርቀት ውስጥ የኢትዮጵያ ምግቦች፣ ዓለም አቀፍ ምግብ ቤቶች እና ሞቅ ያሉ ካፌዎችን ጨምሮ ልዩ ልዩ ምርጫዎች አቅራቢያ ይገኛሉ። ኮንሲዬርዝ ቡድናችን ለጥቆሜ ሁሌ ዝግጁ ነው።" },
+      },
+      {
+        q: { en: "What attractions are near the hotel?", am: "አካባቢ ምን ምን መስህቦች አሉ?" },
+        a: { en: "Guests are invited to explore a rich array of nearby attractions, including cultural and historical landmarks, shopping centres, public parks, and museums. We recommend speaking with our concierge for a tailored itinerary that matches your interests and schedule.", am: "እንግዶቻችን ባህላዊና ታሪካዊ ቦታዎችን፣ የግብይት ማዕከሎችን፣ ፓርኮችን እና ሙዚዬሞችን ጨምሮ ልዩ ልዩ አካባቢያዊ መስህቦችን ለመጎብኘት እድሉ አላቸው። ለፍላጎትዎ እና ጊዜ ሠሌዳዎ የሚስማማ የጉብኝት ዕቅድ ለማዘጋጀት ኮንሲዬርዙን ማነጋገር እንመክራለን።" },
+      },
+    ],
+  },
+];
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MenuItem {
@@ -184,8 +265,10 @@ export default function GuestPage() {
   const [selectedCat, setSelectedCat]   = useState<MenuCategory | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [showCart, setShowCart]         = useState(false);
+  const [showFaq, setShowFaq]           = useState(false);
+  const [openFaqKey, setOpenFaqKey]     = useState<string | null>(null);
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedCat, selectedItem, showCart]);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedCat, selectedItem, showCart, showFaq]);
 
   // form
   const [quantity, setQuantity]   = useState(1);
@@ -884,7 +967,7 @@ export default function GuestPage() {
             )}
 
             {/* Step 1: Category selection */}
-            {!selectedCat && !selectedItem && (
+            {!selectedCat && !selectedItem && !showFaq && (
               <>
                 <p className={`text-sm font-medium pt-1 ${hasHero ? "text-white/80" : "text-stone-500"}`}>{T("selectCategory")}</p>
                 <div className="grid grid-cols-2 gap-3">
@@ -919,8 +1002,102 @@ export default function GuestPage() {
                       )}
                     </button>
                   ))}
+
+                  {/* FAQ card — always last in the grid */}
+                  <button
+                    onClick={() => { setShowFaq(true); setOpenFaqKey(null); }}
+                    className={`relative rounded-2xl px-4 py-3 text-left transition-all overflow-hidden min-h-[100px] flex flex-col justify-between
+                      ${hasHero
+                        ? "bg-black/55 border-2 border-white/40 hover:bg-black/45 hover:shadow-xl backdrop-blur-sm"
+                        : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-md"}`}
+                  >
+                    <span className="text-2xl leading-none">❓</span>
+                    <div>
+                      <p className={`font-bold text-sm leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>
+                        {T("faqCategoryLabel")}
+                      </p>
+                      <p className={`text-xs mt-0.5 ${hasHero ? "text-white/50" : "text-stone-400 dark:text-zinc-500"}`}>
+                        {T("faqCategorySubLabel")}
+                      </p>
+                    </div>
+                  </button>
                 </div>
               </>
+            )}
+
+            {/* FAQ view */}
+            {showFaq && !selectedCat && !selectedItem && (
+              <div className="space-y-5">
+                {/* Back + header */}
+                <button
+                  onClick={() => setShowFaq(false)}
+                  className={`flex items-center gap-1 text-sm font-semibold pt-2 w-fit rounded px-2 py-1 ${hasHero ? "bg-black/40 text-white backdrop-blur-sm" : "text-brand-700"}`}
+                >
+                  <ChevronLeft className="h-4 w-4" /> {T("back")}
+                </button>
+
+                <div className={`rounded-2xl px-5 py-4 ${hasHero ? "bg-black/50 backdrop-blur-sm border border-white/20" : "bg-gradient-to-br from-brand-700 to-amber-700"}`}>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">Skylight Hotel</p>
+                  <h2 className="text-lg font-extrabold text-white leading-tight">{T("faqTitle")}</h2>
+                  <p className="text-xs text-white/75 mt-1 leading-relaxed">{T("faqSubtitle")}</p>
+                </div>
+
+                {/* FAQ groups */}
+                {FAQ_DATA.map((group, gi) => (
+                  <div key={gi} className="space-y-2">
+                    {/* Group header */}
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="text-base leading-none">{group.icon}</span>
+                      <p className={`text-xs font-bold uppercase tracking-wider ${hasHero ? "text-white/60" : "text-stone-400 dark:text-zinc-500"}`}>
+                        {lang === "am" ? group.title.am : group.title.en}
+                      </p>
+                      <div className={`flex-1 h-px ${hasHero ? "bg-white/15" : "bg-stone-200 dark:bg-zinc-700"}`} />
+                    </div>
+
+                    {/* Q&A accordion items */}
+                    {group.items.map((item, ii) => {
+                      const key = `${gi}-${ii}`;
+                      const open = openFaqKey === key;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setOpenFaqKey(open ? null : key)}
+                          className={`w-full text-left rounded-2xl transition-all overflow-hidden
+                            ${hasHero
+                              ? "bg-black/50 border border-white/20 hover:border-white/35 backdrop-blur-sm"
+                              : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-sm"}`}
+                        >
+                          {/* Question row */}
+                          <div className="flex items-start justify-between gap-3 px-4 py-3.5">
+                            <p className={`text-sm font-semibold leading-snug ${hasHero ? "text-white" : "text-stone-800 dark:text-zinc-100"}`}>
+                              {lang === "am" ? item.q.am : item.q.en}
+                            </p>
+                            <ChevronDown className={`h-4 w-4 shrink-0 mt-0.5 transition-transform duration-200
+                              ${open ? "rotate-180" : ""}
+                              ${hasHero ? "text-white/50" : "text-stone-400 dark:text-zinc-500"}`}
+                            />
+                          </div>
+                          {/* Answer */}
+                          {open && (
+                            <div className={`px-4 pb-4 border-t ${hasHero ? "border-white/10" : "border-stone-100 dark:border-zinc-700/50"}`}>
+                              <p className={`text-sm leading-relaxed pt-3 ${hasHero ? "text-white/80" : "text-stone-600 dark:text-zinc-300"}`}>
+                                {lang === "am" ? item.a.am : item.a.en}
+                              </p>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+
+                {/* Footer note */}
+                <p className={`text-center text-xs pb-2 ${hasHero ? "text-white/40" : "text-stone-400 dark:text-zinc-600"}`}>
+                  {lang === "am"
+                    ? "ሌሎች ጥያቄዎች ካሉ ፊት ዴስኩን ያነጋግሩ"
+                    : "For further assistance, please contact the front desk"}
+                </p>
+              </div>
             )}
 
             {/* Step 2: Item selection */}
