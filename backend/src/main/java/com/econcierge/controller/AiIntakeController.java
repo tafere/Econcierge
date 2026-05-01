@@ -153,6 +153,83 @@ public class AiIntakeController {
         }
     }
 
+    // ── FAQ AI ────────────────────────────────────────────────────────────────
+
+    public record AiFaqRequest(Long roomId, String question) {}
+
+    private static final String FAQ_CONTEXT =
+        "Pool & Wellness:\n" +
+        "- Swimming pool: open daily 6:00 AM – 10:00 PM. Towels available at the pool deck.\n" +
+        "- Spa: open daily 9:00 AM – 8:00 PM. Advance booking strongly recommended.\n\n" +
+        "Dining & Bars:\n" +
+        "- Sky Lounge Bar: open daily 12:00 PM – midnight. Offers premium cocktails, fine wines, local craft beers, and light snacks throughout the day.\n" +
+        "- Restaurants: a fine-dining restaurant (international cuisine), a rooftop terrace café (light meals and beverages), and an all-day buffet (breakfast, lunch and dinner). Room service is also available.\n\n" +
+        "Transportation:\n" +
+        "- Shuttle service can be arranged via the front desk or the app. Airport transfers require at least 2 hours' advance notice. Drivers are available 24 hours a day.\n\n" +
+        "Room & Amenities:\n" +
+        "- Lighting: central smart control panel near the entrance. Press 'Welcome' to illuminate the entire room; individual switches allow zone control.\n\n" +
+        "Check-out & Policies:\n" +
+        "- Standard check-out time is 12:00 PM (noon). Late check-out is available on request, subject to availability — contact the front desk.\n\n" +
+        "Nearby:\n" +
+        "- Restaurants: a wide range of Ethiopian, international and café options within a 10–15 minute walk. The concierge can provide personalised recommendations.\n" +
+        "- Attractions: cultural landmarks, shopping centres, parks and museums are all nearby. The concierge can arrange a tailored itinerary.";
+
+    @PostMapping("/ai-faq")
+    public ResponseEntity<?> aiFaq(@RequestBody AiFaqRequest req) {
+        if (apiKey == null || apiKey.isBlank())
+            return ResponseEntity.status(503).body(Map.of("error", "AI not configured"));
+        if (req.question() == null || req.question().isBlank())
+            return ResponseEntity.badRequest().body(Map.of("error", "No question provided"));
+
+        String prompt =
+            "You are a knowledgeable and courteous hotel information assistant for Skylight Hotel. " +
+            "Answer the guest's question accurately and concisely using only the hotel information provided. " +
+            "Write in a warm, professional tone — no bullet points, just natural prose. " +
+            "If the guest writes in Amharic, respond fully in Amharic. Otherwise respond in English. " +
+            "If the information needed is not in the provided data, politely advise the guest to contact the front desk.\n\n" +
+            "Hotel Information:\n" + FAQ_CONTEXT + "\n\n" +
+            "Guest question: \"" + esc(req.question().trim()) + "\"\n\n" +
+            "Reply with JSON only (no markdown): {\"detectedLang\":\"en\",\"answer\":\"Your answer here\"}";
+
+        try {
+            Map<String, Object> requestBody = Map.of(
+                "model", "claude-haiku-4-5-20251001",
+                "max_tokens", 512,
+                "messages", List.of(Map.of("role", "user", "content", prompt))
+            );
+
+            log.info("AI FAQ roomId={} question='{}'", req.roomId(), req.question());
+
+            String response = http.post()
+                .uri("https://api.anthropic.com/v1/messages")
+                .header("x-api-key", apiKey)
+                .header("anthropic-version", "2023-06-01")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .retrieve()
+                .body(String.class);
+
+            JsonNode root = mapper.readTree(response);
+            String text = root.path("content").get(0).path("text").asText("{}").trim();
+            if (text.startsWith("```")) {
+                text = text.replaceAll("(?s)```[a-z]*\\n?", "").replace("```", "").trim();
+            }
+
+            JsonNode result = mapper.readTree(text);
+            ObjectNode out = mapper.createObjectNode();
+            out.put("detectedLang", result.path("detectedLang").asText("en"));
+            out.put("answer", result.path("answer").asText(""));
+            return ResponseEntity.ok(out);
+
+        } catch (RestClientResponseException e) {
+            log.error("Anthropic FAQ API error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return ResponseEntity.status(500).body(Map.of("error", "AI request failed"));
+        } catch (Exception e) {
+            log.error("AI FAQ error", e);
+            return ResponseEntity.status(500).body(Map.of("error", "AI request failed: " + e.getMessage()));
+        }
+    }
+
     private String esc(String s) {
         return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }

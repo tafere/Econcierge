@@ -268,7 +268,8 @@ export default function GuestPage() {
   const [showFaq, setShowFaq]           = useState(false);
   const [openFaqKey, setOpenFaqKey]     = useState<string | null>(null);
   const [faqQuery, setFaqQuery]         = useState("");
-  const [faqResults, setFaqResults]     = useState<{ group: FaqGroup; item: FaqItem }[] | null>(null);
+  const [faqAnswer, setFaqAnswer]       = useState<string | null>(null);
+  const [faqLoading, setFaqLoading]     = useState(false);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedCat, selectedItem, showCart, showFaq]);
 
@@ -617,19 +618,26 @@ export default function GuestPage() {
     setShowAi(false);
   };
 
-  // ── FAQ search ───────────────────────────────────────────────────────────
-  const runFaqSearch = () => {
-    const words = faqQuery.toLowerCase().split(/\s+/).filter(w => w.length > 1);
-    if (words.length === 0) return;
-    const scored: { group: FaqGroup; item: FaqItem; score: number }[] = [];
-    for (const group of FAQ_DATA) {
-      for (const item of group.items) {
-        const haystack = [item.q.en, item.a.en, item.q.am, item.a.am].join(" ").toLowerCase();
-        const score = words.filter(w => haystack.includes(w)).length;
-        if (score > 0) scored.push({ group, item, score });
-      }
+  // ── FAQ AI search ────────────────────────────────────────────────────────
+  const runFaqAi = async () => {
+    if (!room || !faqQuery.trim()) return;
+    setFaqLoading(true);
+    setFaqAnswer(null);
+    try {
+      const res = await fetch("/api/guest/ai-faq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId: room.roomId, question: faqQuery }),
+      });
+      const data = await res.json();
+      if (data.detectedLang === "am") { setLang("am"); setLangState("am"); }
+      else if (data.detectedLang === "en") { setLang("en"); setLangState("en"); }
+      setFaqAnswer(data.answer?.trim() || T("faqAiEmpty"));
+    } catch {
+      setFaqAnswer(T("faqAiEmpty"));
+    } finally {
+      setFaqLoading(false);
     }
-    setFaqResults(scored.sort((a, b) => b.score - a.score).map(({ group, item }) => ({ group, item })));
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -1056,7 +1064,7 @@ export default function GuestPage() {
                 {/* FAQ AI search */}
                 <div className={`rounded-2xl overflow-hidden ${hasHero ? "bg-black/55 backdrop-blur-sm border border-white/20" : "glass border border-stone-200/60"}`}>
                   <button
-                    onClick={() => { setShowAi(v => !v); setFaqResults(null); setFaqQuery(""); }}
+                    onClick={() => { setShowAi(v => !v); setFaqAnswer(null); setFaqQuery(""); }}
                     className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${hasHero ? "text-amber-300 hover:bg-white/5" : "text-brand-700 hover:bg-stone-50"}`}
                   >
                     <Sparkles className="h-4 w-4 shrink-0" />
@@ -1068,44 +1076,24 @@ export default function GuestPage() {
                       <div className="flex gap-2 mt-3">
                         <input
                           value={faqQuery}
-                          onChange={e => { setFaqQuery(e.target.value); setFaqResults(null); }}
-                          onKeyDown={e => e.key === "Enter" && runFaqSearch()}
+                          onChange={e => { setFaqQuery(e.target.value); setFaqAnswer(null); }}
+                          onKeyDown={e => e.key === "Enter" && runFaqAi()}
                           placeholder={T("faqAiPlaceholder")}
                           className={`flex-1 text-sm rounded-xl px-3 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500/40
                             ${hasHero ? "bg-white/10 text-white placeholder-white/40 border-white/20" : "bg-white text-stone-800 placeholder-stone-400 border-stone-200"}`}
                         />
                         <button
-                          onClick={runFaqSearch}
-                          disabled={!faqQuery.trim()}
+                          onClick={runFaqAi}
+                          disabled={!faqQuery.trim() || faqLoading}
                           className="px-4 py-2.5 rounded-xl text-sm font-bold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          {T("faqAiButton")}
+                          {faqLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : T("faqAiButton")}
                         </button>
                       </div>
-                      {faqResults !== null && faqResults.length === 0 && (
-                        <p className={`text-xs text-center py-1 ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("faqAiEmpty")}</p>
-                      )}
-                      {faqResults && faqResults.length > 0 && (
-                        <div className="space-y-2">
-                          <p className={`text-xs font-semibold ${hasHero ? "text-white/60" : "text-stone-400"}`}>{T("faqAiResults")}</p>
-                          {faqResults.map(({ group, item }, idx) => (
-                            <div key={idx} className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/40 border border-white/15" : "bg-white dark:bg-zinc-800 border border-brand-700/20"}`}>
-                              <div className={`flex items-center gap-1.5 px-3 pt-2.5 pb-1`}>
-                                <span className="text-xs">{group.icon}</span>
-                                <p className={`text-[10px] font-bold uppercase tracking-wider ${hasHero ? "text-white/50" : "text-stone-400 dark:text-zinc-500"}`}>
-                                  {lang === "am" ? group.title.am : group.title.en}
-                                </p>
-                              </div>
-                              <div className="px-3 pb-2.5">
-                                <p className={`text-sm font-semibold leading-snug mb-1.5 ${hasHero ? "text-white" : "text-stone-800 dark:text-zinc-100"}`}>
-                                  {lang === "am" ? item.q.am : item.q.en}
-                                </p>
-                                <p className={`text-sm leading-relaxed ${hasHero ? "text-white/70" : "text-stone-600 dark:text-zinc-300"}`}>
-                                  {lang === "am" ? item.a.am : item.a.en}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
+                      {faqAnswer && (
+                        <div className={`rounded-xl px-4 py-3 text-sm leading-relaxed
+                          ${hasHero ? "bg-white/10 text-white border border-white/15" : "bg-amber-50 dark:bg-zinc-700/50 text-stone-700 dark:text-zinc-200 border border-brand-700/20"}`}>
+                          {faqAnswer}
                         </div>
                       )}
                     </div>
