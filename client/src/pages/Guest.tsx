@@ -1036,22 +1036,26 @@ export default function GuestPage() {
                   <ChevronLeft className="h-4 w-4" /> {T("back")}
                 </button>
 
-                <div className={`rounded-2xl px-5 py-4 ${hasHero ? "bg-black/50 backdrop-blur-sm border border-white/20" : "glass border border-stone-200/60 dark:border-zinc-700/60"}`}>
-                  <p className={`text-xs font-semibold uppercase tracking-widest mb-1 ${hasHero ? "text-white/60" : "text-stone-400 dark:text-zinc-500"}`}>Skylight Hotel</p>
-                  <h2 className={`text-lg font-extrabold leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>{T("faqTitle")}</h2>
-                  <p className={`text-xs mt-1 leading-relaxed ${hasHero ? "text-white/70" : "text-stone-500 dark:text-zinc-400"}`}>{T("faqSubtitle")}</p>
+                {/* Header card — left amber stripe for warmth */}
+                <div className={`rounded-2xl overflow-hidden flex ${hasHero ? "bg-black/50 backdrop-blur-sm border border-white/15" : "glass border border-stone-200/60 dark:border-zinc-700/60"}`}>
+                  <div className="w-1 shrink-0 bg-brand-700 rounded-l-2xl" />
+                  <div className="px-4 py-4">
+                    <p className={`text-[10px] font-bold uppercase tracking-[0.15em] mb-1 ${hasHero ? "text-white/50" : "text-brand-700/70 dark:text-brand-400/70"}`}>Skylight Hotel</p>
+                    <h2 className={`text-base font-extrabold leading-tight ${hasHero ? "text-white" : "text-stone-900 dark:text-zinc-100"}`}>{T("faqTitle")}</h2>
+                    <p className={`text-xs mt-1.5 leading-relaxed ${hasHero ? "text-white/60" : "text-stone-500 dark:text-zinc-400"}`}>{T("faqSubtitle")}</p>
+                  </div>
                 </div>
 
                 {/* FAQ groups */}
                 {FAQ_DATA.map((group, gi) => (
                   <div key={gi} className="space-y-2">
-                    {/* Group header */}
-                    <div className="flex items-center gap-2 px-1">
-                      <span className="text-base leading-none">{group.icon}</span>
-                      <p className={`text-xs font-bold uppercase tracking-wider ${hasHero ? "text-white/60" : "text-stone-400 dark:text-zinc-500"}`}>
+                    {/* Group header — pill badge style */}
+                    <div className="flex items-center gap-2.5 px-1 mt-1">
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full
+                        ${hasHero ? "bg-white/10 text-white/70" : "bg-stone-100 dark:bg-zinc-800 text-stone-500 dark:text-zinc-400"}`}>
+                        <span className="text-sm leading-none">{group.icon}</span>
                         {lang === "am" ? group.title.am : group.title.en}
-                      </p>
-                      <div className={`flex-1 h-px ${hasHero ? "bg-white/15" : "bg-stone-200 dark:bg-zinc-700"}`} />
+                      </span>
                     </div>
 
                     {/* Q&A accordion items */}
@@ -1062,25 +1066,29 @@ export default function GuestPage() {
                         <button
                           key={key}
                           onClick={() => setOpenFaqKey(open ? null : key)}
-                          className={`w-full text-left rounded-2xl transition-all overflow-hidden
-                            ${hasHero
-                              ? "bg-black/50 border border-white/20 hover:border-white/35 backdrop-blur-sm"
-                              : "glass border border-stone-200/60 dark:border-zinc-700/60 hover:border-brand-700 hover:shadow-sm"}`}
+                          className={`w-full text-left rounded-xl transition-all overflow-hidden
+                            ${open
+                              ? hasHero
+                                ? "bg-black/60 border border-white/25 backdrop-blur-sm"
+                                : "bg-white dark:bg-zinc-800 border border-brand-700/30 shadow-sm"
+                              : hasHero
+                                ? "bg-black/40 border border-white/12 hover:border-white/25 backdrop-blur-sm"
+                                : "glass border border-stone-200/70 dark:border-zinc-700/60 hover:border-brand-700/50 hover:shadow-sm"}`}
                         >
                           {/* Question row */}
                           <div className="flex items-start justify-between gap-3 px-4 py-3.5">
-                            <p className={`text-sm font-semibold leading-snug ${hasHero ? "text-white" : "text-stone-800 dark:text-zinc-100"}`}>
+                            <p className={`text-sm font-semibold leading-snug ${hasHero ? "text-white" : open ? "text-brand-700 dark:text-brand-400" : "text-stone-800 dark:text-zinc-100"}`}>
                               {lang === "am" ? item.q.am : item.q.en}
                             </p>
                             <ChevronDown className={`h-4 w-4 shrink-0 mt-0.5 transition-transform duration-200
-                              ${open ? "rotate-180" : ""}
-                              ${hasHero ? "text-white/50" : "text-stone-400 dark:text-zinc-500"}`}
+                              ${open ? "rotate-180 text-brand-700 dark:text-brand-400" : hasHero ? "text-white/40" : "text-stone-300 dark:text-zinc-600"}`}
                             />
                           </div>
-                          {/* Answer */}
+                          {/* Answer — warm tinted background */}
                           {open && (
-                            <div className={`px-4 pb-4 border-t ${hasHero ? "border-white/10" : "border-stone-100 dark:border-zinc-700/50"}`}>
-                              <p className={`text-sm leading-relaxed pt-3 ${hasHero ? "text-white/80" : "text-stone-600 dark:text-zinc-300"}`}>
+                            <div className={`mx-3 mb-3 rounded-lg px-3.5 py-3
+                              ${hasHero ? "bg-white/8" : "bg-amber-50/70 dark:bg-zinc-700/50"}`}>
+                              <p className={`text-sm leading-relaxed ${hasHero ? "text-white/75" : "text-stone-600 dark:text-zinc-300"}`}>
                                 {lang === "am" ? item.a.am : item.a.en}
                               </p>
                             </div>
@@ -1092,11 +1100,13 @@ export default function GuestPage() {
                 ))}
 
                 {/* Footer note */}
-                <p className={`text-center text-xs pb-2 ${hasHero ? "text-white/40" : "text-stone-400 dark:text-zinc-600"}`}>
-                  {lang === "am"
-                    ? "ሌሎች ጥያቄዎች ካሉ ፊት ዴስኩን ያነጋግሩ"
-                    : "For further assistance, please contact the front desk"}
-                </p>
+                <div className={`flex items-center justify-center gap-2 py-3 ${hasHero ? "text-white/35" : "text-stone-400 dark:text-zinc-600"}`}>
+                  <div className={`h-px w-10 ${hasHero ? "bg-white/20" : "bg-stone-200 dark:bg-zinc-700"}`} />
+                  <p className="text-xs">
+                    {lang === "am" ? "ሌሎች ጥያቄዎች ካሉ ፊት ዴስኩን ያነጋግሩ" : "Further questions? Ask the front desk"}
+                  </p>
+                  <div className={`h-px w-10 ${hasHero ? "bg-white/20" : "bg-stone-200 dark:bg-zinc-700"}`} />
+                </div>
               </div>
             )}
 
