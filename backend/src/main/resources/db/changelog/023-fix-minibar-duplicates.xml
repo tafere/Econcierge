@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="023-fix-minibar-duplicates" author="tafere">
+        <sql splitStatements="false">
+DO $$
+DECLARE
+    mb_id  BIGINT;
+    ns     INT;
+BEGIN
+
+    -- ── 1. Disable "Room Service" — the whole app IS room service ────────────
+    UPDATE request_categories
+    SET enabled = false
+    WHERE lower(name) IN ('room service');
+
+    -- ── 2. Disable legacy Restaurant/Café/Bar/Dining categories ─────────────
+    UPDATE request_categories
+    SET enabled = false
+    WHERE lower(name) SIMILAR TO '%(restaurant|cafe|café|bar|dining|food and beverage|f&b)%'
+      AND name NOT IN ('Minibar', 'Sky Lounge Bar');
+
+    -- ── 3. Fix each Minibar: remove hot drinks, ensure clean lineup ──────────
+    FOR mb_id IN SELECT id FROM request_categories WHERE name = 'Minibar' LOOP
+
+        -- Disable coffee/tea — those are hot beverages, not minibar items
+        UPDATE request_items
+        SET enabled = false
+        WHERE category_id = mb_id
+          AND lower(name) SIMILAR TO '%(coffee|tea|cappuccino|espresso|latte|hot chocolate)%';
+
+        -- Ensure the correct cold lineup is present
+        IF NOT EXISTS (SELECT 1 FROM request_items WHERE category_id = mb_id AND name = 'Soft Drinks' AND enabled = true) THEN
+            SELECT COALESCE(MAX(sort_order), 0) + 1 INTO ns FROM request_items WHERE category_id = mb_id;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity)
+            VALUES (mb_id, 'Soft Drinks', 'ለስላሳ መጠጥ', ns, true, 6, false, 30, 15);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM request_items WHERE category_id = mb_id AND name = 'Sparkling Water' AND enabled = true) THEN
+            SELECT COALESCE(MAX(sort_order), 0) + 1 INTO ns FROM request_items WHERE category_id = mb_id;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity)
+            VALUES (mb_id, 'Sparkling Water', 'ፈካ ያለ ውሃ', ns, true, 4, false, 30, 15);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM request_items WHERE category_id = mb_id AND name = 'Beer' AND enabled = true) THEN
+            SELECT COALESCE(MAX(sort_order), 0) + 1 INTO ns FROM request_items WHERE category_id = mb_id;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity)
+            VALUES (mb_id, 'Beer', 'ቢራ', ns, true, 4, false, 30, 15);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM request_items WHERE category_id = mb_id AND name = 'Wine' AND enabled = true) THEN
+            SELECT COALESCE(MAX(sort_order), 0) + 1 INTO ns FROM request_items WHERE category_id = mb_id;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity)
+            VALUES (mb_id, 'Wine', 'ወይን', ns, true, 2, false, 30, 15);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM request_items WHERE category_id = mb_id AND name = 'Snacks' AND enabled = true) THEN
+            SELECT COALESCE(MAX(sort_order), 0) + 1 INTO ns FROM request_items WHERE category_id = mb_id;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity)
+            VALUES (mb_id, 'Snacks', 'ቁርጥ ቁርጥ', ns, true, 4, false, 30, 15);
+        END IF;
+
+    END LOOP;
+
+END $$;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

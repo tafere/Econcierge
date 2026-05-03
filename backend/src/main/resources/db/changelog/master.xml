@@ -27,5 +27,6 @@
     <include file="classpath:db/changelog/020-category-enabled.xml"/>
     <include file="classpath:db/changelog/021-seed-defaults.xml"/>
     <include file="classpath:db/changelog/022-fix-transport-sauna.xml"/>
+    <include file="classpath:db/changelog/023-fix-minibar-duplicates.xml"/>
 
 </databaseChangeLog>
