@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="022-fix-transport-sauna" author="tafere">
+        <sql splitStatements="false">
+DO $$
+DECLARE
+    trans_id  BIGINT;
+    next_sort INT;
+BEGIN
+
+    -- ── 1. Fix Sauna and Steam Room: make schedulable everywhere ─────────────
+    UPDATE request_items
+    SET schedulable = true, slot_interval_mins = 30, capacity = 4, max_quantity = 1
+    WHERE name IN ('Sauna', 'Steam Room')
+      AND schedulable = false;
+
+    -- ── 2. Disable old "Transport" category (replaced by "Transportation") ───
+    UPDATE request_categories
+    SET enabled = false
+    WHERE name = 'Transport';
+
+    -- ── 3. Add "Shuttle Service" under each "Transportation" category ────────
+    FOR trans_id IN
+        SELECT id FROM request_categories WHERE name = 'Transportation'
+    LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM request_items
+            WHERE category_id = trans_id
+              AND name IN ('Shuttle Service', 'Shuttle')
+        ) THEN
+            SELECT COALESCE(MAX(sort_order), 0) + 1 INTO next_sort
+            FROM request_items WHERE category_id = trans_id;
+
+            INSERT INTO request_items
+              (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity)
+            VALUES
+              (trans_id, 'Shuttle Service', 'ሸርከ አገልግሎት', next_sort, true, 1, true, 60, 8);
+        END IF;
+    END LOOP;
+
+END $$;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

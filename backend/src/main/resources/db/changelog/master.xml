@@ -26,5 +26,6 @@
     <include file="classpath:db/changelog/019-multi-role.xml"/>
     <include file="classpath:db/changelog/020-category-enabled.xml"/>
     <include file="classpath:db/changelog/021-seed-defaults.xml"/>
+    <include file="classpath:db/changelog/022-fix-transport-sauna.xml"/>
 
 </databaseChangeLog>
