@@ -24,5 +24,7 @@
     <include file="classpath:db/changelog/017-eta.xml"/>
     <include file="classpath:db/changelog/018-hero-image.xml"/>
     <include file="classpath:db/changelog/019-multi-role.xml"/>
+    <include file="classpath:db/changelog/020-category-enabled.xml"/>
+    <include file="classpath:db/changelog/021-seed-defaults.xml"/>
 
 </databaseChangeLog>

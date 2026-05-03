@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="021-seed-defaults" author="tafere" runOnChange="false">
+        <sql splitStatements="false">
+DO $$
+DECLARE
+    h   RECORD;
+    cid BIGINT;
+BEGIN
+    FOR h IN SELECT id FROM hotels LOOP
+
+        -- ── Housekeeping ────────────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Housekeeping') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Housekeeping', 'ክፍል አጽዳ', 'broom', 1, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Extra Towels',   'ተጨማሪ ፎጣ',         1, true, 5, false, 30, 15),
+              (cid, 'Extra Pillows',  'ተጨማሪ ትራስ',        2, true, 4, false, 30, 15),
+              (cid, 'Extra Blanket',  'ተጨማሪ ብርድ ልብስ',    3, true, 2, false, 30, 15),
+              (cid, 'Toiletries Kit', 'የፅዳት ቁሳቁስ',       4, true, 3, false, 30, 15),
+              (cid, 'Slippers',       'የእግር ጫማ',          5, true, 2, false, 30, 15),
+              (cid, 'Iron and Board', 'ሙቀት ወረቀትና ጠረጴዛ',  6, true, 1, false, 30, 15),
+              (cid, 'Laundry Bag',    'የልብስ ቦርሳ',         7, true, 2, false, 30, 15);
+        END IF;
+
+        -- ── Room Service ────────────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Room Service') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Room Service', 'የክፍል አገልግሎት', 'utensils', 2, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Water Bottles',    'ውሃ',               1, true, 6, false, 30, 15),
+              (cid, 'Coffee or Tea',    'ቡና ወይም ሻይ',       2, true, 4, false, 30, 15),
+              (cid, 'Breakfast in Room','ቁርስ ክፍሉ ውስጥ',    3, true, 4, false, 30, 15),
+              (cid, 'Snack Platter',    'ቁርጥ ቁርጥ',         4, true, 2, false, 30, 15),
+              (cid, 'Extra Cutlery',    'ምግብ መሳሪያ',        5, true, 4, false, 30, 15);
+        END IF;
+
+        -- ── Maintenance ─────────────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Maintenance') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Maintenance', 'ጥገና', 'wrench', 3, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'AC Issue',         'ቀዝቃዛ አየር ጉዳይ',  1, true, 1, false, 30, 15),
+              (cid, 'Lamp Not Working', 'መብራት አልሰራ',     2, true, 1, false, 30, 15),
+              (cid, 'Plumbing Issue',   'ፓይፕ ጉዳይ',       3, true, 1, false, 30, 15),
+              (cid, 'TV Issue',         'ቴሌቪዥን ጉዳይ',    4, true, 1, false, 30, 15),
+              (cid, 'Safe Issue',       'ደህንነት ሳጥን ጉዳይ', 5, true, 1, false, 30, 15);
+        END IF;
+
+        -- ── Concierge ───────────────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Concierge') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Concierge', 'ኮንሲዬርዥ', 'concierge-bell', 4, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Luggage Assistance', 'ሻንጣ ርዳታ',       1, true, 2, false, 30, 15),
+              (cid, 'Wake-Up Call',       'ማስነሻ ደወል',      2, true, 2, false, 30, 15),
+              (cid, 'Taxi Booking',       'ታክሲ ቦታ ማስያዝ', 3, true, 1, false, 30, 15),
+              (cid, 'Baby Cot',           'ሕፃን አልጋ',       4, true, 1, false, 30, 15),
+              (cid, 'Extra Hangers',      'ልብስ ማስቀጠሪያ',    5, true, 5, false, 30, 15);
+        END IF;
+
+        -- ── Minibar ─────────────────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Minibar') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Minibar', 'ሚኒ ባር', 'coffee', 5, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Soft Drinks',     'ለስላሳ መጠጥ',    1, true, 6, false, 30, 15),
+              (cid, 'Sparkling Water', 'ፈካ ያለ ውሃ',    2, true, 4, false, 30, 15),
+              (cid, 'Beer',            'ቢራ',            3, true, 4, false, 30, 15),
+              (cid, 'Snacks',          'ቁርጥ ቁርጥ',      4, true, 4, false, 30, 15);
+        END IF;
+
+        -- ── Spa (schedule-based) ─────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Spa') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Spa', 'ስፓ', 'flower', 6, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Swedish Massage',    'ስዊድን ማሳጅ',      1, true, 1, true,  60, 1),
+              (cid, 'Deep Tissue Massage','ጥልቅ ማሳጅ',       2, true, 1, true,  60, 1),
+              (cid, 'Hot Stone Massage',  'ሙቅ ድንጋይ ማሳጅ',  3, true, 1, true,  90, 1),
+              (cid, 'Facial Treatment',   'የፊት ሕክምና',      4, true, 1, true,  60, 1),
+              (cid, 'Sauna',              'ሳዌና',            5, true, 1, true,  30, 4),
+              (cid, 'Steam Room',         'ትነት ክፍል',       6, true, 1, true,  30, 4);
+        END IF;
+
+        -- ── Transportation (schedule-based) ──────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Transportation') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Transportation', 'ትራንስፖርት', 'car', 7, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Airport Transfer', 'አውሮፕላን ጣቢያ ትራንስፖርት', 1, true, 1, true,  60,  8),
+              (cid, 'City Tour',        'ከተማ ጉብኝት',              2, true, 1, true,  120, 15),
+              (cid, 'Day Trip',         'ቀን ጉዞ',                  3, true, 1, true,  480, 15);
+        END IF;
+
+        -- ── Fitness and Pool (schedule-based) ────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Fitness and Pool') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Fitness and Pool', 'ጂምና ዋና ገንዳ', 'dumbbell', 8, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Swimming Pool',    'ዋና ገንዳ',     1, true, 1, true, 60, 20),
+              (cid, 'Gym Session',      'ጂም',          2, true, 1, true, 60, 10),
+              (cid, 'Yoga Class',       'ዮጋ',          3, true, 1, true, 60, 10),
+              (cid, 'Personal Training','ግል ስልጠና',    4, true, 1, true, 60,  1);
+        END IF;
+
+        -- ── Business Services ────────────────────────────────────────────────
+        IF NOT EXISTS (SELECT 1 FROM request_categories WHERE hotel_id = h.id AND name = 'Business') THEN
+            INSERT INTO request_categories (hotel_id, name, name_am, icon, sort_order, enabled)
+            VALUES (h.id, 'Business', 'ቢዝነስ አገልግሎት', 'briefcase', 9, true)
+            RETURNING id INTO cid;
+            INSERT INTO request_items (category_id, name, name_am, sort_order, enabled, max_quantity, schedulable, slot_interval_mins, capacity) VALUES
+              (cid, 'Print Documents', 'ሰነዶች ማተሚያ', 1, true, 10, false, 30, 15),
+              (cid, 'Laptop Charger',  'ላፕቶፕ ቻርጀር', 2, true,  1, false, 30, 15),
+              (cid, 'Projector',       'ፕሮጀክተር',     3, true,  1, false, 30, 15);
+        END IF;
+
+    END LOOP;
+END $$;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

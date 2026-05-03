@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface RequestCategoryRepository extends JpaRepository<RequestCategory, Long> {
     List<RequestCategory> findByHotelIdOrderBySortOrder(Long hotelId);
+    List<RequestCategory> findByHotelIdAndEnabledTrueOrderBySortOrder(Long hotelId);
     Optional<RequestCategory> findByHotelIdAndName(Long hotelId, String name);
 }

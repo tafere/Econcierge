@@ -46,7 +46,7 @@ public class GuestController {
         if (room == null || !room.isEnabled())
             return ResponseEntity.notFound().build();
 
-        List<RequestCategory> categories = categoryRepository.findByHotelIdOrderBySortOrder(room.getHotelId());
+        List<RequestCategory> categories = categoryRepository.findByHotelIdAndEnabledTrueOrderBySortOrder(room.getHotelId());
 
         List<Map<String, Object>> menu = categories.stream().map(cat -> {
             List<Map<String, Object>> items = itemRepository

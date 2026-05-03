@@ -27,6 +27,9 @@ public class RequestCategory {
     @Column(name = "eta_minutes")
     private Integer etaMinutes;
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     public Long getId()                  { return id; }
     public Long getHotelId()             { return hotelId; }
     public void setHotelId(Long v)       { this.hotelId = v; }
@@ -40,4 +43,6 @@ public class RequestCategory {
     public void setSortOrder(int v)        { this.sortOrder = v; }
     public Integer getEtaMinutes()         { return etaMinutes; }
     public void setEtaMinutes(Integer v)   { this.etaMinutes = v; }
+    public boolean isEnabled()             { return enabled; }
+    public void setEnabled(boolean v)      { this.enabled = v; }
 }

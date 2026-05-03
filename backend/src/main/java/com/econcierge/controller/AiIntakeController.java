@@ -58,7 +58,7 @@ public class AiIntakeController {
         if (room == null) return ResponseEntity.notFound().build();
 
         // Build menu with both English and Amharic names
-        List<RequestCategory> categories = categoryRepo.findByHotelIdOrderBySortOrder(room.getHotelId());
+        List<RequestCategory> categories = categoryRepo.findByHotelIdAndEnabledTrueOrderBySortOrder(room.getHotelId());
         StringBuilder menu = new StringBuilder("[");
         for (int i = 0; i < categories.size(); i++) {
             RequestCategory cat = categories.get(i);

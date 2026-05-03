@@ -25,6 +25,7 @@ interface Category {
   icon: string;
   sortOrder: number;
   etaMinutes?: number | null;
+  enabled: boolean;
   items: CatItem[];
 }
 
@@ -147,6 +148,14 @@ export default function CategoriesPage() {
     setAddingItem(false);
   };
 
+  const toggleCat = async (catId: number, enabled: boolean) => {
+    const res = await fetch(`/api/dashboard/categories/${catId}`, {
+      method: "PATCH", headers: authH(),
+      body: JSON.stringify({ enabled: !enabled }),
+    });
+    if (res.ok) setCats(prev => prev.map(c => c.id === catId ? { ...c, enabled: !enabled } : c));
+  };
+
   const toggleItem = async (catId: number, itemId: number, enabled: boolean) => {
     const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
       method: "PATCH", headers: authH(),
@@ -245,7 +254,7 @@ export default function CategoriesPage() {
         ) : (
           <div className="space-y-3">
             {cats.map(cat => (
-              <div key={cat.id} className="glass rounded overflow-hidden">
+              <div key={cat.id} className={`glass rounded overflow-hidden transition-opacity ${!cat.enabled ? "opacity-50" : ""}`}>
                 {/* Category header */}
                 <div className="px-4 py-3 flex items-center gap-3">
                   <button onClick={() => toggleExpand(cat.id)}
@@ -298,6 +307,13 @@ export default function CategoriesPage() {
                     </div>
                   ) : (
                     <div className="flex gap-1 shrink-0">
+                      <button onClick={() => toggleCat(cat.id, cat.enabled)}
+                        title={cat.enabled ? t("disableCategory") : t("enableCategory")}
+                        className="p-1.5 rounded transition-colors">
+                        {cat.enabled
+                          ? <ToggleRight className="h-4.5 w-4.5 text-green-600" />
+                          : <ToggleLeft  className="h-4.5 w-4.5 text-stone-400" />}
+                      </button>
                       <button onClick={() => { setEditCatId(cat.id); setEditCatName(cat.name); setEditCatIcon(cat.icon); setEditCatEta(cat.etaMinutes != null ? String(cat.etaMinutes) : ""); }}
                         className="p-1.5 rounded hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors">
                         <Pencil className="h-3.5 w-3.5" /></button>
