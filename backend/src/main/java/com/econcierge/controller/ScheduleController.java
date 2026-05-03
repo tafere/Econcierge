@@ -66,7 +66,7 @@ public class ScheduleController {
         List<Map<String, Object>> slots = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime cursor = dayStart;
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("h:mm a");
 
         while (!cursor.isAfter(dayEnd)) {
             int bookedCount = booked.getOrDefault(cursor, 0);
@@ -150,7 +150,7 @@ public class ScheduleController {
                 "status",     booking.getStatus().name(),
                 "slotTime",   booking.getSlotTime().toString(),
                 "guestCount", booking.getGuestCount(),
-                "message",    "Your booking is confirmed. See you at " + slotTime.toLocalTime() + "!"
+                "message",    "Your booking is confirmed. See you at " + slotTime.toLocalTime().format(DateTimeFormatter.ofPattern("h:mm a")) + "!"
         ));
     }
 
