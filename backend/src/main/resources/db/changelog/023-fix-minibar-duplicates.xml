@@ -21,7 +21,7 @@ BEGIN
     -- ── 2. Disable legacy Restaurant/Café/Bar/Dining categories ─────────────
     UPDATE request_categories
     SET enabled = false
-    WHERE lower(name) SIMILAR TO '%(restaurant|cafe|café|bar|dining|food and beverage|f&b)%'
+    WHERE lower(name) SIMILAR TO '%(restaurant|cafe|café|bar|dining|food and beverage|f&amp;b)%'
       AND name NOT IN ('Minibar', 'Sky Lounge Bar');
 
     -- ── 3. Fix each Minibar: remove hot drinks, ensure clean lineup ──────────
