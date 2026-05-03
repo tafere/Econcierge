@@ -39,6 +39,9 @@ public class RequestItem {
     @Column(nullable = false)
     private int capacity = 15;
 
+    @Column(name = "confirm_only", nullable = false)
+    private boolean confirmOnly = false;
+
     public Long getId()                      { return id; }
     public Long getCategoryId()              { return categoryId; }
     public void setCategoryId(Long v)        { this.categoryId = v; }
@@ -60,4 +63,6 @@ public class RequestItem {
     public void setSlotIntervalMins(int v)   { this.slotIntervalMins = v; }
     public int getCapacity()                 { return capacity; }
     public void setCapacity(int v)           { this.capacity = v; }
+    public boolean isConfirmOnly()           { return confirmOnly; }
+    public void setConfirmOnly(boolean v)    { this.confirmOnly = v; }
 }

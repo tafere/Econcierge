@@ -101,6 +101,7 @@ interface MenuItem {
   schedulable: boolean;
   slotIntervalMins: number;
   capacity: number;
+  confirmOnly?: boolean;
 }
 
 interface MenuCategory {
@@ -267,6 +268,8 @@ export default function GuestPage() {
   const [showCart, setShowCart]         = useState(false);
   const [showFaq, setShowFaq]           = useState(false);
   const [openFaqKey, setOpenFaqKey]     = useState<string | null>(null);
+  const [confirmItem, setConfirmItem]   = useState<MenuItem | null>(null);
+  const [confirming, setConfirming]     = useState(false);
   const [faqQuery, setFaqQuery]         = useState("");
   const [faqAnswer, setFaqAnswer]       = useState<string | null>(null);
   const [faqLoading, setFaqLoading]     = useState(false);
@@ -637,6 +640,36 @@ export default function GuestPage() {
       setFaqAnswer(T("faqAiEmpty"));
     } finally {
       setFaqLoading(false);
+    }
+  };
+
+  // ── Confirm-only submit (e.g. Do Not Disturb) ───────────────────────────
+  const submitConfirmOnly = async () => {
+    if (!confirmItem || !room) return;
+    setConfirming(true);
+    try {
+      const res = await fetch("/api/guest/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: room.roomId, itemId: confirmItem.id,
+          quantity: 1, notes: "", deviceId: getDeviceId(),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const newReq: TrackedRequest = {
+          id: data.id, itemName: lang === "am" && confirmItem.nameAm ? confirmItem.nameAm : confirmItem.name,
+          categoryName: lang === "am" && selectedCat?.nameAm ? selectedCat.nameAm : (selectedCat?.name ?? ""),
+          quantity: 1, submittedAt: new Date().toISOString(), status: "PENDING",
+        };
+        const updated = [...tracked, newReq];
+        setTracked(updated);
+        saveTracked(qrToken!, updated);
+      }
+    } finally {
+      setConfirming(false);
+      setConfirmItem(null);
     }
   };
 
@@ -1188,7 +1221,7 @@ export default function GuestPage() {
                   {selectedCat.items.map(item => (
                     <button
                       key={item.id}
-                      onClick={() => selectItem(item)}
+                      onClick={() => item.confirmOnly ? setConfirmItem(item) : selectItem(item)}
                       className={`w-full px-4 py-4 text-left flex items-center justify-between gap-3 rounded-2xl transition-all
                         ${hasHero
                           ? "bg-black/50 border-2 border-white/30 hover:bg-black/40 hover:border-white/45 backdrop-blur-sm"
@@ -1200,11 +1233,49 @@ export default function GuestPage() {
                           <p className={`text-xs mt-0.5 truncate ${hasHero ? "text-white/50" : "text-stone-400"}`}>{item.description}</p>
                         )}
                       </div>
-                      <ChevronRight className={`h-4 w-4 shrink-0 ${hasHero ? "text-amber-400/80" : "text-stone-300"}`} />
+                      {item.confirmOnly
+                        ? <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${hasHero ? "bg-white/15 text-white/70" : "bg-stone-100 text-stone-500"}`}>TAP</span>
+                        : <ChevronRight className={`h-4 w-4 shrink-0 ${hasHero ? "text-amber-400/80" : "text-stone-300"}`} />}
                     </button>
                   ))}
                 </div>
               </>
+            )}
+
+            {/* Confirm-only modal (e.g. Do Not Disturb) */}
+            {confirmItem && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+                <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                  <div className="px-6 pt-6 pb-4">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-brand-700 dark:text-brand-400 mb-1">{lang === "am" && selectedCat?.nameAm ? selectedCat.nameAm : selectedCat?.name}</p>
+                    <h3 className="text-lg font-extrabold text-stone-900 dark:text-zinc-100 leading-tight">
+                      {lang === "am" && confirmItem.nameAm ? confirmItem.nameAm : confirmItem.name}
+                    </h3>
+                    <p className="text-sm text-stone-500 dark:text-zinc-400 mt-2 leading-relaxed">
+                      {lang === "am"
+                        ? "ይህን ጥያቄ ማስገባት ይፈልጋሉ?"
+                        : "Submit this request to our housekeeping team?"}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 px-6 pb-6">
+                    <button
+                      onClick={() => setConfirmItem(null)}
+                      disabled={confirming}
+                      className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-zinc-600 text-sm font-semibold text-stone-600 dark:text-zinc-300 hover:bg-stone-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                    >
+                      {lang === "am" ? "ይቅር" : "Cancel"}
+                    </button>
+                    <button
+                      onClick={submitConfirmOnly}
+                      disabled={confirming}
+                      className="flex-1 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold hover:bg-brand-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {confirming && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {lang === "am" ? "አዎ፣ ላክ" : "Yes, submit"}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Step 3a: Slot picker (schedulable items) */}

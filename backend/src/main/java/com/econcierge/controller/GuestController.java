@@ -62,6 +62,7 @@ public class GuestController {
                         m.put("schedulable",      item.isSchedulable());
                         m.put("slotIntervalMins", item.getSlotIntervalMins());
                         m.put("capacity",         item.getCapacity());
+                        m.put("confirmOnly",      item.isConfirmOnly());
                         return m;
                     }).toList();
 
