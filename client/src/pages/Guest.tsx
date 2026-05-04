@@ -686,6 +686,19 @@ export default function GuestPage() {
     }
   };
 
+  const formatSlotTime = (slotTime: string) => {
+    try {
+      const dt = new Date(slotTime.replace(" ", "T"));
+      const today    = new Date(); today.setHours(0,0,0,0);
+      const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+      const day      = new Date(dt);   day.setHours(0,0,0,0);
+      const timeStr  = dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+      if (day.getTime() === today.getTime())    return `${lang === "am" ? "ዛሬ" : "Today"} · ${timeStr}`;
+      if (day.getTime() === tomorrow.getTime()) return `${lang === "am" ? "ነገ" : "Tomorrow"} · ${timeStr}`;
+      return dt.toLocaleDateString([], { month: "short", day: "numeric" }) + " · " + timeStr;
+    } catch { return slotTime; }
+  };
+
   const timeAgo = (iso: string) => {
     const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
     if (mins < 1)    return T("justNow");
@@ -839,8 +852,8 @@ export default function GuestPage() {
         {/* ── Main flow (hidden while cart is open) ─────────────────────── */}
         {!showCart && (
           <>
-            {/* My Requests tracker — only on main screen */}
-            {!selectedCat && !selectedItem && tracked.filter(r => !dismissed[r.id]).length > 0 && (
+            {/* My Requests + Bookings — unified tracker */}
+            {!selectedCat && !selectedItem && (tracked.filter(r => !dismissed[r.id]).length > 0 || bookings.length > 0) && (
               <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/65 backdrop-blur-sm border border-white/10" : "glass"}`}>
                 <div className={`flex items-center justify-between px-4 py-2.5 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
                   <p className={`text-[11px] font-bold uppercase tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myRequests")}</p>
@@ -919,22 +932,16 @@ export default function GuestPage() {
                       )}
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* My Bookings tracker */}
-            {!selectedCat && !selectedItem && bookings.length > 0 && (
-              <div className={`rounded-xl overflow-hidden ${hasHero ? "bg-black/65 backdrop-blur-sm border border-white/10" : "glass"}`}>
-                <div className={`px-4 py-3 border-b ${hasHero ? "border-white/10" : "border-stone-100"}`}>
-                  <p className={`text-xs font-medium tracking-wider ${hasHero ? "text-white/50" : "text-stone-400"}`}>{T("myBookings")}</p>
-                </div>
-                <div className={`divide-y ${hasHero ? "divide-white/10" : "divide-stone-100"}`}>
                   {bookings.map(b => (
-                    <div key={b.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                    <div key={`booking-${b.id}`} className="px-4 py-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className={`text-sm font-semibold ${hasHero ? "text-white" : "text-stone-800"}`}>{b.itemName}</p>
-                        <p className={`text-xs mt-0.5 ${hasHero ? "text-white/40" : "text-stone-400"}`}>{b.slotTime} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className={`text-sm font-semibold truncate ${hasHero ? "text-white" : "text-stone-800"}`}>{b.itemName}</p>
+                        </div>
+                        <div className={`flex items-center gap-1.5 mt-0.5 text-[11px] ${hasHero ? "text-white/40" : "text-stone-400"}`}>
+                          <Clock className="h-3 w-3 shrink-0" />
+                          {formatSlotTime(b.slotTime)} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}
+                        </div>
                       </div>
                       <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0
                         ${hasHero
