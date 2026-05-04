@@ -155,6 +155,32 @@ public class ScheduleController {
     }
 
     /**
+     * POST /api/schedule/bookings/{id}/cancel
+     * Guest cancels a pending booking. Ownership verified via qrToken.
+     */
+    @PostMapping("/bookings/{id}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long id,
+                                           @RequestBody Map<String, Object> body) {
+        String qrToken = body.get("qrToken") != null ? body.get("qrToken").toString() : null;
+        if (qrToken == null || qrToken.isBlank())
+            return ResponseEntity.badRequest().body(Map.of("error", "qrToken required"));
+
+        Booking booking = bookingRepository.findById(id).orElse(null);
+        if (booking == null) return ResponseEntity.notFound().build();
+
+        Room room = roomRepository.findById(booking.getRoomId()).orElse(null);
+        if (room == null || !room.getQrToken().equals(qrToken))
+            return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+
+        if (booking.getStatus() != Booking.Status.PENDING)
+            return ResponseEntity.badRequest().body(Map.of("error", "Only pending bookings can be cancelled"));
+
+        booking.setStatus(Booking.Status.CANCELLED);
+        bookingRepository.save(booking);
+        return ResponseEntity.ok(Map.of("status", "CANCELLED"));
+    }
+
+    /**
      * GET /api/schedule/bookings/status?ids=1,2,3
      * Guest polls booking statuses.
      */

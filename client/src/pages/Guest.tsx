@@ -286,7 +286,8 @@ export default function GuestPage() {
   const [sending, setSending] = useState(false);
 
   // cancellation
-  const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [cancellingId, setCancellingId]               = useState<number | null>(null);
+  const [cancellingBookingId, setCancellingBookingId] = useState<number | null>(null);
 
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
@@ -531,6 +532,30 @@ export default function GuestPage() {
     setCancellingId(null);
   };
 
+  const cancelBooking = async (id: number) => {
+    const res = await fetch(`/api/schedule/bookings/${id}/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ qrToken: token }),
+    });
+    if (res.ok) {
+      setBookings(prev => {
+        const next = prev.map(b => b.id === id ? { ...b, status: "CANCELLED" as const } : b);
+        saveBookings(token!, next);
+        return next;
+      });
+    }
+    setCancellingBookingId(null);
+  };
+
+  const dismissBooking = (id: number) => {
+    setBookings(prev => {
+      const next = prev.filter(b => b.id !== id);
+      saveBookings(token!, next);
+      return next;
+    });
+  };
+
   const dismissRequest = (id: number, status: string) => {
     setDismissed(prev => {
       const next = { ...prev, [id]: status };
@@ -565,7 +590,7 @@ export default function GuestPage() {
       const d = await res.json();
       const nb: TrackedBooking = {
         id: d.id, itemName: lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name,
-        slotTime: `${slotDate} ${selectedSlot.time}`,
+        slotTime: selectedSlot.dateTime,
         guestCount, status: "PENDING",
       };
       setBookings(prev => {
@@ -688,14 +713,33 @@ export default function GuestPage() {
 
   const formatSlotTime = (slotTime: string) => {
     try {
-      const dt = new Date(slotTime.replace(" ", "T"));
-      const today    = new Date(); today.setHours(0,0,0,0);
+      let year = 0, month = 0, day = 0, hour = 0, minute = 0;
+      // "2026-05-04T17:00:00" — ISO with T (new storage format)
+      const iso = slotTime.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      if (iso) {
+        [,year, month, day, hour, minute] = iso.map(Number);
+      } else {
+        // "2026-05-04 17:00" or "2026-05-04 5:00 PM" — legacy space-separated
+        const sp = slotTime.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+        if (!sp) return slotTime;
+        [,year, month, day, hour, minute] = sp.slice(0, 6).map(Number);
+        const ampm = sp[6];
+        if (ampm) {
+          if (ampm.toUpperCase() === "PM" && hour !== 12) hour += 12;
+          if (ampm.toUpperCase() === "AM" && hour === 12) hour = 0;
+        }
+      }
+      const h12    = hour % 12 || 12;
+      const mins   = String(minute).padStart(2, "0");
+      const ampm   = hour >= 12 ? "PM" : "AM";
+      const timeStr = `${h12}:${mins} ${ampm}`;
+      const today    = new Date(); today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-      const day      = new Date(dt);   day.setHours(0,0,0,0);
-      const timeStr  = dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
-      if (day.getTime() === today.getTime())    return `${lang === "am" ? "ዛሬ" : "Today"} · ${timeStr}`;
-      if (day.getTime() === tomorrow.getTime()) return `${lang === "am" ? "ነገ" : "Tomorrow"} · ${timeStr}`;
-      return dt.toLocaleDateString([], { month: "short", day: "numeric" }) + " · " + timeStr;
+      const slotDay  = new Date(year, month - 1, day);
+      const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      if (slotDay.getTime() === today.getTime())    return `${lang === "am" ? "ዛሬ" : "Today"} · ${timeStr}`;
+      if (slotDay.getTime() === tomorrow.getTime()) return `${lang === "am" ? "ነገ" : "Tomorrow"} · ${timeStr}`;
+      return `${MONTHS[month - 1]} ${day} · ${timeStr}`;
     } catch { return slotTime; }
   };
 
@@ -933,26 +977,48 @@ export default function GuestPage() {
                     </div>
                   ))}
                   {bookings.map(b => (
-                    <div key={`booking-${b.id}`} className="px-4 py-3 flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
+                    <div key={`booking-${b.id}`} className="px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <p className={`text-sm font-semibold truncate ${hasHero ? "text-white" : "text-stone-800"}`}>{b.itemName}</p>
+                          <div className={`flex items-center gap-1.5 mt-0.5 text-[11px] ${hasHero ? "text-white/40" : "text-stone-400"}`}>
+                            <Clock className="h-3 w-3 shrink-0" />
+                            {formatSlotTime(b.slotTime)} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}
+                          </div>
                         </div>
-                        <div className={`flex items-center gap-1.5 mt-0.5 text-[11px] ${hasHero ? "text-white/40" : "text-stone-400"}`}>
-                          <Clock className="h-3 w-3 shrink-0" />
-                          {formatSlotTime(b.slotTime)} · {b.guestCount} {b.guestCount !== 1 ? T("guests") : T("guest")}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border
+                            ${hasHero
+                              ? b.status === "CONFIRMED" ? "border-green-400/50 text-green-300"
+                              : b.status === "CANCELLED" ? "border-white/20 text-white/40"
+                              : "border-amber-400/50 text-amber-300"
+                              : b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-200"
+                              : b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-200"
+                              : "bg-amber-100 text-amber-800 border-amber-200"}`}>
+                            {b.status === "CONFIRMED" ? T("confirmed") : b.status === "CANCELLED" ? T("cancelled") : T("pending")}
+                          </span>
+                          <button onClick={() => dismissBooking(b.id)}
+                            className={`transition-colors ${hasHero ? "text-white/25 hover:text-white/70" : "text-stone-300 hover:text-stone-500"}`}>
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </div>
-                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0
-                        ${hasHero
-                          ? b.status === "CONFIRMED" ? "border-green-400/50 text-green-300"
-                          : b.status === "CANCELLED" ? "border-white/20 text-white/40"
-                          : "border-amber-400/50 text-amber-300"
-                          : b.status === "CONFIRMED" ? "bg-green-100 text-green-800 border-green-200"
-                          : b.status === "CANCELLED" ? "bg-stone-100 text-stone-500 border-stone-200"
-                          : "bg-amber-100 text-amber-800 border-amber-200"}`}>
-                        {b.status === "CONFIRMED" ? T("confirmed") : b.status === "CANCELLED" ? T("cancelled") : T("pending")}
-                      </span>
+                      {b.status === "PENDING" && (
+                        <div className="mt-1">
+                          {cancellingBookingId === b.id ? (
+                            <div className={`flex items-center gap-2 rounded px-3 py-2 ${hasHero ? "bg-red-900/30" : "bg-red-50"}`}>
+                              <p className={`text-xs flex-1 ${hasHero ? "text-red-300" : "text-red-700"}`}>{T("confirmCancel")}</p>
+                              <button onClick={() => cancelBooking(b.id)} className="text-xs font-bold text-red-400 hover:text-red-200 transition-colors">{T("yes")}</button>
+                              <button onClick={() => setCancellingBookingId(null)} className={`text-xs transition-colors ${hasHero ? "text-white/40 hover:text-white/70" : "text-stone-400 hover:text-stone-600"}`}>{T("no")}</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setCancellingBookingId(b.id)}
+                              className={`text-[11px] transition-colors ${hasHero ? "text-white/30 hover:text-red-400" : "text-stone-400 hover:text-red-500"}`}>
+                              {T("cancelRequest")}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
