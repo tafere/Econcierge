@@ -29,5 +29,6 @@
     <include file="classpath:db/changelog/022-fix-transport-sauna.xml"/>
     <include file="classpath:db/changelog/023-fix-minibar-duplicates.xml"/>
     <include file="classpath:db/changelog/024-confirm-only-dnd.xml"/>
+    <include file="classpath:db/changelog/025-widen-image-urls.xml"/>
 
 </databaseChangeLog>

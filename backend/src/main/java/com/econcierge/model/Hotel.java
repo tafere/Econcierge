@@ -28,10 +28,10 @@ public class Hotel {
     @Column(length = 300)
     private String tagline;
 
-    @Column(name = "logo_url", length = 500)
+    @Column(name = "logo_url", columnDefinition = "TEXT")
     private String logoUrl;
 
-    @Column(name = "hero_image_url", length = 500)
+    @Column(name = "hero_image_url", columnDefinition = "TEXT")
     private String heroImageUrl;
 
     @Column(length = 300)
