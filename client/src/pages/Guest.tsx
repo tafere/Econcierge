@@ -340,9 +340,9 @@ export default function GuestPage() {
         const localDismissed = loadDismissed(token);
 
         // Fetch last-24h requests for this room from DB.
-        // QR token is the room's shared secret — all requests here belong to this guest.
+        // Filter by deviceId so a new guest never sees the previous occupant's requests.
         try {
-          const res = await fetch(`/api/guest/room/${token}/requests`);
+          const res = await fetch(`/api/guest/room/${token}/requests?deviceId=${encodeURIComponent(getDeviceId())}`);
           if (res.ok) {
             const dbReqs: Array<{
               id: number; itemName: string; itemNameAm: string;

@@ -154,20 +154,23 @@ public class GuestController {
     }
 
     /** Recent requests for this room — used to restore tracker after a fresh QR scan.
-     *  The QR token is the room's shared secret; all requests for the room belong to the guest. */
+     *  Filtered by deviceId when provided so a new guest never sees a prior occupant's requests. */
     @GetMapping("/room/{token}/requests")
-    public ResponseEntity<?> getRecentRequests(@PathVariable String token) {
+    public ResponseEntity<?> getRecentRequests(@PathVariable String token,
+                                               @RequestParam(required = false) String deviceId) {
         Room room = roomRepository.findByQrToken(token).orElse(null);
         if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
 
-        // Active requests: always show (guest may have submitted hours ago and returned).
-        // Terminal requests (done/cancelled): only within the last 4 hours so a new guest
-        // does not see a previous occupant's history.
-        var activeSince   = LocalDateTime.now().minusDays(7);   // far back — covers any active session
+        // Active requests visible up to 48 h back as a fallback safety window.
+        // Terminal requests only within the last 4 hours.
+        var activeSince   = LocalDateTime.now().minusHours(48);
         var terminalSince = LocalDateTime.now().minusHours(4);
 
-        List<Map<String, Object>> result = requestRepository
-                .findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), activeSince)
+        var baseList = (deviceId != null && !deviceId.isBlank())
+                ? requestRepository.findByRoomForDevice(room.getId(), deviceId, activeSince)
+                : requestRepository.findByRoomIdAndCreatedAtAfterOrderByCreatedAtDesc(room.getId(), activeSince);
+
+        List<Map<String, Object>> result = baseList
                 .stream()
                 .filter(r -> {
                     boolean isActive = r.getStatus() == ServiceRequest.Status.PENDING
