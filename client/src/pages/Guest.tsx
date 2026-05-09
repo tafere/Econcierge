@@ -285,20 +285,6 @@ export default function GuestPage() {
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedCat, selectedItem, showCart, showFaq]);
 
-  useEffect(() => {
-    if (highlightId == null) return;
-    const timer = setTimeout(() => {
-      const el = document.querySelector(`[data-req-id="${highlightId}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("req-highlight");
-        setTimeout(() => el.classList.remove("req-highlight"), 2000);
-      }
-      setHighlightId(null);
-    }, 80);
-    return () => clearTimeout(timer);
-  }, [highlightId]);
-
   // form
   const [quantity, setQuantity]   = useState(1);
   const [notes, setNotes]         = useState("");
@@ -316,6 +302,20 @@ export default function GuestPage() {
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
   const [dismissed, setDismissed] = useState<Record<number, string>>({});
   const [highlightId, setHighlightId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (highlightId == null) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-req-id="${highlightId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("req-highlight");
+        setTimeout(() => el.classList.remove("req-highlight"), 2000);
+      }
+      setHighlightId(null);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
 
   // AI intake
   const [showAi, setShowAi]             = useState(false);
@@ -727,7 +727,7 @@ export default function GuestPage() {
         };
         const updated = [...tracked, newReq];
         setTracked(updated);
-        saveTracked(qrToken!, updated);
+        saveTracked(token!, updated);
       }
     } finally {
       setConfirming(false);
