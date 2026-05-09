@@ -161,10 +161,10 @@ public class GuestController {
         Room room = roomRepository.findByQrToken(token).orElse(null);
         if (room == null || !room.isEnabled()) return ResponseEntity.notFound().build();
 
-        // Active requests visible up to 48 h back as a fallback safety window.
-        // Terminal requests only within the last 4 hours.
-        var activeSince   = LocalDateTime.now().minusHours(48);
-        var terminalSince = LocalDateTime.now().minusHours(4);
+        // 16-hour window: covers "submitted last night, checking this morning" without
+        // bleeding into a new guest's session the following day.
+        var activeSince   = LocalDateTime.now().minusHours(16);
+        var terminalSince = LocalDateTime.now().minusHours(16);
 
         var baseList = (deviceId != null && !deviceId.isBlank())
                 ? requestRepository.findByRoomForDevice(room.getId(), deviceId, activeSince)
