@@ -85,3 +85,12 @@ html.dark body {
 
 html.dark ::-webkit-scrollbar-thumb { background: hsl(215 20% 30%); }
 html.dark ::-webkit-scrollbar-thumb:hover { background: hsl(215 20% 40%); }
+
+/* Notification tap → highlight flash on request row */
+@keyframes req-flash {
+  0%   { background-color: transparent; }
+  20%  { background-color: rgb(251 191 36 / 0.25); }
+  80%  { background-color: rgb(251 191 36 / 0.15); }
+  100% { background-color: transparent; }
+}
+.req-highlight { animation: req-flash 2s ease-out forwards; border-radius: 0.5rem; }

@@ -276,6 +276,20 @@ export default function GuestPage() {
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedCat, selectedItem, showCart, showFaq]);
 
+  useEffect(() => {
+    if (highlightId == null) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-req-id="${highlightId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("req-highlight");
+        setTimeout(() => el.classList.remove("req-highlight"), 2000);
+      }
+      setHighlightId(null);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
+
   // form
   const [quantity, setQuantity]   = useState(1);
   const [notes, setNotes]         = useState("");
@@ -292,6 +306,7 @@ export default function GuestPage() {
   // request tracker
   const [tracked, setTracked] = useState<TrackedRequest[]>([]);
   const [dismissed, setDismissed] = useState<Record<number, string>>({});
+  const [highlightId, setHighlightId] = useState<number | null>(null);
 
   // AI intake
   const [showAi, setShowAi]             = useState(false);
@@ -430,7 +445,20 @@ export default function GuestPage() {
       changed.forEach(u => {
         const prev = tracked.find(r => r.id === u.id)!;
         try { playStatusSound(); } catch {}
-        try { showNotification("Request Update", `Your ${prev.itemName} request is now ${u.status.replace("_", " ")}`); } catch {}
+        try {
+          const reqId = prev.id;
+          showNotification(
+            "Request Update",
+            `Your ${prev.itemName} request is now ${u.status.replace("_", " ")}`,
+            () => {
+              setSelectedCat(null);
+              setSelectedItem(null);
+              setShowCart(false);
+              setShowFaq(false);
+              setHighlightId(reqId);
+            }
+          );
+        } catch {}
         if (dismissed[prev.id]) {
           setDismissed(d => {
             if (!d[prev.id]) return d;
@@ -907,7 +935,7 @@ export default function GuestPage() {
                 </div>
                 <div className={`divide-y ${hasHero ? "divide-white/10" : "divide-stone-50"}`}>
                   {tracked.filter(r => !dismissed[r.id]).map(req => (
-                    <div key={req.id} className="px-4 py-3">
+                    <div key={req.id} data-req-id={req.id} className="px-4 py-3 transition-colors duration-300">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">

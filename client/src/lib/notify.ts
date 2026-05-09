@@ -8,9 +8,10 @@ export async function requestNotifyPermission(): Promise<boolean> {
 }
 
 /** Show a browser notification (falls back silently if no permission). */
-export function showNotification(title: string, body: string, icon = "/icon-192.png") {
+export function showNotification(title: string, body: string, onClick?: () => void, icon = "/icon-192.png") {
   if (Notification.permission !== "granted") return;
   const n = new Notification(title, { body, icon, badge: "/icon-192.png" });
+  if (onClick) n.onclick = () => { window.focus(); n.close(); onClick(); };
   setTimeout(() => n.close(), 8000);
 }
 
