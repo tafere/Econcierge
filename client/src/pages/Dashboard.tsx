@@ -243,7 +243,7 @@ function RequestTable({
         const accentColor =
           isHighlighted ? "bg-brand-400" :
           isEscalated   ? "bg-red-500" :
-          isOverdue     ? "bg-orange-400" :
+          isOverdue     ? "bg-rose-400" :
           req.status === "PENDING"     ? "bg-amber-300" :
           req.status === "IN_PROGRESS" ? "bg-blue-400" :
           "bg-transparent";
@@ -444,7 +444,7 @@ function RequestTable({
                 )}
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className={`text-xs font-medium
-                    ${isEscalated ? "text-red-600" : isOverdue ? "text-orange-500" : "text-stone-500 dark:text-zinc-400"}`}>
+                    ${isEscalated ? "text-red-500" : isOverdue ? "text-rose-400" : "text-stone-500 dark:text-zinc-400"}`}>
                     {fmtDateTime(req.createdAt)}
                   </p>
                   {req.completedAt && (
@@ -568,7 +568,7 @@ function BookingSection({
           const isOverdueBooking = b.status === "PENDING" && new Date(b.slotTimeIso) < new Date();
           const accentBg =
             b.status === "CONFIRMED"  ? "bg-green-400" :
-            isOverdueBooking          ? "bg-orange-400" :
+            isOverdueBooking          ? "bg-rose-400" :
             "bg-transparent";
           return (
             <div key={b.id}
@@ -930,16 +930,16 @@ export default function DashboardPage() {
       onClick={() => setTab(tabId)}
       className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors w-full sm:w-auto
         ${tab === tabId
-          ? "bg-orange-600 text-white shadow-sm"
+          ? "bg-zinc-100 text-zinc-900 shadow-sm"
           : urgent && (count ?? 0) > 0
-            ? "bg-white/70 dark:bg-zinc-800/70 text-orange-700 border border-orange-300 hover:border-orange-400"
+            ? "bg-white/70 dark:bg-zinc-800/70 text-rose-400 border border-rose-400/50 hover:border-rose-400"
             : "bg-white/70 dark:bg-zinc-800/70 text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-700 hover:border-stone-300 dark:hover:border-zinc-600"}`}
     >
       {label}
       <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded
         ${tab === tabId
-          ? "bg-white/20 text-white"
-          : urgent && (count ?? 0) > 0 ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700" : "bg-stone-100 dark:bg-zinc-700 text-stone-500 dark:text-zinc-400"}`}>
+          ? "bg-zinc-200 text-zinc-700"
+          : urgent && (count ?? 0) > 0 ? "bg-rose-900/30 text-rose-400" : "bg-stone-100 dark:bg-zinc-700 text-stone-500 dark:text-zinc-400"}`}>
         {count}
       </span>
     </button>
