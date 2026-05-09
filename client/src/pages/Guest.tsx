@@ -399,8 +399,7 @@ export default function GuestPage() {
               acceptedAt:   r.acceptedAt ?? null,
             }));
 
-            // Append local entries not returned by DB (older than today)
-            local.forEach(r => { if (!dbMap.has(r.id)) merged.push(r); });
+            // DB is the authoritative window — do not append old localStorage entries.
 
             merged.sort((a, b) =>
               new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
