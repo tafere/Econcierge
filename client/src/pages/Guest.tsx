@@ -242,13 +242,22 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 const CATEGORY_IMAGE: Record<string, string> = {};
 
-const STATUS_STYLE: Record<string, string> = {
-  PENDING:     "bg-amber-100 text-amber-800 border-amber-200",
-  IN_PROGRESS: "bg-blue-100  text-blue-800  border-blue-200",
-  DONE:        "bg-green-100 text-green-800 border-green-200",
-  CANCELLED:        "bg-stone-100 text-stone-500 border-stone-200",
-  GUEST_CANCELLED:  "bg-stone-100 text-stone-500 border-stone-200",
-  DECLINED:         "bg-red-100   text-red-700   border-red-200",
+const STATUS_DOT: Record<string, string> = {
+  PENDING:        "bg-amber-400",
+  IN_PROGRESS:    "bg-sky-400",
+  DONE:           "bg-emerald-400",
+  CANCELLED:      "bg-stone-400",
+  GUEST_CANCELLED:"bg-stone-400",
+  DECLINED:       "bg-rose-400",
+};
+
+const STATUS_DOT_HERO: Record<string, string> = {
+  PENDING:        "bg-amber-300",
+  IN_PROGRESS:    "bg-sky-300",
+  DONE:           "bg-emerald-300",
+  CANCELLED:      "bg-white/30",
+  GUEST_CANCELLED:"bg-white/30",
+  DECLINED:       "bg-rose-300",
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -795,7 +804,7 @@ export default function GuestPage() {
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-brand-700" />
+      <Loader2 className="h-8 w-8 animate-spin text-stone-400" />
     </div>
   );
 
@@ -823,7 +832,7 @@ export default function GuestPage() {
       )}
 
       {/* Header */}
-      <div className={`text-white px-4 py-5 ${hasHero ? "bg-black/20 backdrop-blur-sm" : "bg-brand-700"}`}>
+      <div className={`text-white px-4 py-5 ${hasHero ? "bg-black/20 backdrop-blur-sm" : "bg-stone-900"}`}>
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             {room!.logoUrl ? (
@@ -853,7 +862,7 @@ export default function GuestPage() {
             <button
               onClick={cycleLanguage}
               className={`text-xs font-bold transition-colors rounded px-3 py-1.5 text-white flex items-center gap-1
-                ${hasHero ? "bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20" : "bg-brand-800 hover:bg-brand-900 text-amber-100"}`}
+                ${hasHero ? "bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20" : "border border-white/20 hover:bg-white/10 text-white/90"}`}
             >
               <Languages className="h-3.5 w-3.5" />
               {LANGUAGES.find(l => l.code === lang)?.label ?? lang.toUpperCase()}
@@ -950,15 +959,11 @@ export default function GuestPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border
-                            ${hasHero
-                              ? req.status === "PENDING"     ? "border-amber-400 text-amber-300"
-                              : req.status === "IN_PROGRESS" ? "border-blue-400 text-blue-300"
-                              : req.status === "DONE"        ? "border-green-400 text-green-300"
-                              : req.status === "DECLINED"    ? "border-red-400 text-red-300"
-                              : "border-white/40 text-white/60"
-                              : STATUS_STYLE[req.status]}`}>
-                            {statusLabel(req.status)}
+                          <span className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasHero ? STATUS_DOT_HERO[req.status] : STATUS_DOT[req.status]}`} />
+                            <span className={`text-[11px] font-medium tracking-wide ${hasHero ? "text-white/70" : "text-stone-500"}`}>
+                              {statusLabel(req.status)}
+                            </span>
                           </span>
                           {/* X always dismisses from screen — never cancels */}
                           {cancellingId !== req.id && (
