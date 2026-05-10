@@ -403,7 +403,7 @@ function RequestTable({
 
             return (
               <tr key={req.id}
-                id={`request-${req.id}`}
+                id={`request-table-${req.id}`}
                 className={`border-l-4 transition-all duration-500
                   ${isHighlighted ? "ring-2 ring-inset ring-zinc-400 bg-amber-50/60 dark:bg-amber-900/20" :
                     isEscalated  ? "border-l-red-500 hover:bg-zinc-700/30" :
@@ -787,7 +787,9 @@ export default function DashboardPage() {
     setTab("ACTIVE");
     setHighlightedId(pendingTarget);
     setTimeout(() => {
-      document.getElementById(`request-${pendingTarget}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const isDesktop = window.innerWidth >= 640;
+      const id = isDesktop ? `request-table-${pendingTarget}` : `request-${pendingTarget}`;
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 150);
     setTimeout(() => { setHighlightedId(null); setPendingTarget(null); }, 3000);
   }, [pendingTarget]);
