@@ -57,8 +57,8 @@ export default function NavBar() {
   const drawerLink = (path: string) =>
     `w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left
     ${active(path)
-      ? "bg-brand-700 text-white"
-      : "text-stone-700 dark:text-zinc-300 hover:bg-brand-100 dark:hover:bg-zinc-700 hover:text-brand-800 dark:hover:text-zinc-100"}`;
+      ? "bg-zinc-900 dark:bg-zinc-700 text-white"
+      : "text-stone-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100"}`;
 
   const go = (path: string) => { navigate(path); setDrawerOpen(false); };
 
@@ -109,7 +109,7 @@ export default function NavBar() {
                         <div key={n.id}
                           className={`flex items-start gap-3 px-4 py-3 transition-colors
                             ${n.read ? "opacity-50 bg-stone-50 dark:bg-zinc-900" : "hover:bg-stone-50 dark:hover:bg-zinc-700"}`}>
-                          <div className={`mt-0.5 shrink-0 ${n.type === "past_due" ? "text-orange-500" : "text-brand-700"}`}>
+                          <div className={`mt-0.5 shrink-0 ${n.type === "past_due" ? "text-rose-400" : "text-zinc-500"}`}>
                             {n.type === "past_due"
                               ? <AlertCircle className="h-4 w-4" />
                               : <Bell className="h-4 w-4" />}
@@ -178,7 +178,7 @@ export default function NavBar() {
                     {LANGUAGES.map(l => (
                       <button key={l.code} onClick={() => { setLanguage(l.code as Lang); setLangOpen(false); }}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 dark:hover:bg-zinc-700 transition-colors
-                          ${lang === l.code ? "font-bold text-brand-700" : "text-stone-700 dark:text-zinc-300"}`}>
+                          ${lang === l.code ? "font-bold text-zinc-900 dark:text-white" : "text-stone-700 dark:text-zinc-300"}`}>
                         {l.label}
                       </button>
                     ))}
@@ -213,7 +213,7 @@ export default function NavBar() {
             {/* Drawer header */}
             <div className="bg-zinc-900 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-7 w-7 rounded bg-brand-600 flex items-center justify-center shrink-0">
+                <div className="h-7 w-7 rounded bg-zinc-700 flex items-center justify-center shrink-0">
                   <span className="text-white font-extrabold text-sm uppercase">
                     {user?.fullName?.charAt(0) ?? "?"}
                   </span>
@@ -267,7 +267,7 @@ export default function NavBar() {
                 {LANGUAGES.map(l => (
                   <button key={l.code} onClick={() => setLanguage(l.code as Lang)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded text-sm font-semibold transition-colors text-left
-                      ${lang === l.code ? "bg-brand-700 text-white" : "text-stone-700 dark:text-zinc-300 hover:bg-brand-100 dark:hover:bg-zinc-700 hover:text-brand-800 dark:hover:text-zinc-100"}`}>
+                      ${lang === l.code ? "bg-zinc-900 dark:bg-zinc-700 text-white" : "text-stone-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
                     <Languages className="h-4 w-4 shrink-0" /> {l.label}
                   </button>
                 ))}

@@ -20,7 +20,7 @@ const ROLES = [
   { value: "HOUSEKEEPING",       color: "bg-green-100 text-green-700 border-green-200",    labelKey: "roleHousekeeping" },
   { value: "MAINTENANCE",        color: "bg-blue-100 text-blue-700 border-blue-200",       labelKey: "roleMaintenance" },
   { value: "TRANSPORT",          color: "bg-purple-100 text-purple-700 border-purple-200", labelKey: "roleTransport" },
-  { value: "RESTAURANT",         color: "bg-orange-100 text-orange-700 border-orange-200", labelKey: "roleRestaurant" },
+  { value: "RESTAURANT",         color: "bg-stone-100 text-stone-600 border-stone-200 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600", labelKey: "roleRestaurant" },
   { value: "CAFE_BAR",           color: "bg-amber-100 text-amber-700 border-amber-200",    labelKey: "roleCafeBar" },
   { value: "SPA",                color: "bg-pink-100 text-pink-700 border-pink-200",       labelKey: "roleSpa" },
   { value: "GYM",                color: "bg-red-100 text-red-700 border-red-200",          labelKey: "roleGym" },
@@ -120,7 +120,7 @@ export default function StaffManagementPage() {
     if (res.ok) setStaff(prev => prev.filter(s => s.id !== id));
   };
 
-  const inputCls = "w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700";
+  const inputCls = "w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400";
 
   return (
     <div className="min-h-screen">
@@ -134,8 +134,8 @@ export default function StaffManagementPage() {
           </div>
           <button
             onClick={() => { setShowAdd(v => !v); setError(null); }}
-            className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
-              px-4 py-2 rounded hover:bg-brand-800 transition-colors"
+            className="flex items-center gap-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-semibold
+              px-4 py-2 rounded hover:bg-zinc-700 dark:hover:bg-white transition-colors"
           >
             <Plus className="h-4 w-4" /> {t("addStaff")}
           </button>
@@ -145,7 +145,7 @@ export default function StaffManagementPage() {
         {showAdd && (
           <form onSubmit={addStaff} className="glass rounded p-5 space-y-4">
             <h3 className="font-semibold text-stone-800 dark:text-zinc-200 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-brand-700" /> {t("newStaffMember")}
+              <ShieldCheck className="h-4 w-4 text-zinc-500" /> {t("newStaffMember")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -179,8 +179,8 @@ export default function StaffManagementPage() {
                       onClick={() => toggleFormRole(r.value)}
                       className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors
                         ${form.roles.includes(r.value)
-                          ? "bg-brand-700 text-white border-brand-700"
-                          : "bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 border-stone-200 dark:border-zinc-600 hover:border-brand-400"}`}>
+                          ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100"
+                          : "bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 border-stone-200 dark:border-zinc-600 hover:border-zinc-500"}`}>
                       {t(r.labelKey)}
                     </button>
                   ))}
@@ -191,8 +191,8 @@ export default function StaffManagementPage() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-2">
               <button type="submit" disabled={adding || form.roles.length === 0}
-                className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded
-                  hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50">
+                className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-semibold px-4 py-2 rounded
+                  hover:bg-zinc-700 dark:hover:bg-white transition-colors flex items-center gap-2 disabled:opacity-50">
                 {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 {t("addStaff")}
               </button>
@@ -206,7 +206,7 @@ export default function StaffManagementPage() {
 
         {/* Staff list */}
         {loading ? (
-          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-brand-700" /></div>
+          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-zinc-400" /></div>
         ) : staff.length === 0 ? (
           <div className="text-center py-16">
             <Users className="h-12 w-12 text-stone-200 mx-auto mb-3" />
@@ -222,8 +222,8 @@ export default function StaffManagementPage() {
                 return (
                   <div key={s.id} className={`px-5 py-4 transition-colors ${!s.enabled ? "opacity-50" : ""}`}>
                     <div className="flex items-center gap-4">
-                      <div className="h-9 w-9 rounded bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
-                        <span className="text-brand-700 font-bold text-sm uppercase">{s.fullName.charAt(0)}</span>
+                      <div className="h-9 w-9 rounded bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center shrink-0">
+                        <span className="text-zinc-700 dark:text-zinc-200 font-bold text-sm uppercase">{s.fullName.charAt(0)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-stone-900 dark:text-zinc-100 text-sm truncate">{s.fullName}</p>
@@ -234,7 +234,7 @@ export default function StaffManagementPage() {
                         onClick={() => setEditingRolesId(isEditingRoles ? null : s.id)}
                         className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded border
                           transition-colors shrink-0 ${ri.color}
-                          ${isEditingRoles ? "ring-2 ring-brand-400" : "hover:opacity-80"}`}
+                          ${isEditingRoles ? "ring-2 ring-zinc-400" : "hover:opacity-80"}`}
                       >
                         {s.roles.length > 1 ? `${t(ri.labelKey)} +${s.roles.length - 1}` : t(ri.labelKey)}
                         <ChevronDown className="h-3 w-3 opacity-60" />
@@ -260,7 +260,7 @@ export default function StaffManagementPage() {
                             onClick={() => toggleRole(s.id, s.roles, r.value)}
                             className={`text-xs font-semibold px-3 py-1.5 rounded border transition-colors
                               ${s.roles.includes(r.value)
-                                ? "bg-brand-700 text-white border-brand-700"
+                                ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100"
                                 : `${r.color} hover:opacity-80`}`}>
                             {t(r.labelKey)}
                           </button>
