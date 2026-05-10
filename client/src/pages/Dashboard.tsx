@@ -121,7 +121,7 @@ function ConfirmModal({
           </button>
           <button onClick={onConfirm}
             className={`flex-1 h-10 rounded text-sm font-semibold shadow-sm transition-all text-white
-              ${danger ? "bg-rose-500 hover:bg-rose-600" : "bg-brand-700 hover:bg-brand-800"}`}>
+              ${danger ? "bg-rose-500 hover:bg-rose-600" : "bg-zinc-900 hover:bg-zinc-700"}`}>
             {confirmLabel}
           </button>
         </div>
@@ -252,7 +252,7 @@ function RequestTable({
           <div key={req.id} id={`request-${req.id}`}
             className={`relative glass rounded-xl border border-stone-200 dark:border-zinc-600 ${dimmed ? "opacity-55" : ""}
               shadow-md dark:shadow-black/70
-              ${isHighlighted ? "ring-2 ring-brand-400 shadow-lg shadow-brand-400/40" : "dark:bg-zinc-800/90"} transition-all duration-500 overflow-hidden`}>
+              ${isHighlighted ? "ring-2 ring-zinc-400 shadow-lg shadow-zinc-400/40" : "dark:bg-zinc-800/90"} transition-all duration-500 overflow-hidden`}>
 
             {/* Left accent bar */}
             <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${accentColor}`} />
@@ -405,7 +405,7 @@ function RequestTable({
               <tr key={req.id}
                 id={`request-${req.id}`}
                 className={`border-l-4 transition-all duration-500
-                  ${isHighlighted ? "ring-2 ring-inset ring-brand-400 bg-amber-50/60 dark:bg-amber-900/20" :
+                  ${isHighlighted ? "ring-2 ring-inset ring-zinc-400 bg-amber-50/60 dark:bg-amber-900/20" :
                     isEscalated  ? "border-l-red-500 hover:bg-zinc-700/30" :
                     isOverdue    ? "border-l-red-400 hover:bg-zinc-700/30" :
                     req.status === "PENDING"     ? "border-l-amber-300 hover:bg-zinc-700/20" :
@@ -484,7 +484,7 @@ function RequestTable({
                             onChange={e => onAssign(req.id, e.target.value ? Number(e.target.value) : null)}
                             className="text-xs border border-stone-200 dark:border-zinc-600 rounded px-2 py-1.5
                               bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 focus:outline-none
-                              focus:ring-1 focus:ring-brand-500"
+                              focus:ring-1 focus:ring-zinc-400"
                           >
                             <option value="">{t("unassigned")}</option>
                             {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -930,15 +930,15 @@ export default function DashboardPage() {
       onClick={() => setTab(tabId)}
       className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors w-full sm:w-auto
         ${tab === tabId
-          ? "bg-zinc-100 text-zinc-900 shadow-sm"
+          ? "bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm"
           : urgent && (count ?? 0) > 0
-            ? "bg-white/70 dark:bg-zinc-800/70 text-rose-400 border border-rose-400/50 hover:border-rose-400"
+            ? "bg-white/70 dark:bg-zinc-800/70 text-rose-500 dark:text-rose-400 border border-rose-400/50 hover:border-rose-400"
             : "bg-white/70 dark:bg-zinc-800/70 text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-700 hover:border-stone-300 dark:hover:border-zinc-600"}`}
     >
       {label}
       <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded
         ${tab === tabId
-          ? "bg-zinc-200 text-zinc-700"
+          ? "bg-zinc-700 text-white dark:bg-zinc-200 dark:text-zinc-800"
           : urgent && (count ?? 0) > 0 ? "bg-rose-900/30 text-rose-400" : "bg-stone-100 dark:bg-zinc-700 text-stone-500 dark:text-zinc-400"}`}>
         {count}
       </span>
@@ -959,7 +959,7 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-stone-400 dark:text-zinc-500">{user?.fullName}</p>
           </div>
           <button onClick={() => { fetchRequests(); if (user?.roles?.includes("ADMIN")) fetchBookings(); }}
-            className="p-2 text-stone-400 hover:text-brand-700 transition-colors" title={t("refresh")}>
+            className="p-2 text-stone-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors" title={t("refresh")}>
             <RefreshCw className="h-4 w-4" />
           </button>
         </div>
@@ -975,7 +975,7 @@ export default function DashboardPage() {
         {/* Content */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-brand-700" />
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-700 dark:text-zinc-300" />
           </div>
         ) : isEmpty ? (
           <div className="text-center py-20">

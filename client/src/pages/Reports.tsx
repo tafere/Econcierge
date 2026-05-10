@@ -58,7 +58,7 @@ function RequestsChart({ byDay, byCategory }: {
 
   const btn = (v: ChartTab, label: string) =>
     `px-3 py-1 text-xs font-semibold rounded transition-colors
-    ${view === v ? "bg-brand-700 text-white" : "text-stone-500 dark:text-zinc-400 hover:text-stone-700 dark:hover:text-zinc-200 hover:bg-stone-100 dark:hover:bg-zinc-700"}`;
+    ${view === v ? "bg-zinc-900 text-white" : "text-stone-500 dark:text-zinc-400 hover:text-stone-700 dark:hover:text-zinc-200 hover:bg-stone-100 dark:hover:bg-zinc-700"}`;
 
   return (
     <Card>
@@ -79,14 +79,14 @@ function RequestsChart({ byDay, byCategory }: {
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
             <Tooltip {...tooltipStyle} />
-            <Bar dataKey="count" name={t("requestCol")} fill="rgb(var(--brand-700))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="count" name={t("requestCol")} fill="#6b7280" radius={[4, 4, 0, 0]} />
           </BarChart>
         ) : (
           <BarChart data={byCategory} layout="vertical" margin={{ left: 8, right: 24 }}>
             <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
             <YAxis type="category" dataKey="category" tick={{ fontSize: 11 }} width={115} />
             <Tooltip {...tooltipStyle} />
-            <Bar dataKey="count" name={t("requestCol")} fill="rgb(var(--brand-700))" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" name={t("requestCol")} fill="#6b7280" radius={[0, 4, 4, 0]} />
           </BarChart>
         )}
       </ResponsiveContainer>
@@ -185,7 +185,7 @@ export default function ReportsPage() {
 
         {loading ? (
           <div className="flex justify-center py-24">
-            <Loader2 className="h-6 w-6 animate-spin text-brand-700" />
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-700 dark:text-zinc-300" />
           </div>
         ) : !data ? (
           <p className="text-center text-stone-400 py-24">{t("couldNotLoad")}</p>
@@ -222,7 +222,7 @@ export default function ReportsPage() {
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                     <Tooltip {...tooltipStyle} />
                     <Line type="monotone" dataKey="count" name={t("requestCol")}
-                      stroke="rgb(var(--brand-700))" strokeWidth={2} dot={false} />
+                      stroke="#6b7280" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </Card>
@@ -252,7 +252,7 @@ export default function ReportsPage() {
                           <td className="py-2.5 text-xs text-stone-400 dark:text-zinc-500 font-bold w-6">{i + 1}</td>
                           <td className="py-2.5 font-semibold text-stone-800 dark:text-zinc-200">{s.name}</td>
                           <td className="py-2.5 text-right">
-                            <span className="text-xs font-bold text-white bg-brand-700 rounded px-2 py-0.5">{s.handled}</span>
+                            <span className="text-xs font-bold text-white bg-zinc-900 rounded px-2 py-0.5">{s.handled}</span>
                           </td>
                           <td className="py-2.5 text-right text-xs text-stone-400 dark:text-zinc-500">{fmtMins(s.avgMins)}</td>
                         </tr>

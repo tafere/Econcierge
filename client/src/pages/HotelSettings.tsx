@@ -100,7 +100,7 @@ export default function HotelSettingsPage() {
           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
           placeholder={placeholder}
           className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded pl-9 pr-3 text-sm
-            focus:outline-none focus:ring-2 focus:ring-brand-700"
+            focus:outline-none focus:ring-2 focus:ring-zinc-400"
         />
       </div>
       {hintKey && <p className="text-xs text-stone-400 dark:text-zinc-500 mt-1">{t(hintKey)}</p>}
@@ -113,7 +113,7 @@ export default function HotelSettingsPage() {
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-brand-700" /></div>
+          <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-zinc-700 dark:text-zinc-300" /></div>
         ) : (
           <form onSubmit={save} className="space-y-6">
 
@@ -129,7 +129,7 @@ export default function HotelSettingsPage() {
 
             <div className="glass rounded p-6 space-y-5">
               <h2 className="font-bold text-stone-800 dark:text-zinc-200 flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-brand-700" /> {t("identitySection")}
+                <Building2 className="h-4 w-4 text-zinc-700 dark:text-zinc-300" /> {t("identitySection")}
               </h2>
               {field("name",    "hotelNameField", <Building2 className="h-4 w-4" />, "e.g. Ethiopian Skylight Hotel")}
               {field("tagline", "taglineField",   <Tag       className="h-4 w-4" />, "e.g. Where the Sky is the Limit")}
@@ -146,7 +146,7 @@ export default function HotelSettingsPage() {
                       onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))}
                       placeholder={form.logoUrl.startsWith("data:") ? "(file uploaded)" : "https://…/logo.png"}
                       className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded pl-9 pr-3 text-sm
-                        focus:outline-none focus:ring-2 focus:ring-brand-700"
+                        focus:outline-none focus:ring-2 focus:ring-zinc-400"
                     />
                   </div>
                   <button type="button" onClick={() => logoInputRef.current?.click()}
@@ -171,7 +171,7 @@ export default function HotelSettingsPage() {
                       onChange={e => setForm(f => ({ ...f, heroImageUrl: e.target.value }))}
                       placeholder={form.heroImageUrl.startsWith("data:") ? "(file uploaded)" : "https://…/hotel-exterior.jpg"}
                       className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded pl-9 pr-3 text-sm
-                        focus:outline-none focus:ring-2 focus:ring-brand-700"
+                        focus:outline-none focus:ring-2 focus:ring-zinc-400"
                     />
                   </div>
                   <button type="button" onClick={() => heroInputRef.current?.click()}
@@ -205,7 +205,7 @@ export default function HotelSettingsPage() {
                     value={form.etaMinutes}
                     onChange={e => setForm(f => ({ ...f, etaMinutes: Number(e.target.value) }))}
                     className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded pl-9 pr-3 text-sm
-                      focus:outline-none focus:ring-2 focus:ring-brand-700"
+                      focus:outline-none focus:ring-2 focus:ring-zinc-400"
                   />
                 </div>
                 <p className="text-xs text-stone-400 dark:text-zinc-500 mt-1">Used when no category-specific time is set</p>
@@ -214,7 +214,7 @@ export default function HotelSettingsPage() {
 
             <div className="glass rounded p-6 space-y-5">
               <h2 className="font-bold text-stone-800 dark:text-zinc-200 flex items-center gap-2">
-                <Phone className="h-4 w-4 text-brand-700" /> {t("contactSection")}
+                <Phone className="h-4 w-4 text-zinc-700 dark:text-zinc-300" /> {t("contactSection")}
               </h2>
               {field("address", "addressField", <MapPin className="h-4 w-4" />, "City, Country")}
               {field("phone",   "phoneField",   <Phone  className="h-4 w-4" />, "+251 …")}
@@ -224,8 +224,8 @@ export default function HotelSettingsPage() {
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             <button type="submit" disabled={saving}
-              className="w-full h-12 bg-brand-700 text-white rounded font-bold text-sm
-                hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+              className="w-full h-12 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded font-bold text-sm
+                hover:bg-zinc-800 dark:hover:bg-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
               {saving
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("savingBtn")}</>
                 : saved

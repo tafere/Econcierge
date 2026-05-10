@@ -31,7 +31,7 @@ export default function LoginPage() {
       {/* Language toggle */}
       <div className="absolute top-4 right-4">
         <button onClick={toggleLang}
-          className="text-xs font-bold text-stone-400 dark:text-zinc-500 hover:text-brand-700 border border-stone-200 dark:border-zinc-700
+          className="text-xs font-bold text-stone-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 border border-stone-200 dark:border-zinc-700
             rounded px-3 py-1.5 transition-colors">
           {lang === "en" ? "አማርኛ" : "EN"}
         </button>
@@ -39,14 +39,14 @@ export default function LoginPage() {
 
       {/* Icon + title */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center h-16 w-16 bg-brand-600 rounded mb-5
-          shadow-lg shadow-brand-200">
+        <div className="inline-flex items-center justify-center h-16 w-16 bg-zinc-900 rounded mb-5
+          shadow-lg shadow-zinc-200">
           <ConciergeBell className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-3xl font-black text-slate-900 dark:text-zinc-100 leading-tight">
           {t("loginTitle")}
         </h1>
-        <p className="text-2xl font-black text-brand-600 leading-tight">{t("loginSubtitle")}</p>
+        <p className="text-2xl font-black text-zinc-600 leading-tight">{t("loginSubtitle")}</p>
         <p className="text-slate-400 dark:text-zinc-500 text-sm mt-2 tracking-wide">{t("staffPortal")}</p>
       </div>
 
@@ -74,8 +74,8 @@ export default function LoginPage() {
               autoComplete="username"
               placeholder={t("enterUsername")}
               className="w-full h-12 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded px-4 text-sm text-slate-900 dark:text-zinc-100
-                placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
-                focus:border-brand-500 transition-colors"
+                placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-zinc-400
+                focus:border-zinc-400 transition-colors"
             />
           </div>
 
@@ -92,8 +92,8 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 placeholder="••••••••"
                 className="w-full h-12 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded px-4 pr-11 text-sm text-slate-900 dark:text-zinc-100
-                  placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500
-                  focus:border-brand-500 transition-colors"
+                  placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-zinc-400
+                  focus:border-zinc-400 transition-colors"
               />
               <button
                 type="button"
@@ -115,9 +115,9 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-13 bg-brand-600 hover:bg-brand-700 text-white rounded font-semibold
+            className="w-full h-13 bg-zinc-900 hover:bg-zinc-900 text-white rounded font-semibold
               text-sm flex items-center justify-center gap-2.5 transition-colors
-              disabled:opacity-50 shadow-md shadow-brand-200 mt-2 py-3.5"
+              disabled:opacity-50 shadow-md shadow-zinc-200 mt-2 py-3.5"
           >
             {loading
               ? <><Loader2 className="h-5 w-5 animate-spin" /> {t("signingIn")}</>

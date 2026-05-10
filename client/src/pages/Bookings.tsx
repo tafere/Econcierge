@@ -110,7 +110,7 @@ export default function BookingsPage() {
         {/* Content */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-brand-700" />
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-700 dark:text-zinc-300" />
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-20 glass rounded">

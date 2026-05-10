@@ -198,8 +198,8 @@ export default function RoomsPage() {
             {rooms.length > 0 && (
               <button
                 onClick={printAllQRCards}
-                className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 border border-brand-700 text-brand-700
-                  text-sm font-semibold px-4 py-2 rounded hover:bg-brand-50 dark:hover:bg-zinc-700 transition-colors"
+                className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 border border-zinc-500 text-zinc-700 dark:text-zinc-300
+                  text-sm font-semibold px-4 py-2 rounded hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
               >
                 <Printer className="h-4 w-4" /> Print All QR Cards
               </button>
@@ -207,8 +207,8 @@ export default function RoomsPage() {
             {user?.roles?.includes("ADMIN") && (
               <button
                 onClick={() => setShowAdd(true)}
-                className="flex items-center gap-1.5 bg-brand-700 text-white text-sm font-semibold
-                  px-4 py-2 rounded hover:bg-brand-800 transition-colors"
+                className="flex items-center gap-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-semibold
+                  px-4 py-2 rounded hover:bg-zinc-800 dark:hover:bg-white transition-colors"
               >
                 <Plus className="h-4 w-4" /> {t("addRoom")}
               </button>
@@ -228,7 +228,7 @@ export default function RoomsPage() {
                   value={newRoom.roomNumber}
                   onChange={e => setNewRoom(r => ({ ...r, roomNumber: e.target.value }))}
                   required
-                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
                 />
               </div>
               <div>
@@ -236,7 +236,7 @@ export default function RoomsPage() {
                 <input
                   value={newRoom.floor}
                   onChange={e => setNewRoom(r => ({ ...r, floor: e.target.value }))}
-                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
                 />
               </div>
               <div>
@@ -245,15 +245,15 @@ export default function RoomsPage() {
                   value={newRoom.roomType}
                   onChange={e => setNewRoom(r => ({ ...r, roomType: e.target.value }))}
                   placeholder={t("roomTypePlaceholder")}
-                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
+                  className="w-full h-10 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
                 />
               </div>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-2">
               <button type="submit" disabled={adding}
-                className="bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded
-                  hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50">
+                className="bg-zinc-900 text-white text-sm font-semibold px-4 py-2 rounded
+                  hover:bg-zinc-700 transition-colors flex items-center gap-2 disabled:opacity-50">
                 {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t("addRoom")}
               </button>
               <button type="button" onClick={() => setShowAdd(false)}
@@ -266,7 +266,7 @@ export default function RoomsPage() {
 
         {/* Room list */}
         {loading ? (
-          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-brand-700" /></div>
+          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-zinc-700 dark:text-zinc-300" /></div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {rooms.map(room => (
@@ -274,7 +274,7 @@ export default function RoomsPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <BedDouble className="h-4 w-4 text-brand-700" />
+                      <BedDouble className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
                       <span className="font-bold text-stone-900 dark:text-zinc-100">{t("roomCol")} {room.roomNumber}</span>
                     </div>
                     <div className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5 space-x-2">
@@ -289,8 +289,8 @@ export default function RoomsPage() {
                     className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold
                       rounded py-2 border transition-colors
                       ${qrPreviews[room.id]
-                        ? "bg-brand-700 text-white border-brand-700"
-                        : "text-brand-700 border-brand-700 hover:bg-brand-50"}`}
+                        ? "bg-zinc-900 text-white border-zinc-500"
+                        : "text-zinc-700 dark:text-zinc-300 border-zinc-500 hover:bg-zinc-50"}`}
                   >
                     <QrCode className="h-3.5 w-3.5" />
                     {qrPreviews[room.id] ? t("hideQr") : t("showQr")}
@@ -299,7 +299,7 @@ export default function RoomsPage() {
                     onClick={() => downloadQR(room)}
                     className="flex items-center justify-center gap-1 text-xs font-semibold
                       text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-600 rounded px-3 py-2
-                      hover:border-brand-700 hover:text-brand-700 transition-colors"
+                      hover:border-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                     title={t("downloadQr")}
                   >
                     <Download className="h-3.5 w-3.5" />
@@ -308,7 +308,7 @@ export default function RoomsPage() {
                     onClick={() => printQRCard(room)}
                     className="flex items-center justify-center gap-1 text-xs font-semibold
                       text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-600 rounded px-3 py-2
-                      hover:border-brand-700 hover:text-brand-700 transition-colors"
+                      hover:border-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                     title="Print QR card"
                   >
                     <Printer className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export default function RoomsPage() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-1.5 text-xs font-semibold
                       text-stone-500 dark:text-zinc-400 border border-stone-200 dark:border-zinc-600 rounded px-3 py-2
-                      hover:border-brand-700 hover:text-brand-700 transition-colors"
+                      hover:border-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                     title={t("openTv")}
                   >
                     <Tv2 className="h-3.5 w-3.5" />

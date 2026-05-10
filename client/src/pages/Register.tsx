@@ -35,7 +35,7 @@ export default function RegisterPage() {
   };
 
   const inputCls = `w-full h-12 bg-white border border-slate-200 rounded pl-10 pr-4 text-sm text-slate-900
-    placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors`;
+    placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:border-zinc-400 transition-colors`;
 
   if (done) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -44,11 +44,11 @@ export default function RegisterPage() {
         <h2 className="text-xl font-extrabold text-slate-900">Hotel Registered!</h2>
         <p className="text-slate-500 text-sm">
           <span className="font-bold text-slate-800">{done.hotelName}</span> is set up.<br />
-          Sign in with username <span className="font-mono font-bold text-brand-700">@{done.username}</span> to get started.
+          Sign in with username <span className="font-mono font-bold text-zinc-700 dark:text-zinc-300">@{done.username}</span> to get started.
         </p>
         <button
           onClick={() => navigate("/")}
-          className="w-full h-11 bg-brand-700 hover:bg-brand-800 text-white rounded font-bold text-sm transition-colors"
+          className="w-full h-11 bg-zinc-900 hover:bg-zinc-700 text-white rounded font-bold text-sm transition-colors"
         >
           Go to Sign In
         </button>
@@ -60,7 +60,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
 
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center h-16 w-16 bg-brand-600 rounded mb-5 shadow-lg shadow-brand-200">
+        <div className="inline-flex items-center justify-center h-16 w-16 bg-zinc-900 rounded mb-5 shadow-lg shadow-zinc-200">
           <ConciergeBell className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-3xl font-black text-slate-900 leading-tight">Register Your Hotel</h1>
@@ -148,8 +148,8 @@ export default function RegisterPage() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full h-12 bg-brand-600 hover:bg-brand-700 text-white rounded font-bold text-sm
-              flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-md shadow-brand-200 mt-1">
+            className="w-full h-12 bg-zinc-900 hover:bg-zinc-900 text-white rounded font-bold text-sm
+              flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-md shadow-zinc-200 mt-1">
             {loading ? <><Loader2 className="h-5 w-5 animate-spin" /> Creating…</> : "Register Hotel"}
           </button>
         </form>
