@@ -552,14 +552,11 @@ function BookingSection({
   const hasActions = bookings.some(b => b.status === "PENDING" || b.status === "CONFIRMED");
 
   return (
-    <div className="sm:glass sm:rounded sm:overflow-hidden">
+    <div>
       {/* Desktop-only section header */}
-      <div className="hidden sm:flex px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 items-center gap-2 sm:rounded-t">
+      <div className="hidden sm:flex px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 items-center gap-2">
         <CalendarClock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
         <p className="text-xs font-bold text-stone-600 dark:text-zinc-300 uppercase tracking-wider">{displayName}</p>
-        <div className="flex items-center gap-1 text-xs text-stone-400 dark:text-zinc-500 ml-auto">
-          <Users className="h-3.5 w-3.5" /> {totalGuests} {totalGuests !== 1 ? t("guestPlural") : t("guestSingular")}
-        </div>
       </div>
 
       {/* Mobile card list */}
@@ -1005,9 +1002,10 @@ export default function DashboardPage() {
                     <div className="flex-1 h-px bg-stone-200 dark:bg-zinc-700" />
                   </div>
 
-                  {/* Service requests */}
+                  {/* Single unified card: service requests + bookings for this day */}
+                  {(dayReqs.length > 0 || dayBookingItems.length > 0) && (
+                  <div className="sm:glass sm:rounded sm:overflow-hidden">
                   {dayReqs.length > 0 && (
-                    <div className="sm:glass sm:rounded sm:overflow-hidden">
                       <RequestTable
                         requests={dayReqs}
                         updatingId={updatingId}
@@ -1026,10 +1024,9 @@ export default function DashboardPage() {
                         highlightedId={highlightedId}
                         isCancelledTab={tab === "CANCELLED"}
                       />
-                    </div>
                   )}
 
-                  {/* Booking sections per service */}
+                  {/* Booking sections per service — inside same card */}
                   {dayBookingItems.map(([itemName, itemBookings]) => (
                     <BookingSection
                       key={itemName}
@@ -1059,6 +1056,8 @@ export default function DashboardPage() {
                       }}
                     />
                   ))}
+                  </div>
+                  )}
                 </div>
               );
             })}
