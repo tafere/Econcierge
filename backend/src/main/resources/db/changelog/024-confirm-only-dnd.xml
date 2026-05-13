@@ -20,7 +20,7 @@ INSERT INTO request_items
 SELECT
   rc.id,
   'Do Not Disturb',
-  'እባክዎን አትረብሹኝ',
+  'አትረብሽ',
   (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM request_items ri2 WHERE ri2.category_id = rc.id),
   true, 1, false, 30, 15, true
 FROM request_categories rc
