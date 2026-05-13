@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
+import { authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   Plus, Loader2, Users,
@@ -42,10 +42,8 @@ export default function StaffManagementPage() {
 
   const [form, setForm] = useState({ fullName: "", username: "", password: "", roles: ["HOUSEKEEPING"] as string[] });
 
-  const authHeaders = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
-
   const fetchStaff = async () => {
-    const res = await fetch("/api/dashboard/staff-mgmt", { headers: { Authorization: `Bearer ${getToken()}` } });
+    const res = await authFetch("/api/dashboard/staff-mgmt");
     if (res.ok) setStaff(await res.json());
     setLoading(false);
   };
@@ -64,9 +62,9 @@ export default function StaffManagementPage() {
     if (form.roles.length === 0) { setError("Select at least one role"); return; }
     setAdding(true);
     setError(null);
-    const res = await fetch("/api/dashboard/staff-mgmt", {
+    const res = await authFetch("/api/dashboard/staff-mgmt", {
       method: "POST",
-      headers: authHeaders(),
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form }),
     });
     if (res.ok) {
@@ -82,9 +80,9 @@ export default function StaffManagementPage() {
 
   const changeRoles = async (id: number, newRoles: string[]) => {
     if (newRoles.length === 0) return;
-    const res = await fetch(`/api/dashboard/staff-mgmt/${id}/roles`, {
+    const res = await authFetch(`/api/dashboard/staff-mgmt/${id}/roles`, {
       method: "PATCH",
-      headers: authHeaders(),
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ roles: newRoles }),
     });
     if (res.ok) {
@@ -103,8 +101,8 @@ export default function StaffManagementPage() {
   };
 
   const toggle = async (id: number) => {
-    const res = await fetch(`/api/dashboard/staff-mgmt/${id}/toggle`, {
-      method: "PATCH", headers: authHeaders(),
+    const res = await authFetch(`/api/dashboard/staff-mgmt/${id}/toggle`, {
+      method: "PATCH",
     });
     if (res.ok) {
       const d = await res.json();
@@ -114,8 +112,8 @@ export default function StaffManagementPage() {
 
   const remove = async (id: number, name: string) => {
     if (!confirm(t("confirmRemove").replace("{name}", name))) return;
-    const res = await fetch(`/api/dashboard/staff-mgmt/${id}`, {
-      method: "DELETE", headers: authHeaders(),
+    const res = await authFetch(`/api/dashboard/staff-mgmt/${id}`, {
+      method: "DELETE",
     });
     if (res.ok) setStaff(prev => prev.filter(s => s.id !== id));
   };

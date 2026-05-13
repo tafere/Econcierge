@@ -25,6 +25,20 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const TOKEN_KEY = "econcierge_token";
 const USER_KEY  = "econcierge_user";
 
+// Module-level logout ref — set by AuthProvider so authFetch can call it
+let _logout: (() => void) | null = null;
+
+/** Drop-in fetch wrapper: injects auth header and redirects to login on 401. */
+export function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const headers = new Headers(init?.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return fetch(input, { ...init, headers }).then(res => {
+    if (res.status === 401) _logout?.();
+    return res;
+  });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]           = useState<StaffUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     applyHotelTheme(null);
   }, []);
+
+  useEffect(() => { _logout = logout; return () => { _logout = null; }; }, [logout]);
 
   return <AuthContext.Provider value={{ user, isLoading, login, logout }}>{children}</AuthContext.Provider>;
 }

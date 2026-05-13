@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
+import { authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import NavBar from "@/components/NavBar";
 import { Loader2 } from "lucide-react";
@@ -167,8 +167,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = getToken();
-    fetch("/api/dashboard/analytics", { headers: { Authorization: `Bearer ${token}` } })
+    authFetch("/api/dashboard/analytics")
       .then(r => r.ok ? r.json() : null)
       .then(d => { setData(d); setLoading(false); });
   }, []);

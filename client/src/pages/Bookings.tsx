@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
+import { authFetch } from "@/lib/auth";
 import NavBar from "@/components/NavBar";
 import { Loader2, ChevronLeft, ChevronRight, Users, CalendarClock } from "lucide-react";
 
@@ -41,11 +41,9 @@ export default function BookingsPage() {
   const [loading, setLoading]   = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
-  const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
-
   const fetchBookings = async (d: string) => {
     setLoading(true);
-    const res = await fetch(`/api/dashboard/bookings?date=${d}`, { headers: authH() });
+    const res = await authFetch(`/api/dashboard/bookings?date=${d}`);
     if (res.ok) setBookings(await res.json());
     setLoading(false);
   };
@@ -60,8 +58,8 @@ export default function BookingsPage() {
 
   const updateStatus = async (id: number, status: string) => {
     setUpdatingId(id);
-    const res = await fetch(`/api/dashboard/bookings/${id}/status`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/dashboard/bookings/${id}/status`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
     if (res.ok) {

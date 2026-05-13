@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getToken } from "@/lib/auth";
+import { authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import { Save, Loader2, Building2, Link, Phone, Mail, MapPin, Tag, Clock, ImageIcon, Upload } from "lucide-react";
 import NavBar from "@/components/NavBar";
@@ -51,7 +51,7 @@ export default function HotelSettingsPage() {
   };
 
   useEffect(() => {
-    fetch("/api/dashboard/hotel", { headers: { Authorization: `Bearer ${getToken()}` } })
+    authFetch("/api/dashboard/hotel")
       .then(r => r.json())
       .then(data => setForm({
         name:          data.name          ?? "",
@@ -71,9 +71,9 @@ export default function HotelSettingsPage() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const res = await fetch("/api/dashboard/hotel", {
+    const res = await authFetch("/api/dashboard/hotel", {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
     setSaving(false);

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
-import { useAuth } from "@/lib/auth";
+import { useAuth, authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import { Download, Plus, BedDouble, Loader2, Tv2, QrCode, Printer } from "lucide-react";
 import QRCode from "qrcode";
@@ -27,9 +26,7 @@ export default function RoomsPage() {
   const [error, setError]     = useState<string | null>(null);
 
   const fetchRooms = async () => {
-    const res = await fetch("/api/dashboard/rooms", {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
+    const res = await authFetch("/api/dashboard/rooms");
     if (res.ok) setRooms(await res.json());
     setLoading(false);
   };
@@ -40,9 +37,9 @@ export default function RoomsPage() {
     e.preventDefault();
     setAdding(true);
     setError(null);
-    const res = await fetch("/api/dashboard/rooms", {
+    const res = await authFetch("/api/dashboard/rooms", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newRoom),
     });
     if (res.ok) {

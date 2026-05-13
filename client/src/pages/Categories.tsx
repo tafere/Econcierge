@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
+import { authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   Plus, Loader2, Trash2, Pencil,
@@ -80,10 +80,8 @@ export default function CategoriesPage() {
   const [editInterval, setEditInterval]       = useState(30);
   const [editCapacity, setEditCapacity]       = useState(15);
 
-  const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
-
   const fetchCats = async () => {
-    const res = await fetch("/api/dashboard/categories", { headers: authH() });
+    const res = await authFetch("/api/dashboard/categories");
     if (res.ok) setCats(await res.json());
     setLoading(false);
   };
@@ -96,8 +94,8 @@ export default function CategoriesPage() {
   const addCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdding(true); setError(null);
-    const res = await fetch("/api/dashboard/categories", {
-      method: "POST", headers: authH(),
+    const res = await authFetch("/api/dashboard/categories", {
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newName, icon: newIcon }),
     });
     if (res.ok) {
@@ -114,8 +112,8 @@ export default function CategoriesPage() {
 
   const saveEditCat = async (id: number) => {
     const etaVal = editCatEta === "" ? null : Number(editCatEta);
-    const res = await fetch(`/api/dashboard/categories/${id}`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/dashboard/categories/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: editCatName, icon: editCatIcon, etaMinutes: etaVal }),
     });
     if (res.ok) {
@@ -126,15 +124,15 @@ export default function CategoriesPage() {
 
   const deleteCat = async (id: number, name: string) => {
     if (!confirm(t("confirmDeleteCategory").replace("{name}", name))) return;
-    const res = await fetch(`/api/dashboard/categories/${id}`, { method: "DELETE", headers: authH() });
+    const res = await authFetch(`/api/dashboard/categories/${id}`, { method: "DELETE" });
     if (res.ok) setCats(prev => prev.filter(c => c.id !== id));
   };
 
   const addItem = async (catId: number, e: React.FormEvent) => {
     e.preventDefault();
     setAddingItem(true);
-    const res = await fetch(`/api/dashboard/categories/${catId}/items`, {
-      method: "POST", headers: authH(),
+    const res = await authFetch(`/api/dashboard/categories/${catId}/items`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: addItemName, nameAm: addItemNameAm || null, maxQuantity: addItemQty,
         schedulable: addItemSchedulable, slotIntervalMins: addItemInterval, capacity: addItemCapacity,
@@ -149,16 +147,16 @@ export default function CategoriesPage() {
   };
 
   const toggleCat = async (catId: number, enabled: boolean) => {
-    const res = await fetch(`/api/dashboard/categories/${catId}`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/dashboard/categories/${catId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled: !enabled }),
     });
     if (res.ok) setCats(prev => prev.map(c => c.id === catId ? { ...c, enabled: !enabled } : c));
   };
 
   const toggleItem = async (catId: number, itemId: number, enabled: boolean) => {
-    const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled: !enabled }),
     });
     if (res.ok) setCats(prev => prev.map(c => c.id === catId
@@ -166,8 +164,8 @@ export default function CategoriesPage() {
   };
 
   const saveEditItem = async (catId: number, itemId: number) => {
-    const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: editItemName, nameAm: editItemNameAm || null, maxQuantity: editSchedulable ? 1 : editItemQty,
         schedulable: editSchedulable, slotIntervalMins: editInterval, capacity: editCapacity,
@@ -182,8 +180,8 @@ export default function CategoriesPage() {
   };
 
   const toggleSchedulable = async (catId: number, itemId: number, current: boolean) => {
-    const res = await fetch(`/api/dashboard/categories/items/${itemId}`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ schedulable: !current }),
     });
     if (res.ok) setCats(prev => prev.map(c => c.id === catId
@@ -191,7 +189,7 @@ export default function CategoriesPage() {
   };
 
   const deleteItem = async (catId: number, itemId: number) => {
-    const res = await fetch(`/api/dashboard/categories/items/${itemId}`, { method: "DELETE", headers: authH() });
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}`, { method: "DELETE" });
     if (res.ok) setCats(prev => prev.map(c => c.id === catId
       ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c));
   };

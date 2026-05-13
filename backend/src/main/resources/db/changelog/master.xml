@@ -30,5 +30,6 @@
     <include file="classpath:db/changelog/023-fix-minibar-duplicates.xml"/>
     <include file="classpath:db/changelog/024-confirm-only-dnd.xml"/>
     <include file="classpath:db/changelog/025-widen-image-urls.xml"/>
+    <include file="classpath:db/changelog/026-fix-dnd-name-am.xml"/>
 
 </databaseChangeLog>

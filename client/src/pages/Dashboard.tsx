@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth, getToken } from "@/lib/auth";
+import { useAuth, getToken, authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   ConciergeBell, Loader2, RefreshCw,
@@ -642,8 +642,8 @@ function BookingSection({
         <table className="min-w-full text-sm table-auto">
           <thead>
             <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
-              <th className={th}>{t("timeCol")}</th>
               <th className={th}>{t("roomCol")}</th>
+              <th className={th}>{t("timeCol")}</th>
               <th className={th}>{t("guestsCol")}</th>
               {hasNotes   && <th className={th}>{t("notesCol")}</th>}
               <th className={th}>{t("statusCol")}</th>
@@ -654,11 +654,11 @@ function BookingSection({
             {bookings.map(b => (
               <tr key={b.id} className={b.status === "CANCELLED" ? "opacity-50" : ""}>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <p className="text-xs font-semibold text-stone-700 dark:text-zinc-300">{b.slotTime}</p>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
                   <p className="font-extrabold text-stone-900 dark:text-zinc-100">{b.roomNumber}</p>
                   {b.floor && <p className="text-[10px] text-stone-400 dark:text-zinc-500">{t("floorLabel")} {b.floor}</p>}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-xs font-semibold text-stone-700 dark:text-zinc-300">{b.slotTime}</p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1 text-xs text-stone-600 dark:text-zinc-400">
@@ -791,16 +791,14 @@ export default function DashboardPage() {
     setTimeout(() => { setHighlightedId(null); setPendingTarget(null); }, 3000);
   }, [pendingTarget]);
 
-  const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
-
   const fetchRequests = async () => {
-    const res = await fetch("/api/dashboard/requests", { headers: authH() });
+    const res = await authFetch("/api/dashboard/requests");
     if (res.ok) setRequests(await res.json());
     setLoading(false);
   };
 
   const fetchBookings = async () => {
-    const res = await fetch("/api/dashboard/bookings/all", { headers: authH() });
+    const res = await authFetch("/api/dashboard/bookings/all");
     if (res.ok) setBookings(await res.json());
   };
 
@@ -808,14 +806,14 @@ export default function DashboardPage() {
     fetchRequests();
     if (user?.roles?.includes("ADMIN")) {
       fetchBookings();
-      fetch("/api/dashboard/staff/list", { headers: authH() })
+      authFetch("/api/dashboard/staff/list")
         .then(r => r.ok ? r.json() : [])
         .then(setStaffList)
         .catch(() => {});
     }
     requestNotifyPermission();
     // Fetch hotel ETA default
-    fetch("/api/dashboard/hotel", { headers: authH() })
+    authFetch("/api/dashboard/hotel")
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.etaMinutes) setHotelEta(d.etaMinutes); })
       .catch(() => {});
@@ -840,8 +838,8 @@ export default function DashboardPage() {
     const body: Record<string, string | number> = { status };
     if (comment) body.comment = comment;
     if (etaMinutes != null) body.etaMinutes = etaMinutes;
-    const res = await fetch(`/api/dashboard/requests/${id}/status`, {
-      method: "PATCH", headers: authH(), body: JSON.stringify(body),
+    const res = await authFetch(`/api/dashboard/requests/${id}/status`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -851,8 +849,8 @@ export default function DashboardPage() {
   };
 
   const assignRequest = async (id: number, staffId: number | null) => {
-    const res = await fetch(`/api/dashboard/requests/${id}/assign`, {
-      method: "PATCH", headers: authH(), body: JSON.stringify({ staffId }),
+    const res = await authFetch(`/api/dashboard/requests/${id}/assign`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ staffId }),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -862,8 +860,8 @@ export default function DashboardPage() {
 
   const updateBookingStatus = async (id: number, status: string) => {
     setUpdatingBookingId(id);
-    const res = await fetch(`/api/dashboard/bookings/${id}/status`, {
-      method: "PATCH", headers: authH(), body: JSON.stringify({ status }),
+    const res = await authFetch(`/api/dashboard/bookings/${id}/status`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }),
     });
     if (res.ok)
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status: status as Booking["status"] } : b));

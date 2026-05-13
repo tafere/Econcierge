@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
-import { useAuth } from "@/lib/auth";
+import { useAuth, authFetch } from "@/lib/auth";
 import {
   ConciergeBell, Plus, Loader2, Building2, Pencil, ToggleLeft,
   ToggleRight, Eye, EyeOff, X, KeyRound, ListChecks, Trash2,
@@ -41,10 +40,8 @@ export default function SuperAdminPage() {
   });
   const [newPwd, setNewPwd] = useState("");
 
-  const authH = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
-
   const fetchHotels = async () => {
-    const res = await fetch("/api/super/hotels", { headers: authH() });
+    const res = await authFetch("/api/super/hotels");
     if (res.ok) setHotels(await res.json());
     setLoading(false);
   };
@@ -54,8 +51,8 @@ export default function SuperAdminPage() {
   const createHotel = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true); setError(null);
-    const res = await fetch("/api/super/hotels", {
-      method: "POST", headers: authH(),
+    const res = await authFetch("/api/super/hotels", {
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         hotelName:     form.hotelName,
         tagline:       form.tagline,
@@ -82,8 +79,8 @@ export default function SuperAdminPage() {
     e.preventDefault();
     if (!editHotel) return;
     setSaving(true); setError(null);
-    const res = await fetch(`/api/super/hotels/${editHotel.id}`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/super/hotels/${editHotel.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editForm),
     });
     if (res.ok) {
@@ -100,8 +97,8 @@ export default function SuperAdminPage() {
     e.preventDefault();
     if (!pwdHotel) return;
     setSaving(true); setError(null);
-    const res = await fetch(`/api/super/hotels/${pwdHotel.id}/admin-password`, {
-      method: "PATCH", headers: authH(),
+    const res = await authFetch(`/api/super/hotels/${pwdHotel.id}/admin-password`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: newPwd }),
     });
     if (res.ok) {
@@ -114,7 +111,7 @@ export default function SuperAdminPage() {
   };
 
   const toggleHotel = async (id: number) => {
-    const res = await fetch(`/api/super/hotels/${id}/toggle`, { method: "PATCH", headers: authH() });
+    const res = await authFetch(`/api/super/hotels/${id}/toggle`, { method: "PATCH" });
     if (res.ok) {
       const d = await res.json();
       setHotels(prev => prev.map(h => h.id === id ? { ...h, enabled: d.enabled } : h));
@@ -122,14 +119,14 @@ export default function SuperAdminPage() {
   };
 
   const seedCategories = async (id: number, name: string) => {
-    const res = await fetch(`/api/super/hotels/${id}/seed-categories`, { method: "POST", headers: authH() });
+    const res = await authFetch(`/api/super/hotels/${id}/seed-categories`, { method: "POST" });
     if (res.ok) alert(`Default categories seeded for ${name}.`);
     else alert("Failed to seed categories.");
   };
 
   const deleteHotel = async (id: number, name: string) => {
     if (!confirm(`Permanently delete "${name}" and ALL its data (rooms, staff, requests)? This cannot be undone.`)) return;
-    const res = await fetch(`/api/super/hotels/${id}`, { method: "DELETE", headers: authH() });
+    const res = await authFetch(`/api/super/hotels/${id}`, { method: "DELETE" });
     if (res.ok) setHotels(prev => prev.filter(h => h.id !== id));
     else alert("Failed to delete hotel.");
   };
