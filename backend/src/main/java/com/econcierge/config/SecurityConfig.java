@@ -50,6 +50,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/super/**").hasRole("SUPER_ADMIN")
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(e -> e
+                .authenticationEntryPoint((req, res, ex) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+            )
             .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

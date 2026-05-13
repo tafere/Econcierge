@@ -34,7 +34,7 @@ export function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise
   const headers = new Headers(init?.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
   return fetch(input, { ...init, headers }).then(res => {
-    if (res.status === 401) _logout?.();
+    if (res.status === 401 || res.status === 403) _logout?.();
     return res;
   });
 }
