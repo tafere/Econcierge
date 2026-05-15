@@ -42,6 +42,9 @@ public class RequestItem {
     @Column(name = "confirm_only", nullable = false)
     private boolean confirmOnly = false;
 
+    @Column(length = 50)
+    private String icon;
+
     public Long getId()                      { return id; }
     public Long getCategoryId()              { return categoryId; }
     public void setCategoryId(Long v)        { this.categoryId = v; }
@@ -65,4 +68,6 @@ public class RequestItem {
     public void setCapacity(int v)           { this.capacity = v; }
     public boolean isConfirmOnly()           { return confirmOnly; }
     public void setConfirmOnly(boolean v)    { this.confirmOnly = v; }
+    public String getIcon()                  { return icon; }
+    public void setIcon(String v)            { this.icon = v; }
 }

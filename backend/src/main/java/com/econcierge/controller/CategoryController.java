@@ -44,6 +44,7 @@ public class CategoryController {
                                 m.put("id",               item.getId());
                                 m.put("name",             item.getName());
                                 m.put("nameAm",           item.getNameAm());
+                                m.put("icon",             item.getIcon() != null ? item.getIcon() : "");
                                 m.put("enabled",          item.isEnabled());
                                 m.put("maxQuantity",      item.getMaxQuantity());
                                 m.put("schedulable",      item.isSchedulable());
@@ -153,6 +154,7 @@ public class CategoryController {
         boolean schedulable = body.get("schedulable") != null && Boolean.parseBoolean(body.get("schedulable").toString());
         int slotInterval = body.get("slotIntervalMins") != null ? Math.max(5, Integer.parseInt(body.get("slotIntervalMins").toString())) : 60;
         int capacity = body.get("capacity") != null ? Math.max(1, Integer.parseInt(body.get("capacity").toString())) : 10;
+        String itemIcon = body.get("icon") != null ? body.get("icon").toString() : null;
 
         RequestItem item = new RequestItem();
         item.setCategoryId(id);
@@ -163,11 +165,13 @@ public class CategoryController {
         item.setSlotIntervalMins(slotInterval);
         item.setCapacity(capacity);
         item.setSortOrder(maxOrder + 1);
+        if (itemIcon != null && !itemIcon.isBlank()) item.setIcon(itemIcon);
         itemRepository.save(item);
         Map<String, Object> resp = new HashMap<>();
         resp.put("id",               item.getId());
         resp.put("name",             item.getName());
         resp.put("nameAm",           item.getNameAm() != null ? item.getNameAm() : "");
+        resp.put("icon",             item.getIcon() != null ? item.getIcon() : "");
         resp.put("enabled",          item.isEnabled());
         resp.put("maxQuantity",      item.getMaxQuantity());
         resp.put("schedulable",      item.isSchedulable());
@@ -202,11 +206,14 @@ public class CategoryController {
             item.setSlotIntervalMins(Math.max(5, Integer.parseInt(body.get("slotIntervalMins").toString())));
         if (body.containsKey("capacity"))
             item.setCapacity(Math.max(1, Integer.parseInt(body.get("capacity").toString())));
+        if (body.containsKey("icon"))
+            item.setIcon(body.get("icon") != null && !body.get("icon").toString().isBlank() ? body.get("icon").toString() : null);
         itemRepository.save(item);
         Map<String, Object> resp = new HashMap<>();
         resp.put("id",               item.getId());
         resp.put("name",             item.getName());
         resp.put("nameAm",           item.getNameAm() != null ? item.getNameAm() : "");
+        resp.put("icon",             item.getIcon() != null ? item.getIcon() : "");
         resp.put("enabled",          item.isEnabled());
         resp.put("maxQuantity",      item.getMaxQuantity());
         resp.put("schedulable",      item.isSchedulable());

@@ -11,6 +11,7 @@ interface CatItem {
   id: number;
   name: string;
   nameAm?: string;
+  icon?: string;
   enabled: boolean;
   maxQuantity: number;
   schedulable: boolean;
@@ -72,9 +73,12 @@ export default function CategoriesPage() {
   const [addItemCapacity, setAddItemCapacity]     = useState(10);
   const [addingItem, setAddingItem]               = useState(false);
 
+  const [addItemIcon, setAddItemIcon]         = useState("");
+
   const [editItemId, setEditItemId]           = useState<number | null>(null);
   const [editItemName, setEditItemName]       = useState("");
   const [editItemNameAm, setEditItemNameAm]   = useState("");
+  const [editItemIcon, setEditItemIcon]       = useState("");
   const [editItemQty, setEditItemQty]         = useState(1);
   const [editSchedulable, setEditSchedulable] = useState(false);
   const [editInterval, setEditInterval]       = useState(30);
@@ -136,12 +140,13 @@ export default function CategoriesPage() {
       body: JSON.stringify({
         name: addItemName, nameAm: addItemNameAm || null, maxQuantity: addItemQty,
         schedulable: addItemSchedulable, slotIntervalMins: addItemInterval, capacity: addItemCapacity,
+        icon: addItemIcon || null,
       }),
     });
     if (res.ok) {
       const item = await res.json();
       setCats(prev => prev.map(c => c.id === catId ? { ...c, items: [...c.items, item] } : c));
-      setAddItemCatId(null); setAddItemName(""); setAddItemNameAm(""); setAddItemQty(1);
+      setAddItemCatId(null); setAddItemName(""); setAddItemNameAm(""); setAddItemQty(1); setAddItemIcon("");
     }
     setAddingItem(false);
   };
@@ -169,6 +174,7 @@ export default function CategoriesPage() {
       body: JSON.stringify({
         name: editItemName, nameAm: editItemNameAm || null, maxQuantity: editSchedulable ? 1 : editItemQty,
         schedulable: editSchedulable, slotIntervalMins: editInterval, capacity: editCapacity,
+        icon: editItemIcon || null,
       }),
     });
     if (res.ok) {
@@ -362,6 +368,19 @@ export default function CategoriesPage() {
                                 className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
                                 <X className="h-3.5 w-3.5" /></button>
                             </div>
+                            <div className="flex flex-wrap gap-1 pl-1">
+                              <button type="button" onClick={() => setEditItemIcon("")}
+                                className={`text-xs px-2 py-1 rounded border transition-colors
+                                  ${editItemIcon === "" ? "border-zinc-500 bg-zinc-50 dark:bg-amber-900/20" : "border-stone-200 dark:border-zinc-600 hover:border-zinc-400"}`}>
+                                {t("noIcon") || "—"}
+                              </button>
+                              {ICONS.map(ic => (
+                                <button key={ic.value} type="button" onClick={() => setEditItemIcon(ic.value)}
+                                  className={`text-base px-1.5 py-0.5 rounded border transition-colors
+                                    ${editItemIcon === ic.value ? "border-zinc-500 bg-zinc-50 dark:bg-amber-900/20" : "border-stone-200 dark:border-zinc-600 hover:border-zinc-400"}`}
+                                  title={t(ic.labelKey)}>{ic.emoji}</button>
+                              ))}
+                            </div>
                             <div className="flex items-center gap-3 pl-1 flex-wrap">
                               <label className="flex items-center gap-1.5 cursor-pointer">
                                 <input type="checkbox" checked={editSchedulable}
@@ -393,6 +412,9 @@ export default function CategoriesPage() {
                           </div>
                         ) : (
                           <>
+                            {item.icon
+                              ? <span className="text-base shrink-0">{iconEmoji(item.icon)}</span>
+                              : <span className="w-4 shrink-0" />}
                             <div className="flex-1 min-w-0">
                               <span className="text-sm text-stone-800 dark:text-zinc-200">{lang === "am" && item.nameAm ? item.nameAm : item.name}</span>
                               {item.schedulable && (
@@ -414,6 +436,7 @@ export default function CategoriesPage() {
                             <button title="Edit item" onClick={() => {
                               setEditItemId(item.id); setEditItemName(item.name);
                               setEditItemNameAm(item.nameAm ?? "");
+                              setEditItemIcon(item.icon ?? "");
                               setEditItemQty(item.maxQuantity); setEditSchedulable(item.schedulable);
                               setEditInterval(item.slotIntervalMins); setEditCapacity(item.capacity);
                             }}
@@ -451,9 +474,22 @@ export default function CategoriesPage() {
                             className="p-1.5 rounded bg-zinc-900 text-white hover:bg-zinc-700 transition-colors shrink-0">
                             {addingItem ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                           </button>
-                          <button type="button" onClick={() => { setAddItemCatId(null); setAddItemName(""); setAddItemSchedulable(false); setAddItemInterval(60); setAddItemCapacity(10); }}
+                          <button type="button" onClick={() => { setAddItemCatId(null); setAddItemName(""); setAddItemSchedulable(false); setAddItemInterval(60); setAddItemCapacity(10); setAddItemIcon(""); }}
                             className="p-1.5 rounded hover:bg-stone-100 text-stone-400 transition-colors shrink-0">
                             <X className="h-3.5 w-3.5" /></button>
+                        </div>
+                        <div className="flex flex-wrap gap-1 pl-1">
+                          <button type="button" onClick={() => setAddItemIcon("")}
+                            className={`text-xs px-2 py-1 rounded border transition-colors
+                              ${addItemIcon === "" ? "border-zinc-500 bg-zinc-50 dark:bg-amber-900/20" : "border-stone-200 dark:border-zinc-600 hover:border-zinc-400"}`}>
+                            {t("noIcon") || "—"}
+                          </button>
+                          {ICONS.map(ic => (
+                            <button key={ic.value} type="button" onClick={() => setAddItemIcon(ic.value)}
+                              className={`text-base px-1.5 py-0.5 rounded border transition-colors
+                                ${addItemIcon === ic.value ? "border-zinc-500 bg-zinc-50 dark:bg-amber-900/20" : "border-stone-200 dark:border-zinc-600 hover:border-zinc-400"}`}
+                              title={t(ic.labelKey)}>{ic.emoji}</button>
+                          ))}
                         </div>
                         <div className="flex items-center gap-3 pl-1 flex-wrap">
                           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -485,7 +521,7 @@ export default function CategoriesPage() {
                         </div>
                       </form>
                     ) : (
-                      <button onClick={() => { setAddItemCatId(cat.id); setAddItemName(""); setAddItemQty(1); setAddItemSchedulable(false); setAddItemInterval(60); setAddItemCapacity(10); }}
+                      <button onClick={() => { setAddItemCatId(cat.id); setAddItemName(""); setAddItemQty(1); setAddItemSchedulable(false); setAddItemInterval(60); setAddItemCapacity(10); setAddItemIcon(""); }}
                         className="w-full px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 flex items-center gap-1.5
                           transition-colors font-medium">
                         <Plus className="h-3.5 w-3.5" /> {t("addItem")}

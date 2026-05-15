@@ -22,6 +22,7 @@ interface ServiceRequest {
   categoryName: string;
   categoryNameAm?: string;
   categoryIcon: string;
+  itemIcon: string;
   quantity: number;
   notes: string;
   staffComment: string;
@@ -57,6 +58,12 @@ const CATEGORY_EMOJI: Record<string, string> = {
   utensils:         "🍽️",
   wrench:           "🔧",
   "concierge-bell": "🛎️",
+  car:              "🚌",
+  coffee:           "☕",
+  flower:           "🌸",
+  dumbbell:         "💪",
+  briefcase:        "💼",
+  star:             "⭐",
 };
 
 const OVERDUE_PENDING_MINS   = 30;
@@ -283,7 +290,7 @@ function RequestTable({
                 <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-zinc-700 flex items-center justify-center shrink-0">
                   {isWaterBottle(req.itemName)
                     ? <GlassWater className="h-6 w-6 text-blue-400" />
-                    : <span className="text-2xl leading-none">{getItemEmoji(req.itemName, req.categoryIcon)}</span>}
+                    : <span className="text-2xl leading-none">{getItemEmoji(req.itemName, req.categoryIcon, req.itemIcon)}</span>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -419,7 +426,7 @@ function RequestTable({
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm leading-none">{CATEGORY_EMOJI[req.categoryIcon] ?? "🛎️"}</span>
+                    <span className="text-sm leading-none">{getItemEmoji(req.itemName, req.categoryIcon, req.itemIcon)}</span>
                     <span className="font-semibold text-stone-900 dark:text-zinc-100">{lang === "am" && req.itemNameAm ? req.itemNameAm : req.itemName}</span>
                     {req.quantity > 1 && (
                       <span className="text-xs font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/30 border border-amber-200
@@ -733,7 +740,8 @@ const ITEM_KEYWORDS: [RegExp, string][] = [
   [/iron|press/i,            "👔"],
 ];
 
-function getItemEmoji(itemName: string, categoryIcon: string): string {
+function getItemEmoji(itemName: string, categoryIcon: string, itemIcon?: string): string {
+  if (itemIcon) return CATEGORY_EMOJI[itemIcon] ?? "🛎️";
   for (const [pattern, emoji] of ITEM_KEYWORDS) {
     if (pattern.test(itemName)) return emoji;
   }

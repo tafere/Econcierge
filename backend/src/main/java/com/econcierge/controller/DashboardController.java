@@ -382,6 +382,7 @@ public class DashboardController {
         m.put("categoryName",   cat != null ? cat.getName()  : "");
         m.put("categoryNameAm", cat != null && cat.getNameAm() != null ? cat.getNameAm() : "");
         m.put("categoryIcon",   cat != null && cat.getIcon()  != null ? cat.getIcon()  : "");
+        m.put("itemIcon",       item != null && item.getIcon() != null ? item.getIcon() : "");
         m.put("quantity",     r.getQuantity());
         m.put("notes",        r.getNotes() != null ? r.getNotes() : "");
         m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
