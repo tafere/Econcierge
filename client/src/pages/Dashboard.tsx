@@ -547,18 +547,11 @@ function BookingSection({
   const { t, lang } = useLang();
   const displayName = lang === "am" && itemNameAm ? itemNameAm : itemName;
   const th = "text-left px-4 py-2.5 text-xs font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider whitespace-nowrap";
-  const totalGuests = bookings.filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.guestCount, 0);
   const hasNotes   = bookings.some(b => b.notes);
   const hasActions = bookings.some(b => b.status === "PENDING" || b.status === "CONFIRMED");
 
   return (
     <div>
-      {/* Desktop-only section header */}
-      <div className="hidden sm:flex px-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-700 items-center gap-2">
-        <CalendarClock className="h-4 w-4 text-stone-400 dark:text-zinc-500 shrink-0" />
-        <p className="text-xs font-bold text-stone-600 dark:text-zinc-300 uppercase tracking-wider">{displayName}</p>
-      </div>
-
       {/* Mobile card list */}
       <div className="sm:hidden space-y-4">
         {bookings.map(b => {
@@ -566,33 +559,22 @@ function BookingSection({
           const accentBg =
             b.status === "CONFIRMED"  ? "bg-green-400" :
             isOverdueBooking          ? "bg-rose-400" :
-            "bg-transparent";
+            "bg-amber-300";
           return (
             <div key={b.id}
               className={`relative glass rounded-xl border border-zinc-600 dark:bg-zinc-800/90 shadow-md dark:shadow-black/70 ${b.status === "CANCELLED" ? "opacity-50" : ""} overflow-hidden`}>
               <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${accentBg}`} />
               <div className="pl-5 pr-4 pt-3 pb-3 space-y-3">
-                {/* Row 1: Room + Floor pill */}
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
-                    {t("roomCol")} {b.roomNumber}
-                  </span>
-                  {b.floor && (
-                    <span className="text-xs font-medium text-stone-600 dark:text-zinc-300 bg-stone-200 dark:bg-zinc-700 rounded-full px-2 py-0.5">
-                      {t("floorLabel")} {b.floor}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-extrabold text-stone-900 dark:text-zinc-100 leading-none">
+                      {t("roomCol")} {b.roomNumber}
                     </span>
-                  )}
-                </div>
-                {/* Row 2: Service name + date/time + guests */}
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-700 flex items-center justify-center shrink-0">
-                    <span className="text-2xl leading-none">{getItemEmoji(displayName, "car")}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-bold text-stone-900 dark:text-zinc-100 text-base leading-tight block">{displayName}</span>
-                    <span className="text-xs text-stone-400 dark:text-zinc-500">
-                      {b.slotDate} · {b.slotTime} · <Users className="h-3 w-3 inline" /> {b.guestCount}
-                    </span>
+                    {b.floor && (
+                      <span className="text-xs font-medium text-stone-600 dark:text-zinc-300 bg-stone-200 dark:bg-zinc-700 rounded-full px-2 py-0.5">
+                        {t("floorLabel")} {b.floor}
+                      </span>
+                    )}
                   </div>
                   {b.status !== "PENDING" && (
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${BOOKING_STATUS_PILL[b.status]}`}>
@@ -600,11 +582,19 @@ function BookingSection({
                     </span>
                   )}
                 </div>
-                {b.notes && (
-                  <p className="text-xs text-zinc-500 italic truncate">"{b.notes}"</p>
-                )}
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-zinc-700 flex items-center justify-center shrink-0">
+                    <CalendarClock className="h-5 w-5 text-stone-400 dark:text-zinc-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-bold text-stone-900 dark:text-zinc-100 text-base leading-tight block">{displayName}</span>
+                    <span className="text-xs text-stone-400 dark:text-zinc-500">
+                      {b.slotTime} · <Users className="h-3 w-3 inline" /> {b.guestCount}
+                    </span>
+                  </div>
+                </div>
+                {b.notes && <p className="text-xs text-zinc-500 italic truncate">"{b.notes}"</p>}
               </div>
-              {/* Action buttons */}
               {(b.status === "PENDING" || b.status === "CONFIRMED") && (
                 <div className="border-t border-zinc-700/50">
                   {updatingId === b.id ? (
@@ -638,24 +628,36 @@ function BookingSection({
         })}
       </div>
 
+      {/* Desktop table — ROOM | REQUEST | TIME | GUESTS | [NOTES] | ACTION */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full text-sm table-auto">
           <thead>
             <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
               <th className={th}>{t("roomCol")}</th>
+              <th className={th}>{t("requestCol")}</th>
               <th className={th}>{t("timeCol")}</th>
               <th className={th}>{t("guestsCol")}</th>
-              {hasNotes   && <th className={th}>{t("notesCol")}</th>}
-              <th className={th}>{t("statusCol")}</th>
+              {hasNotes && <th className={th}>{t("notesCol")}</th>}
               {hasActions && <th className={`${th} text-right`}>{t("actionCol")}</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100 dark:divide-zinc-700/50">
             {bookings.map(b => (
-              <tr key={b.id} className={b.status === "CANCELLED" ? "opacity-50" : ""}>
+              <tr key={b.id} className={`border-l-4 ${b.status === "CONFIRMED" ? "border-l-green-400" : b.status === "CANCELLED" ? "border-l-transparent opacity-50" : "border-l-amber-300"}`}>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="font-extrabold text-stone-900 dark:text-zinc-100">{b.roomNumber}</p>
                   {b.floor && <p className="text-[10px] text-stone-400 dark:text-zinc-500">{t("floorLabel")} {b.floor}</p>}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    <CalendarClock className="h-3.5 w-3.5 text-stone-400 dark:text-zinc-500 shrink-0" />
+                    <span className="font-semibold text-stone-900 dark:text-zinc-100">{displayName}</span>
+                  </div>
+                  {b.status !== "PENDING" && (
+                    <span className={`mt-0.5 inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded border ${BOOKING_STATUS_PILL[b.status]}`}>
+                      {b.status === "CONFIRMED" ? t("confirmedStatus") : t("cancelledStatus")}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-xs font-semibold text-stone-700 dark:text-zinc-300">{b.slotTime}</p>
@@ -674,13 +676,6 @@ function BookingSection({
                     )}
                   </td>
                 )}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {b.status !== "PENDING" && (
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${BOOKING_STATUS_PILL[b.status]}`}>
-                      {b.status === "CONFIRMED" ? t("confirmedStatus") : t("cancelledStatus")}
-                    </span>
-                  )}
-                </td>
                 {hasActions && (
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     {updatingId === b.id ? (
