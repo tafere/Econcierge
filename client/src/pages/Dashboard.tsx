@@ -236,7 +236,7 @@ function RequestTable({
 
   // ── Mobile card list ────────────────────────────────────────────────────────
   const mobileCards = (
-    <div className="sm:hidden space-y-4">
+    <div className="lg:hidden space-y-4">
       {requests.map(req => {
         const isOverdue     = overdueIds.has(req.id);
         const isEscalated   = escalatedIds.has(req.id);
@@ -389,7 +389,7 @@ function RequestTable({
   return (
     <>
       {mobileCards}
-      <div className="hidden sm:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
       <table className="min-w-full text-sm table-auto">
         <thead>
           <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">
@@ -484,12 +484,12 @@ function RequestTable({
                     {updatingId === req.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
                     ) : req.status === "PENDING" ? (
-                      <div className="inline-flex items-center gap-1.5 justify-end">
+                      <div className="inline-flex items-center gap-1.5 flex-wrap justify-end">
                         {onAssign && staffList.length > 0 && (
                           <select
                             value={req.assignedToId ?? ""}
                             onChange={e => onAssign(req.id, e.target.value ? Number(e.target.value) : null)}
-                            className="hidden lg:inline-block text-xs border border-stone-200 dark:border-zinc-600 rounded px-2 py-1.5
+                            className="text-xs border border-stone-200 dark:border-zinc-600 rounded px-2 py-1.5
                               bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 focus:outline-none
                               focus:ring-1 focus:ring-zinc-400"
                           >
@@ -560,7 +560,7 @@ function BookingSection({
   return (
     <div>
       {/* Mobile card list */}
-      <div className="sm:hidden space-y-4">
+      <div className="lg:hidden space-y-4">
         {bookings.map(b => {
           const isOverdueBooking = b.status === "PENDING" && new Date(b.slotTimeIso) < new Date();
           const accentBg =
@@ -636,7 +636,7 @@ function BookingSection({
       </div>
 
       {/* Desktop table — ROOM | REQUEST | TIME | GUESTS | [NOTES] | ACTION */}
-      <div className="hidden sm:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full text-sm table-auto">
           <thead>
             <tr className="border-b border-stone-200 dark:border-zinc-700 bg-stone-50/60 dark:bg-zinc-800/60">

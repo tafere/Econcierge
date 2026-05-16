@@ -7,7 +7,7 @@ import { toggleTheme } from "@/lib/darkmode";
 import { useNotifications } from "@/lib/NotificationsContext";
 import {
   ConciergeBell, LayoutDashboard, BedDouble, LayoutList,
-  Users, Settings, LogOut, Menu, X, Bell, BarChart2, Languages, Clock, AlertCircle,
+  Users, Settings, LogOut, Menu, X, Bell, BarChart2, Languages, AlertCircle,
   Sun, Moon,
 } from "lucide-react";
 
@@ -73,7 +73,7 @@ export default function NavBar() {
             ) : (
               <ConciergeBell className="h-5 w-5 text-zinc-400 shrink-0" />
             )}
-            <div className="hidden lg:block text-left">
+            <div className="text-left">
               <p className="font-extrabold text-white text-base leading-tight">{user?.hotelName}</p>
               <p className="text-zinc-400 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
             </div>
@@ -107,8 +107,7 @@ export default function NavBar() {
                     <div className="max-h-80 overflow-y-auto divide-y divide-stone-100 dark:divide-zinc-700/50">
                       {notifications.map(n => (
                         <div key={n.id}
-                          className={`flex items-start gap-3 px-4 py-3 transition-colors
-                            ${n.read ? "opacity-50 bg-stone-50 dark:bg-zinc-900" : "hover:bg-stone-50 dark:hover:bg-zinc-700"}`}>
+                          className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-stone-50 dark:hover:bg-zinc-700">
                           <div className={`mt-0.5 shrink-0 ${n.type === "past_due" ? "text-rose-400" : "text-zinc-500"}`}>
                             {n.type === "past_due"
                               ? <AlertCircle className="h-4 w-4" />
@@ -136,7 +135,7 @@ export default function NavBar() {
             </div>
 
             {/* Desktop links */}
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1">
               <button onClick={() => go("/")} className={desktopLink("/")}>
                 <LayoutDashboard className="h-3.5 w-3.5" /> {t("dashboard")}
               </button>
@@ -162,7 +161,7 @@ export default function NavBar() {
                 </>
               )}
               {/* Dark mode toggle */}
-              <button onClick={() => setDark(toggleTheme())} className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded" title="Toggle theme">
+              <button onClick={() => setDark(toggleTheme() === "dark")} className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/10 transition-colors px-2 py-1 rounded" title="Toggle theme">
                 {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               </button>
               {/* Language picker */}
@@ -193,7 +192,7 @@ export default function NavBar() {
             </div>
 
             {/* Mobile: logout icon + hamburger */}
-            <div className="flex sm:hidden items-center gap-2">
+            <div className="flex lg:hidden items-center gap-2">
               <button onClick={logout} className="text-zinc-400 hover:text-white transition-colors p-1">
                 <LogOut className="h-4 w-4" />
               </button>
@@ -255,7 +254,7 @@ export default function NavBar() {
                 </>
               )}
               {/* Dark mode toggle */}
-              <button onClick={() => setDark(toggleTheme())}
+              <button onClick={() => setDark(toggleTheme() === "dark")}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-semibold transition-colors text-left
                   text-stone-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-700">
                 {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
