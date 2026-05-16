@@ -3,7 +3,7 @@ import { useAuth, getToken, authFetch } from "@/lib/auth";
 import { useLang } from "@/lib/lang";
 import {
   ConciergeBell, Loader2, RefreshCw,
-  X, Check, CheckCheck, Users, CalendarClock, Clock, GlassWater,
+  X, Check, CheckCheck, Users, CalendarClock, Clock, GlassWater, ChevronDown,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { requestNotifyPermission, showNotification, playAlertSound } from "@/lib/notify";
@@ -226,6 +226,7 @@ function RequestTable({
   isCancelledTab?: boolean;
 }) {
   const { t, lang } = useLang();
+  const [assignOpenId, setAssignOpenId] = useState<number | null>(null);
   if (requests.length === 0) return null;
 
   const hasActions = requests.some(r => r.status === "PENDING" || r.status === "IN_PROGRESS");
@@ -359,15 +360,34 @@ function RequestTable({
                       </button>
                     </div>
                     {onAssign && staffList.length > 0 && (
-                      <div className="border-t border-zinc-700/30 px-4 py-2">
-                        <select
-                          value={req.assignedToId ?? ""}
-                          onChange={e => onAssign(req.id, e.target.value ? Number(e.target.value) : null)}
-                          className="w-full text-xs bg-transparent text-stone-400 dark:text-zinc-500 focus:outline-none"
+                      <div className="border-t border-zinc-700/30">
+                        <button
+                          onClick={() => setAssignOpenId(assignOpenId === req.id ? null : req.id)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-stone-400 dark:text-zinc-500 hover:bg-white/5 transition-colors"
                         >
-                          <option value="">{t("unassigned")}</option>
-                          {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
+                          <span>{req.assignedToId ? staffList.find(s => s.id === req.assignedToId)?.name ?? t("unassigned") : t("unassigned")}</span>
+                          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${assignOpenId === req.id ? "rotate-180" : ""}`} />
+                        </button>
+                        {assignOpenId === req.id && (
+                          <div className="border-t border-zinc-700/30 bg-zinc-800/80">
+                            <button
+                              onClick={() => { onAssign(req.id, null); setAssignOpenId(null); }}
+                              className={`w-full text-left px-5 py-2.5 text-xs transition-colors hover:bg-white/10
+                                ${!req.assignedToId ? "font-semibold text-white" : "text-stone-400 dark:text-zinc-400"}`}
+                            >
+                              {t("unassigned")}
+                            </button>
+                            {staffList.map(s => (
+                              <button key={s.id}
+                                onClick={() => { onAssign(req.id, s.id); setAssignOpenId(null); }}
+                                className={`w-full text-left px-5 py-2.5 text-xs transition-colors hover:bg-white/10
+                                  ${req.assignedToId === s.id ? "font-semibold text-white" : "text-stone-400 dark:text-zinc-400"}`}
+                              >
+                                {s.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
