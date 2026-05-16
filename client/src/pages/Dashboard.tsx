@@ -787,7 +787,7 @@ export default function DashboardPage() {
     setTab("ACTIVE");
     setHighlightedId(pendingTarget);
     setTimeout(() => {
-      const isDesktop = window.innerWidth >= 640;
+      const isDesktop = window.innerWidth >= 1024;
       const id = isDesktop ? `request-table-${pendingTarget}` : `request-${pendingTarget}`;
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 150);
