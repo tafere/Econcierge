@@ -67,13 +67,13 @@ export default function NavBar() {
       <nav className="bg-zinc-900 text-white px-4 py-3 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Brand */}
-          <button onClick={() => go("/")} className="flex items-center gap-3 min-w-0">
+          <button onClick={() => go("/")} className="flex items-center gap-3 shrink-0">
             {user?.logoUrl ? (
               <img src={user.logoUrl} alt={user.hotelName ?? ""} className="h-8 w-8 rounded object-cover shrink-0" />
             ) : (
               <ConciergeBell className="h-5 w-5 text-zinc-400 shrink-0" />
             )}
-            <div className="text-left">
+            <div className="hidden lg:block text-left">
               <p className="font-extrabold text-white text-base leading-tight">{user?.hotelName}</p>
               <p className="text-zinc-400 text-[11px] uppercase tracking-widest font-semibold">Econcierge</p>
             </div>

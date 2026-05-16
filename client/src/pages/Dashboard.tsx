@@ -484,12 +484,12 @@ function RequestTable({
                     {updatingId === req.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-stone-400 ml-auto" />
                     ) : req.status === "PENDING" ? (
-                      <div className="inline-flex items-center gap-1.5 flex-wrap justify-end">
+                      <div className="inline-flex items-center gap-1.5 justify-end">
                         {onAssign && staffList.length > 0 && (
                           <select
                             value={req.assignedToId ?? ""}
                             onChange={e => onAssign(req.id, e.target.value ? Number(e.target.value) : null)}
-                            className="text-xs border border-stone-200 dark:border-zinc-600 rounded px-2 py-1.5
+                            className="hidden lg:inline-block text-xs border border-stone-200 dark:border-zinc-600 rounded px-2 py-1.5
                               bg-white dark:bg-zinc-700 text-stone-600 dark:text-zinc-300 focus:outline-none
                               focus:ring-1 focus:ring-zinc-400"
                           >
