@@ -849,7 +849,7 @@ export default function GuestPage() {
       )}
 
       {/* Header */}
-      <div className={`text-white px-4 py-5 ${hasHero ? "bg-black/20 backdrop-blur-sm" : "bg-stone-900"}`}>
+      <div className={`sticky top-0 z-20 text-white px-4 py-5 ${hasHero ? "bg-black/20 backdrop-blur-sm" : "bg-stone-900"}`}>
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             {room!.logoUrl ? (
