@@ -30,6 +30,7 @@ interface ServiceRequest {
   assignedTo: string;
   assignedToId: number | null;
   etaMinutes?: number | null;
+  selectedOption?: string;
   createdAt: string;
   acceptedAt: string;
   completedAt: string;
@@ -302,6 +303,9 @@ function RequestTable({
                     )}
                   </div>
                   <span className="text-xs text-stone-400 dark:text-zinc-500">{catLabel}</span>
+                  {req.selectedOption && (
+                    <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">· {req.selectedOption}</span>
+                  )}
                   {req.status === "IN_PROGRESS" && req.etaMinutes != null && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold mt-0.5
                       text-blue-400 border border-blue-700 rounded px-1.5 py-0.5">
@@ -454,6 +458,9 @@ function RequestTable({
                     )}
                   </div>
                   <p className="text-xs text-stone-400 dark:text-zinc-500 mt-0.5">{lang === "am" && req.categoryNameAm ? req.categoryNameAm : req.categoryName}</p>
+                  {req.selectedOption && (
+                    <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mt-0.5">{req.selectedOption}</p>
+                  )}
                 </td>
                 {hasNotes && (
                   <td className="px-4 py-3 max-w-[180px]">

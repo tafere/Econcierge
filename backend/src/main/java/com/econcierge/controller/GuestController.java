@@ -21,6 +21,7 @@ public class GuestController {
     private final RoomRepository roomRepository;
     private final RequestCategoryRepository categoryRepository;
     private final RequestItemRepository itemRepository;
+    private final RequestItemOptionRepository optionRepository;
     private final ServiceRequestRepository requestRepository;
     private final HotelRepository hotelRepository;
     private final SseController sseController;
@@ -28,12 +29,14 @@ public class GuestController {
     public GuestController(RoomRepository roomRepository,
                            RequestCategoryRepository categoryRepository,
                            RequestItemRepository itemRepository,
+                           RequestItemOptionRepository optionRepository,
                            ServiceRequestRepository requestRepository,
                            HotelRepository hotelRepository,
                            SseController sseController) {
         this.roomRepository = roomRepository;
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
+        this.optionRepository = optionRepository;
         this.requestRepository = requestRepository;
         this.hotelRepository = hotelRepository;
         this.sseController = sseController;
@@ -54,6 +57,15 @@ public class GuestController {
                     .stream()
                     .map(item -> {
                         Map<String, Object> m = new HashMap<>();
+                        List<Map<String, Object>> opts = optionRepository
+                                .findByItemIdAndEnabledTrueOrderBySortOrder(item.getId())
+                                .stream().map(o -> {
+                                    Map<String, Object> om = new HashMap<>();
+                                    om.put("id",     o.getId());
+                                    om.put("name",   o.getName());
+                                    om.put("nameAm", o.getNameAm() != null ? o.getNameAm() : "");
+                                    return om;
+                                }).toList();
                         m.put("id",               item.getId());
                         m.put("name",             item.getName());
                         m.put("nameAm",           item.getNameAm() != null ? item.getNameAm() : "");
@@ -63,6 +75,7 @@ public class GuestController {
                         m.put("slotIntervalMins", item.getSlotIntervalMins());
                         m.put("capacity",         item.getCapacity());
                         m.put("confirmOnly",      item.isConfirmOnly());
+                        m.put("options",          opts);
                         return m;
                     }).toList();
 
@@ -125,6 +138,8 @@ public class GuestController {
         Long itemId   = body.get("itemId")   != null ? Long.valueOf(body.get("itemId").toString())   : null;
         String notes  = body.get("notes")    != null ? body.get("notes").toString() : null;
         int quantity  = body.get("quantity") != null ? Integer.parseInt(body.get("quantity").toString()) : 1;
+        String selectedOption = body.get("selectedOption") != null && !body.get("selectedOption").toString().isBlank()
+                ? body.get("selectedOption").toString() : null;
 
         if (roomId == null || itemId == null)
             return ResponseEntity.badRequest().body(Map.of("error", "roomId and itemId are required"));
@@ -142,6 +157,7 @@ public class GuestController {
         req.setNotes(notes);
         req.setQuantity(Math.max(1, quantity));
         req.setDeviceId(deviceId);
+        req.setSelectedOption(selectedOption);
         requestRepository.save(req);
 
         sseController.broadcast(room.getHotelId(), req.getId(), room.getRoomNumber(), itemId, req.getQuantity(), notes);
@@ -186,8 +202,9 @@ public class GuestController {
                     m.put("notes",        r.getNotes() != null ? r.getNotes() : "");
                     m.put("staffComment", r.getStaffComment() != null ? r.getStaffComment() : "");
                     m.put("submittedAt",  r.getCreatedAt().toString() + "Z");
-                    m.put("etaMinutes",   r.getEtaMinutes());
-                    m.put("acceptedAt",   r.getAcceptedAt() != null ? r.getAcceptedAt().toString() + "Z" : null);
+                    m.put("etaMinutes",     r.getEtaMinutes());
+                    m.put("acceptedAt",     r.getAcceptedAt() != null ? r.getAcceptedAt().toString() + "Z" : null);
+                    m.put("selectedOption", r.getSelectedOption() != null ? r.getSelectedOption() : "");
 
                     var item = itemRepository.findById(r.getItemId()).orElse(null);
                     m.put("itemName",   item != null ? item.getName() : "");

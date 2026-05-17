@@ -92,6 +92,12 @@ const FAQ_DATA: FaqGroup[] = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface ItemOption {
+  id: number;
+  name: string;
+  nameAm: string;
+}
+
 interface MenuItem {
   id: number;
   name: string;
@@ -102,6 +108,7 @@ interface MenuItem {
   slotIntervalMins: number;
   capacity: number;
   confirmOnly?: boolean;
+  options?: ItemOption[];
 }
 
 interface MenuCategory {
@@ -132,6 +139,7 @@ interface CartItem {
   categoryIcon: string;
   quantity: number;
   notes: string;
+  selectedOption?: string;
 }
 
 interface TrackedRequest {
@@ -139,6 +147,7 @@ interface TrackedRequest {
   itemName: string;
   categoryName: string;
   quantity: number;
+  selectedOption?: string;
   submittedAt: string;
   status: "PENDING" | "IN_PROGRESS" | "DONE" | "CANCELLED" | "GUEST_CANCELLED" | "DECLINED";
   staffComment?: string;
@@ -286,9 +295,10 @@ export default function GuestPage() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedCat, selectedItem, showCart, showFaq]);
 
   // form
-  const [quantity, setQuantity]   = useState(1);
-  const [notes, setNotes]         = useState("");
-  const [showNotes, setShowNotes] = useState(false);
+  const [quantity, setQuantity]       = useState(1);
+  const [notes, setNotes]             = useState("");
+  const [showNotes, setShowNotes]     = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string>("");
 
   // cart
   const [cart, setCart]       = useState<CartItem[]>([]);
@@ -373,6 +383,7 @@ export default function GuestPage() {
               categoryName: string; categoryIcon: string;
               quantity: number; status: TrackedRequest["status"];
               staffComment: string; submittedAt: string;
+              selectedOption?: string;
               etaMinutes?: number | null; acceptedAt?: string | null;
             }> = await res.json();
 
@@ -388,15 +399,16 @@ export default function GuestPage() {
             const dbMap = new Map(dbReqs.map(r => [r.id, r]));
 
             const merged: TrackedRequest[] = dbReqs.map(r => ({
-              id:           r.id,
-              itemName:     r.itemName,
-              categoryName: r.categoryName,
-              quantity:     r.quantity,
-              submittedAt:  r.submittedAt,
-              status:       r.status,
-              staffComment: r.staffComment || "",
-              etaMinutes:   r.etaMinutes ?? null,
-              acceptedAt:   r.acceptedAt ?? null,
+              id:             r.id,
+              itemName:       r.itemName,
+              categoryName:   r.categoryName,
+              quantity:       r.quantity,
+              selectedOption: r.selectedOption || undefined,
+              submittedAt:    r.submittedAt,
+              status:         r.status,
+              staffComment:   r.staffComment || "",
+              etaMinutes:     r.etaMinutes ?? null,
+              acceptedAt:     r.acceptedAt ?? null,
             }));
 
             // DB is the authoritative window — do not append old localStorage entries.
@@ -492,19 +504,22 @@ export default function GuestPage() {
   // ── Cart actions ─────────────────────────────────────────────────────────
   const addToCart = () => {
     if (!selectedItem || !selectedCat) return;
+    if ((selectedItem.options?.length ?? 0) > 0 && !selectedOption) return;
     setCart(prev => [...prev, {
-      itemId:       selectedItem.id,
-      itemName:     lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name,
-      categoryName: selectedCat.name,
-      categoryIcon: selectedCat.icon,
+      itemId:         selectedItem.id,
+      itemName:       lang === "am" && selectedItem.nameAm ? selectedItem.nameAm : selectedItem.name,
+      categoryName:   selectedCat.name,
+      categoryIcon:   selectedCat.icon,
       quantity,
-      notes:        notes.trim(),
+      notes:          notes.trim(),
+      selectedOption: selectedOption || undefined,
     }]);
     setSelectedItem(null);
     setSelectedCat(null);
     setQuantity(1);
     setNotes("");
     setShowNotes(false);
+    setSelectedOption("");
   };
 
   const removeFromCart = (index: number) => {
@@ -521,22 +536,24 @@ export default function GuestPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            roomId:   room.roomId,
-            itemId:   cartItem.itemId,
-            quantity: cartItem.quantity,
-            notes:    cartItem.notes || null,
-            deviceId: getDeviceId(),
+            roomId:         room.roomId,
+            itemId:         cartItem.itemId,
+            quantity:       cartItem.quantity,
+            notes:          cartItem.notes || null,
+            deviceId:       getDeviceId(),
+            selectedOption: cartItem.selectedOption || null,
           }),
         });
         if (res.ok) {
           const data = await res.json();
           newTracked.push({
-            id:           data.id,
-            itemName:     cartItem.itemName,
-            categoryName: cartItem.categoryName,
-            quantity:     cartItem.quantity,
-            submittedAt:  new Date().toISOString(),
-            status:       "PENDING",
+            id:             data.id,
+            itemName:       cartItem.itemName,
+            categoryName:   cartItem.categoryName,
+            quantity:       cartItem.quantity,
+            selectedOption: cartItem.selectedOption,
+            submittedAt:    new Date().toISOString(),
+            status:         "PENDING",
           });
         }
       } catch { /* continue */ }
@@ -740,6 +757,7 @@ export default function GuestPage() {
     setQuantity(1);
     setNotes("");
     setShowNotes(false);
+    setSelectedOption("");
     if (item.schedulable) {
       const d = todayStr;
       setSlotDate(d);
@@ -896,6 +914,9 @@ export default function GuestPage() {
                       <span className="text-xl shrink-0">{CATEGORY_EMOJI[ci.categoryIcon] ?? "🛎️"}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-stone-800">{ci.itemName}</p>
+                        {ci.selectedOption && (
+                          <p className="text-xs font-medium text-amber-700">· {ci.selectedOption}</p>
+                        )}
                         <p className="text-xs text-stone-400">
                           {ci.categoryName}{ci.quantity > 1 ? ` · ×${ci.quantity}` : ""}
                         </p>
@@ -950,6 +971,9 @@ export default function GuestPage() {
                             <p className={`text-sm font-semibold truncate ${hasHero ? "text-white" : "text-stone-800"}`}>{req.itemName}</p>
                             {req.quantity > 1 && (
                               <span className={`text-xs font-bold ${hasHero ? "text-amber-400" : "text-brand-700"}`}>×{req.quantity}</span>
+                            )}
+                            {req.selectedOption && (
+                              <span className={`text-xs font-medium ${hasHero ? "text-amber-300" : "text-amber-700"}`}>· {req.selectedOption}</span>
                             )}
                           </div>
                           <div className={`flex items-center gap-1.5 mt-0.5 text-[11px] ${hasHero ? "text-white/40" : "text-stone-400"}`}>
@@ -1524,6 +1548,33 @@ export default function GuestPage() {
                     </h2>
                   </div>
 
+                  {/* Option/type picker */}
+                  {(selectedItem.options?.length ?? 0) > 0 && (
+                    <div>
+                      <p className={`text-xs font-medium tracking-wider mb-2 ${hasHero ? "text-white/50" : "text-stone-400"}`}>
+                        {T("chooseType")}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedItem.options!.map(opt => (
+                          <button
+                            key={opt.id}
+                            onClick={() => setSelectedOption(selectedOption === opt.name ? "" : opt.name)}
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
+                              ${selectedOption === opt.name
+                                ? hasHero
+                                  ? "bg-white text-stone-900 border-white"
+                                  : "bg-brand-700 text-white border-brand-700"
+                                : hasHero
+                                  ? "border-white/30 text-white/70 hover:border-white hover:text-white"
+                                  : "border-stone-200 text-stone-600 hover:border-brand-700 hover:text-brand-700"}`}
+                          >
+                            {lang === "am" && opt.nameAm ? opt.nameAm : opt.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Quantity stepper */}
                   <div className="flex items-center gap-3">
                     <button
@@ -1573,7 +1624,8 @@ export default function GuestPage() {
 
                   <button
                     onClick={addToCart}
-                    className={`w-full h-10 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2
+                    disabled={(selectedItem.options?.length ?? 0) > 0 && !selectedOption}
+                    className={`w-full h-10 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-40
                       ${hasHero
                         ? "bg-white text-stone-900 hover:bg-white/90"
                         : "bg-brand-700 text-white hover:bg-brand-800"}`}

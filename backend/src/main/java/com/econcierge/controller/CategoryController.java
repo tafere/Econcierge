@@ -3,8 +3,10 @@ package com.econcierge.controller;
 import com.econcierge.config.JwtUtil;
 import com.econcierge.model.RequestCategory;
 import com.econcierge.model.RequestItem;
+import com.econcierge.model.RequestItemOption;
 import com.econcierge.repository.RequestCategoryRepository;
 import com.econcierge.repository.RequestItemRepository;
+import com.econcierge.repository.RequestItemOptionRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +20,16 @@ public class CategoryController {
 
     private final RequestCategoryRepository categoryRepository;
     private final RequestItemRepository itemRepository;
+    private final RequestItemOptionRepository optionRepository;
     private final JwtUtil jwtUtil;
 
     public CategoryController(RequestCategoryRepository categoryRepository,
                               RequestItemRepository itemRepository,
+                              RequestItemOptionRepository optionRepository,
                               JwtUtil jwtUtil) {
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
+        this.optionRepository = optionRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -41,6 +46,16 @@ public class CategoryController {
                             .stream()
                             .map(item -> {
                                 Map<String, Object> m = new HashMap<>();
+                                List<Map<String, Object>> opts = optionRepository
+                                        .findByItemIdOrderBySortOrder(item.getId())
+                                        .stream().map(o -> {
+                                            Map<String, Object> om = new HashMap<>();
+                                            om.put("id",      o.getId());
+                                            om.put("name",    o.getName());
+                                            om.put("nameAm",  o.getNameAm() != null ? o.getNameAm() : "");
+                                            om.put("enabled", o.isEnabled());
+                                            return om;
+                                        }).toList();
                                 m.put("id",               item.getId());
                                 m.put("name",             item.getName());
                                 m.put("nameAm",           item.getNameAm());
@@ -51,6 +66,7 @@ public class CategoryController {
                                 m.put("slotIntervalMins", item.getSlotIntervalMins());
                                 m.put("capacity",         item.getCapacity());
                                 m.put("confirmOnly",      item.isConfirmOnly());
+                                m.put("options",          opts);
                                 return m;
                             }).toList();
                     Map<String, Object> m = new HashMap<>();
@@ -128,8 +144,11 @@ public class CategoryController {
         Long hotelId = jwtUtil.extractHotelId(header.substring(7));
         RequestCategory cat = categoryRepository.findById(id).orElse(null);
         if (cat == null || !cat.getHotelId().equals(hotelId)) return ResponseEntity.notFound().build();
-        // Delete items first
-        itemRepository.findByCategoryIdOrderBySortOrder(id).forEach(itemRepository::delete);
+        // Delete options and items first
+        itemRepository.findByCategoryIdOrderBySortOrder(id).forEach(item -> {
+            optionRepository.findByItemIdOrderBySortOrder(item.getId()).forEach(optionRepository::delete);
+            itemRepository.delete(item);
+        });
         categoryRepository.delete(cat);
         return ResponseEntity.ok(Map.of("deleted", true));
     }
@@ -222,6 +241,74 @@ public class CategoryController {
         return ResponseEntity.ok(resp);
     }
 
+    /** Add an option to an item */
+    @PostMapping("/items/{itemId}/options")
+    public ResponseEntity<?> addOption(@PathVariable Long itemId,
+                                       @RequestHeader("Authorization") String header,
+                                       @RequestBody Map<String, Object> body) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        RequestItem item = itemRepository.findById(itemId).orElse(null);
+        if (item == null) return ResponseEntity.notFound().build();
+        RequestCategory cat = categoryRepository.findById(item.getCategoryId()).orElse(null);
+        if (cat == null || !cat.getHotelId().equals(hotelId)) return ResponseEntity.status(403).build();
+        String name = body.get("name") != null ? body.get("name").toString().trim() : "";
+        if (name.isBlank()) return ResponseEntity.badRequest().body(Map.of("error", "Name required"));
+        int maxOrder = optionRepository.findByItemIdOrderBySortOrder(itemId)
+                .stream().mapToInt(RequestItemOption::getSortOrder).max().orElse(0);
+        RequestItemOption opt = new RequestItemOption();
+        opt.setItemId(itemId);
+        opt.setName(name);
+        if (body.get("nameAm") != null && !body.get("nameAm").toString().isBlank())
+            opt.setNameAm(body.get("nameAm").toString().trim());
+        opt.setSortOrder(maxOrder + 1);
+        optionRepository.save(opt);
+        return ResponseEntity.ok(Map.of(
+                "id", opt.getId(), "name", opt.getName(),
+                "nameAm", opt.getNameAm() != null ? opt.getNameAm() : "",
+                "enabled", opt.isEnabled()));
+    }
+
+    /** Update an option */
+    @PatchMapping("/items/{itemId}/options/{optId}")
+    public ResponseEntity<?> updateOption(@PathVariable Long itemId,
+                                          @PathVariable Long optId,
+                                          @RequestHeader("Authorization") String header,
+                                          @RequestBody Map<String, Object> body) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        RequestItemOption opt = optionRepository.findById(optId).orElse(null);
+        if (opt == null || !opt.getItemId().equals(itemId)) return ResponseEntity.notFound().build();
+        RequestItem item = itemRepository.findById(itemId).orElse(null);
+        RequestCategory cat = item != null ? categoryRepository.findById(item.getCategoryId()).orElse(null) : null;
+        if (cat == null || !cat.getHotelId().equals(hotelId)) return ResponseEntity.status(403).build();
+        if (body.containsKey("name") && !body.get("name").toString().isBlank())
+            opt.setName(body.get("name").toString().trim());
+        if (body.containsKey("nameAm"))
+            opt.setNameAm(body.get("nameAm") != null && !body.get("nameAm").toString().isBlank()
+                    ? body.get("nameAm").toString().trim() : null);
+        if (body.containsKey("enabled"))
+            opt.setEnabled(Boolean.parseBoolean(body.get("enabled").toString()));
+        optionRepository.save(opt);
+        return ResponseEntity.ok(Map.of(
+                "id", opt.getId(), "name", opt.getName(),
+                "nameAm", opt.getNameAm() != null ? opt.getNameAm() : "",
+                "enabled", opt.isEnabled()));
+    }
+
+    /** Delete an option */
+    @DeleteMapping("/items/{itemId}/options/{optId}")
+    public ResponseEntity<?> deleteOption(@PathVariable Long itemId,
+                                          @PathVariable Long optId,
+                                          @RequestHeader("Authorization") String header) {
+        Long hotelId = jwtUtil.extractHotelId(header.substring(7));
+        RequestItemOption opt = optionRepository.findById(optId).orElse(null);
+        if (opt == null || !opt.getItemId().equals(itemId)) return ResponseEntity.notFound().build();
+        RequestItem item = itemRepository.findById(itemId).orElse(null);
+        RequestCategory cat = item != null ? categoryRepository.findById(item.getCategoryId()).orElse(null) : null;
+        if (cat == null || !cat.getHotelId().equals(hotelId)) return ResponseEntity.status(403).build();
+        optionRepository.delete(opt);
+        return ResponseEntity.ok(Map.of("deleted", true));
+    }
+
     /** Delete an item */
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<?> deleteItem(@PathVariable Long itemId,
@@ -231,6 +318,7 @@ public class CategoryController {
         if (item == null) return ResponseEntity.notFound().build();
         RequestCategory cat = categoryRepository.findById(item.getCategoryId()).orElse(null);
         if (cat == null || !cat.getHotelId().equals(hotelId)) return ResponseEntity.status(403).build();
+        optionRepository.findByItemIdOrderBySortOrder(itemId).forEach(optionRepository::delete);
         itemRepository.delete(item);
         return ResponseEntity.ok(Map.of("deleted", true));
     }

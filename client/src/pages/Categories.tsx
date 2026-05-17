@@ -7,6 +7,13 @@ import {
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 
+interface ItemOption {
+  id: number;
+  name: string;
+  nameAm: string;
+  enabled: boolean;
+}
+
 interface CatItem {
   id: number;
   name: string;
@@ -17,6 +24,7 @@ interface CatItem {
   schedulable: boolean;
   slotIntervalMins: number;
   capacity: number;
+  options: ItemOption[];
 }
 
 interface Category {
@@ -83,6 +91,14 @@ export default function CategoriesPage() {
   const [editSchedulable, setEditSchedulable] = useState(false);
   const [editInterval, setEditInterval]       = useState(30);
   const [editCapacity, setEditCapacity]       = useState(15);
+
+  const [optionsOpenId, setOptionsOpenId]     = useState<number | null>(null);
+  const [newOptName, setNewOptName]           = useState("");
+  const [newOptNameAm, setNewOptNameAm]       = useState("");
+  const [addingOpt, setAddingOpt]             = useState(false);
+  const [editOptId, setEditOptId]             = useState<number | null>(null);
+  const [editOptName, setEditOptName]         = useState("");
+  const [editOptNameAm, setEditOptNameAm]     = useState("");
 
   const fetchCats = async () => {
     const res = await authFetch("/api/dashboard/categories");
@@ -198,6 +214,42 @@ export default function CategoriesPage() {
     const res = await authFetch(`/api/dashboard/categories/items/${itemId}`, { method: "DELETE" });
     if (res.ok) setCats(prev => prev.map(c => c.id === catId
       ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c));
+  };
+
+  const addOption = async (catId: number, itemId: number, e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newOptName.trim()) return;
+    setAddingOpt(true);
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}/options`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newOptName.trim(), nameAm: newOptNameAm.trim() || null }),
+    });
+    if (res.ok) {
+      const opt: ItemOption = await res.json();
+      setCats(prev => prev.map(c => c.id === catId ? { ...c, items: c.items.map(i =>
+        i.id === itemId ? { ...i, options: [...i.options, opt] } : i) } : c));
+      setNewOptName(""); setNewOptNameAm("");
+    }
+    setAddingOpt(false);
+  };
+
+  const saveEditOption = async (catId: number, itemId: number, optId: number) => {
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}/options/${optId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: editOptName, nameAm: editOptNameAm || null }),
+    });
+    if (res.ok) {
+      const updated: ItemOption = await res.json();
+      setCats(prev => prev.map(c => c.id === catId ? { ...c, items: c.items.map(i =>
+        i.id === itemId ? { ...i, options: i.options.map(o => o.id === optId ? updated : o) } : i) } : c));
+      setEditOptId(null);
+    }
+  };
+
+  const deleteOption = async (catId: number, itemId: number, optId: number) => {
+    const res = await authFetch(`/api/dashboard/categories/items/${itemId}/options/${optId}`, { method: "DELETE" });
+    if (res.ok) setCats(prev => prev.map(c => c.id === catId ? { ...c, items: c.items.map(i =>
+      i.id === itemId ? { ...i, options: i.options.filter(o => o.id !== optId) } : i) } : c));
   };
 
   const inputCls = "w-full h-9 border border-stone-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-100 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400";
@@ -333,8 +385,9 @@ export default function CategoriesPage() {
                   <div className="border-t border-stone-100 dark:border-zinc-700/50">
                     {cat.items.map(item => (
                       <div key={item.id}
-                        className={`px-4 py-2.5 flex items-center gap-3 border-b border-stone-50 dark:border-zinc-700/30 last:border-0
+                        className={`border-b border-stone-50 dark:border-zinc-700/30 last:border-0
                           ${!item.enabled ? "opacity-50" : ""}`}>
+                        <div className="px-4 py-2.5 flex items-center gap-3">
 
                         <button onClick={() => toggleItem(cat.id, item.id, item.enabled)}
                           className="shrink-0 text-stone-400 hover:text-stone-700 transition-colors">
@@ -442,10 +495,70 @@ export default function CategoriesPage() {
                             }}
                               className="p-1.5 rounded hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors shrink-0">
                               <Pencil className="h-3 w-3" /></button>
+                            <button
+                              title="Manage choices"
+                              onClick={() => setOptionsOpenId(optionsOpenId === item.id ? null : item.id)}
+                              className={`p-1.5 rounded transition-colors shrink-0 text-xs font-semibold
+                                ${optionsOpenId === item.id
+                                  ? "bg-zinc-800 text-white dark:bg-zinc-600"
+                                  : item.options.length > 0
+                                    ? "text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200"
+                                    : "text-stone-300 hover:text-stone-500 hover:bg-stone-100"}`}>
+                              {item.options.length > 0 ? item.options.length : "+"} choices
+                            </button>
                             <button onClick={() => deleteItem(cat.id, item.id)}
                               className="p-1.5 rounded hover:bg-red-50 text-stone-300 hover:text-red-500 transition-colors shrink-0">
                               <Trash2 className="h-3 w-3" /></button>
                           </>
+                        )}
+                        </div>
+
+                        {/* Options sub-panel */}
+                        {optionsOpenId === item.id && (
+                          <div className="border-t border-stone-100 dark:border-zinc-700/40 bg-stone-50/60 dark:bg-zinc-800/40 px-6 py-2 space-y-1">
+                            <p className="text-[10px] font-semibold text-stone-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Choices / Types</p>
+                            {item.options.map(opt => (
+                              <div key={opt.id} className="flex items-center gap-2">
+                                {editOptId === opt.id ? (
+                                  <>
+                                    <input value={editOptName} onChange={e => setEditOptName(e.target.value)}
+                                      autoFocus className={`${inputCls} flex-1 min-w-0`}
+                                      onKeyDown={e => { if (e.key === "Enter") saveEditOption(cat.id, item.id, opt.id); if (e.key === "Escape") setEditOptId(null); }} />
+                                    <input value={editOptNameAm} onChange={e => setEditOptNameAm(e.target.value)}
+                                      placeholder="አማርኛ" className={`${inputCls} flex-1 min-w-0`} />
+                                    <button onClick={() => saveEditOption(cat.id, item.id, opt.id)}
+                                      className="p-1 rounded bg-zinc-900 text-white hover:bg-zinc-700 shrink-0">
+                                      <Check className="h-3 w-3" /></button>
+                                    <button onClick={() => setEditOptId(null)}
+                                      className="p-1 rounded hover:bg-stone-100 text-stone-400 shrink-0">
+                                      <X className="h-3 w-3" /></button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="flex-1 text-sm text-stone-700 dark:text-zinc-300">
+                                      {lang === "am" && opt.nameAm ? opt.nameAm : opt.name}
+                                    </span>
+                                    <button onClick={() => { setEditOptId(opt.id); setEditOptName(opt.name); setEditOptNameAm(opt.nameAm); }}
+                                      className="p-1 rounded hover:bg-stone-100 text-stone-400 hover:text-stone-700 shrink-0">
+                                      <Pencil className="h-3 w-3" /></button>
+                                    <button onClick={() => deleteOption(cat.id, item.id, opt.id)}
+                                      className="p-1 rounded hover:bg-red-50 text-stone-300 hover:text-red-500 shrink-0">
+                                      <Trash2 className="h-3 w-3" /></button>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                            <form onSubmit={e => addOption(cat.id, item.id, e)} className="flex items-center gap-2 pt-1">
+                              <input value={newOptName} onChange={e => setNewOptName(e.target.value)}
+                                required placeholder="Choice name" className={`${inputCls} flex-1 min-w-0`} />
+                              <input value={newOptNameAm} onChange={e => setNewOptNameAm(e.target.value)}
+                                placeholder="አማርኛ" className={`${inputCls} flex-1 min-w-0`} />
+                              <button type="submit" disabled={addingOpt}
+                                className="p-1.5 rounded bg-zinc-900 text-white hover:bg-zinc-700 transition-colors shrink-0">
+                                {addingOpt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                              </button>
+                            </form>
+                          </div>
                         )}
                       </div>
                     ))}

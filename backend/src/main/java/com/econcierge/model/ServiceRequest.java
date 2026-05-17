@@ -55,6 +55,9 @@ public class ServiceRequest {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    @Column(name = "selected_option", length = 200)
+    private String selectedOption;
+
     @PrePersist
     protected void onCreate() { createdAt = LocalDateTime.now(); }
 
@@ -86,6 +89,8 @@ public class ServiceRequest {
     public void setEtaMinutes(Integer v)         { this.etaMinutes = v; }
     public LocalDateTime getAcceptedAt()         { return acceptedAt; }
     public void setAcceptedAt(LocalDateTime v)   { this.acceptedAt = v; }
-    public LocalDateTime getCompletedAt()       { return completedAt; }
-    public void setCompletedAt(LocalDateTime v) { this.completedAt = v; }
+    public LocalDateTime getCompletedAt()         { return completedAt; }
+    public void setCompletedAt(LocalDateTime v)   { this.completedAt = v; }
+    public String getSelectedOption()             { return selectedOption; }
+    public void setSelectedOption(String v)       { this.selectedOption = v; }
 }

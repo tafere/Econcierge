@@ -32,5 +32,6 @@
     <include file="classpath:db/changelog/025-widen-image-urls.xml"/>
     <include file="classpath:db/changelog/026-fix-dnd-name-am.xml"/>
     <include file="classpath:db/changelog/027-item-icon.xml"/>
+    <include file="classpath:db/changelog/028-item-options.xml"/>
 
 </databaseChangeLog>
